@@ -51,8 +51,8 @@ export function useHomePage() {
     editorContent.value = '<h1>Нова нотатка</h1><p>Почніть писати тут...</p>'
   }
 
-  function addFolder(payload: { name: string; icon: string }) {
-    const newFolder: Folder = { id: Date.now(), name: payload.name, icon: payload.icon, color: 'bg-secondary-purple', count: 0 }
+  function addFolder(payload: { name: string; icon: string; color: string }) {
+    const newFolder: Folder = { id: Date.now(), name: payload.name, icon: payload.icon, color: payload.color, count: 0 }
     folders.value.push(newFolder)
   }
 
