@@ -8,6 +8,7 @@ import Link from '@tiptap/extension-link'
 import Highlight from '@tiptap/extension-highlight'
 import TextAlign from '@tiptap/extension-text-align'
 import Image from '@tiptap/extension-image'
+import { Markdown } from '@tiptap/markdown'
 import { CharacterCount, Placeholder } from '@tiptap/extensions'
 import { TaskItem, TaskList } from '@tiptap/extension-list'
 
@@ -35,13 +36,34 @@ const Toggle = Node.create({
   renderHTML({ HTMLAttributes }) { return ['details', mergeAttributes(HTMLAttributes, { 'data-type': 'toggle' }), ['summary', {}, HTMLAttributes.title], ['div', { class: 'toggle-content' }, 0]] },
 })
 
+function looksLikeMarkdown(value: string) {
+  return /(^|\n)\s{0,3}(#{1,6}\s|[-*+]\s|\d+[.)]\s|>\s|```|~~~|---\s*$)|\*\*[^*]+\*\*|__[^_]+__|\[[^\]]+\]\([^\s)]+\)/m.test(value)
+}
+
 const slashQuery = ref('')
 const slashRange = ref<{ from: number; to: number } | null>(null)
 const activeSlashIndex = ref(0)
 const slashMenuOpen = computed(() => slashRange.value !== null)
 
+function pasteMarkdown(event: ClipboardEvent) {
+  const instance = editor.value
+  const markdown = event.clipboardData?.getData('text/plain') ?? ''
+  const html = event.clipboardData?.getData('text/html') ?? ''
+  if (!instance?.markdown || !markdown || (html && !looksLikeMarkdown(markdown))) return false
+  event.preventDefault()
+  event.stopPropagation()
+  const parsed = instance.markdown.parse(markdown)
+  instance.commands.insertContent(parsed.type === 'doc' ? (parsed.content ?? []) : parsed)
+  return true
+}
+
 const editor = useEditor({
   content: props.content,
+  editorProps: {
+    handlePaste(_view, event) {
+      return pasteMarkdown(event)
+    },
+  },
   extensions: [
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
@@ -52,7 +74,8 @@ const editor = useEditor({
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
     Callout,
     Toggle,
-    Image.configure({ inline: false, allowBase64: true }),
+    Image.configure({ inline: true, allowBase64: true }),
+    Markdown.configure({ markedOptions: { gfm: true, breaks: false } }),
     Underline,
     Link.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),
     TaskList,
@@ -140,6 +163,9 @@ function updateSlashMenu() {
   slashQuery.value = match[1] ?? ''
   slashRange.value = { from: from - line.length, to: from }
 }
+function handlePaste(event: ClipboardEvent) {
+  pasteMarkdown(event)
+}
 function clearSlashQuery() { slashRange.value = null; slashQuery.value = ''; activeSlashIndex.value = 0 }
 function selectSlashCommand(command: SlashCommand) {
   if (!editor.value || !slashRange.value) return
@@ -187,7 +213,7 @@ onBeforeUnmount(() => editor.value?.destroy())
       <button class="text-editor__tool" type="button" title="Скасувати" :disabled="!editor?.can().undo()" @click="editor?.chain().focus().undo().run()">↶</button>
       <button class="text-editor__tool" type="button" title="Повторити" :disabled="!editor?.can().redo()" @click="editor?.chain().focus().redo().run()">↷</button>
     </div>
-    <div class="text-editor__body" @keydown="handleKeydown">
+    <div class="text-editor__body" @keydown.capture="handleKeydown" @paste.capture="handlePaste">
       <EditorContent :editor="editor" />
       <div v-if="slashMenuOpen && visibleSlashCommands.length" class="slash-menu" role="menu">
         <p class="slash-menu__hint">Блоки · {{ visibleSlashCommands.length }}</p>

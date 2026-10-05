@@ -993,6 +993,13 @@
   resolved "https://registry.yarnpkg.com/@tiptap/extensions/-/extensions-3.31.4.tgz#ac29dfeb89f78434936e21d3daa8bf54089afe81"
   integrity sha512-nIupIne/sHpV2Kw1M4MOmr4+G454KI8BXM5+LWKOU2EpzfALZWVSy7koF9lVRna4Zp5Gv8hfg5Z8kvmrYQvhkw==
 
+"@tiptap/markdown@3.31.4":
+  version "3.31.4"
+  resolved "https://registry.yarnpkg.com/@tiptap/markdown/-/markdown-3.31.4.tgz#6d56ee06fd040aaf1325059f476b2d641f6aeb01"
+  integrity sha512-lmR9V1/eQ41BaR2zBgYG/+Liy7K7Ch17ZNxVy8dpUVlNpWxxoHUMXNsCg2uEyXP3NLpZaKiY0+drSu9oK1DbSA==
+  dependencies:
+    marked "^17.0.1"
+
 "@tiptap/pm@3.31.4", "@tiptap/pm@^3.31.4":
   version "3.31.4"
   resolved "https://registry.yarnpkg.com/@tiptap/pm/-/pm-3.31.4.tgz#f76cbacc32038921e41f0530a44fa1c40a818dce"
@@ -2231,6 +2238,11 @@ magic-string@^0.30.19, magic-string@^0.30.21, magic-string@^0.30.4:
   integrity sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==
   dependencies:
     "@jridgewell/sourcemap-codec" "^1.5.5"
+
+marked@^17.0.1:
+  version "17.0.6"
+  resolved "https://registry.yarnpkg.com/marked/-/marked-17.0.6.tgz#2a97586a272d3be5880f198e020b74ad27cf86ba"
+  integrity sha512-gB0gkNafnonOw0obSTEGZTT86IuhILt2Wfx0mWH/1Au83kybTayroZ/V6nS25mN7u8ASy+5fMhgB3XPNrOZdmA==
 
 memorystream@^0.3.1:
   version "0.3.1"
