@@ -412,8 +412,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .text-editor { overflow: hidden; border: 3px solid var(--color-ink); border-radius: 18px; background: var(--color-accent-paper); color: var(--color-ink); box-shadow: 4px 4px 0 var(--color-ink); }
-.text-editor__toolbar { display: flex; min-height: 52px; align-items: center; gap: 3px; border-bottom: 3px solid var(--color-ink); background: var(--color-bg); padding: 7px 10px; }
-.text-editor__tool { display: grid; min-width: 32px; height: 32px; place-items: center; border: 2px solid transparent; border-radius: 8px; background: transparent; color: var(--color-ink); cursor: pointer; font-size: 14px; font-weight: 800; }
+.text-editor__toolbar { display: flex; flex-wrap: wrap; min-height: 52px; align-items: center; gap: 3px; border-bottom: 3px solid var(--color-ink); background: var(--color-bg); padding: 7px 10px; }
+.text-editor__tool { display: grid; min-width: 36px; height: 36px; place-items: center; border: 2px solid transparent; border-radius: 8px; background: transparent; color: var(--color-ink); cursor: pointer; font-size: 14px; font-weight: 800; }
 .text-editor__tool:hover, .text-editor__tool.is-active { border-color: var(--color-ink); background: var(--color-primary-yellow); color: #171717; }
 .text-editor__tool:disabled { cursor: not-allowed; opacity: .3; }
 .text-editor__tool--wide { width: 48px; font-size: 12px; }
@@ -432,6 +432,16 @@ onBeforeUnmount(() => {
 .image-popover__btn--primary { background: var(--color-primary-yellow); color: #171717; }
 .image-popover__btn--primary:disabled { cursor: not-allowed; opacity: .4; transform: none; }
 .text-editor__body { position: relative; min-height: 450px; padding: 34px clamp(20px, 5vw, 72px) 52px; }
+@media (max-width: 639px) {
+  .text-editor__toolbar { padding: 6px; }
+  .text-editor__divider { display: none; }
+  .text-editor__spacer { display: none; }
+  .text-editor__body { min-height: 320px; padding: 20px 16px 40px; }
+  .text-editor__body :deep(.ProseMirror) { min-height: 240px; }
+  .text-editor__body :deep(.ProseMirror h2) { font-size: 1.4rem; }
+  .text-editor__body :deep(.ProseMirror table) { display: block; overflow-x: auto; }
+  .image-popover { position: fixed; left: 16px; right: 16px; top: auto; width: auto; }
+}
 .text-editor__body :deep(.ProseMirror) { min-height: 365px; outline: none; font-size: 16px; line-height: 1.75; }
 .text-editor__body :deep(.ProseMirror > *) { margin: .65em 0; }
 .text-editor__body :deep(.ProseMirror h1) { margin-top: 0; font-size: clamp(2rem, 4vw, 3.15rem); line-height: 1.05; letter-spacing: -.04em; }

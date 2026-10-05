@@ -41,7 +41,7 @@ defineExpose({ open, show, hide, toggle })
 
     <div
       v-if="open"
-      class="absolute z-20 mt-2 rounded-brutal border-3 border-ink bg-accent-paper p-3 shadow-brutal"
+      class="absolute z-20 mt-2 max-w-[calc(100vw-2rem)] rounded-brutal border-3 border-ink bg-accent-paper p-3 shadow-brutal"
       :class="[align === 'right' ? 'right-0' : 'left-0', panelClass]"
     >
       <slot :hide="hide" />

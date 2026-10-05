@@ -37,7 +37,7 @@ function handleColorPicked(color: string) {
         </IconPicker>
       </div>
     </div>
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-3 min-[480px]:grid-cols-3 md:grid-cols-3 lg:grid-cols-2">
       <FolderTile
         v-for="folder in folders"
         :key="folder.id"
@@ -49,7 +49,7 @@ function handleColorPicked(color: string) {
         @click="emit('select', folder.id)"
       />
     </div>
-    <div class="mt-8 rounded-brutal border-2 border-ink bg-primary-yellow p-4 shadow-brutal-sm">
+    <div class="mt-5 lg:mt-8 rounded-brutal border-2 border-ink bg-primary-yellow p-4 shadow-brutal-sm">
       <p class="text-sm font-black">Швидка підказка</p>
       <p class="mt-1 text-sm leading-5">Створюйте папки для проєктів, навчання та особистих ідей.</p>
     </div>

@@ -10,9 +10,9 @@ const emit = defineEmits<{ select: [note: Note]; create: [] }>()
 <template>
   <UiCard compact>
     <div class="mb-4 flex items-center justify-between gap-3">
-      <div>
+      <div class="min-w-0">
         <p class="text-xs font-bold uppercase tracking-wider text-ink-light">Вибрана папка</p>
-        <h2 class="text-2xl font-black">{{ folderName }}</h2>
+        <h2 class="break-words text-xl font-black sm:text-2xl">{{ folderName }}</h2>
       </div>
       <UiIconButton label="Створити нотатку" variant="primary" @click="emit('create')">+</UiIconButton>
     </div>

@@ -27,7 +27,7 @@ const {
 <template>
   <main class="min-h-screen bg-bg px-4 py-4 text-ink sm:px-6 lg:px-10 lg:py-8">
     <div class="mx-auto max-w-[1440px]">
-      <header class="mb-6 flex items-center justify-between gap-4">
+      <header class="mb-4 flex sm:mb-6 items-center justify-between gap-4">
         <div class="flex items-center gap-3">
           <div class="grid h-11 w-11 place-items-center rounded-brutal border-3 border-ink bg-primary text-xl shadow-brutal-sm">✦</div>
           <div>
@@ -35,12 +35,12 @@ const {
             <h1 class="text-2xl font-black tracking-tight sm:text-3xl">my-notes</h1>
           </div>
         </div>
-        <UiButton class="hidden sm:inline-flex" variant="paper" @click="toggleTheme">
-          <span aria-hidden="true">{{ theme === 'dark' ? '☾' : '☼' }}</span> <span>Тема</span>
+        <UiButton variant="paper" @click="toggleTheme">
+          <span aria-hidden="true">{{ theme === 'dark' ? '☾' : '☼' }}</span> <span class="hidden sm:inline">Тема</span>
         </UiButton>
       </header>
 
-      <section class="grid gap-5 lg:grid-cols-[280px_330px_minmax(0,1fr)]">
+      <section class="grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-[280px_330px_minmax(0,1fr)]">
         <FolderSidebar :folders="folders" :active-folder-id="activeFolderId" @select="selectFolder" @create="addFolder" />
 
         <NoteListPanel
@@ -52,7 +52,7 @@ const {
           @create="createNote"
         />
 
-        <NoteEditorPanel v-model:content="editorContent" :title="activeNote?.title" />
+        <NoteEditorPanel v-model:content="editorContent" class="md:col-span-2 lg:col-span-1" :title="activeNote?.title" />
       </section>
     </div>
   </main>

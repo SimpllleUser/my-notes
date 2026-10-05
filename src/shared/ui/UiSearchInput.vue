@@ -4,8 +4,8 @@ const value = defineModel<string>({ default: '' })
 </script>
 
 <template>
-  <label class="flex items-center gap-2 rounded-brutal border-2 border-ink bg-bg px-3 py-2 focus-within:bg-white">
+  <label class="flex items-center gap-2 rounded-brutal border-2 border-ink bg-bg px-3 py-2.5 sm:py-2 focus-within:bg-white">
     <span class="text-lg leading-none" aria-hidden="true">⌕</span>
-    <input v-model="value" class="w-full bg-transparent text-sm outline-none placeholder:text-ink-light" :placeholder="placeholder" type="search" />
+    <input v-model="value" class="w-full bg-transparent text-base outline-none sm:text-sm placeholder:text-ink-light" :placeholder="placeholder" type="search" />
   </label>
 </template>
