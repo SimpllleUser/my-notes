@@ -47,7 +47,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutsi
         type="button"
         :aria-label="label"
         :title="label"
-        class="grid h-10 w-10 place-items-center rounded-brutal border-2 border-ink bg-bg transition hover:-translate-y-0.5"
+        class="grid h-10 w-10 place-items-center rounded-brutal border-2 border-ink bg-bg transition duration-150 hover:-translate-y-0.5 hover:shadow-brutal-sm active:translate-y-0 active:scale-95 active:shadow-none"
         @click="toggle"
       >
         <component :is="selectedIcon" v-if="selectedIcon" :size="20" />
@@ -77,7 +77,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', handleClickOutsi
             :key="item.name"
             type="button"
             :title="item.name"
-            class="grid aspect-square place-items-center rounded-lg border-2 border-transparent transition hover:border-ink hover:bg-primary-yellow"
+            class="grid aspect-square place-items-center rounded-lg border-2 border-transparent transition duration-150 hover:border-ink hover:bg-primary-yellow active:scale-90"
             :class="{ 'border-ink bg-primary-yellow': item.name === model }"
             @click="select(item.name, item.component)"
           >

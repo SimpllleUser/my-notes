@@ -16,7 +16,7 @@ watch(
 </script>
 
 <template>
-  <button type="button" class="flex aspect-square flex-col justify-between rounded-brutal border-2 border-ink p-3 text-left transition hover:-translate-y-1" :class="active ? 'bg-ink text-accent-paper shadow-brutal-sm' : 'bg-bg'">
+  <button type="button" class="flex aspect-square flex-col justify-between rounded-brutal border-2 border-ink p-3 text-left transition duration-150 hover:-translate-y-1 hover:shadow-brutal-sm active:translate-y-0 active:shadow-none" :class="active ? 'bg-ink text-accent-paper shadow-brutal-sm' : 'bg-bg'">
     <span class="grid h-10 w-10 place-items-center rounded-xl border-2 border-ink" :class="color">
       <component :is="iconComponent" v-if="iconComponent" :size="20" />
     </span>
