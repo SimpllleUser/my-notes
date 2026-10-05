@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import TextEditor from '@/share/TextEditor.vue'
 
 type Folder = { id: number; name: string; color: string; count: number }
 type Note = { id: number; title: string; preview: string; updated: string; folderId: number }
@@ -81,9 +82,7 @@ function createNote() {
 
         <section class="flex min-h-[620px] flex-col overflow-hidden rounded-brutal-lg border-3 border-ink bg-accent-paper shadow-brutal">
           <div class="flex flex-wrap items-center justify-between gap-3 border-b-3 border-ink px-5 py-4"><div><p class="text-xs font-bold uppercase tracking-wider text-ink-light">Редактор</p><h2 class="text-xl font-black">{{ activeNote?.title }}</h2></div><div class="flex items-center gap-2 text-xs font-bold text-ink-light"><span class="h-2 w-2 rounded-full bg-secondary-green"></span>Збережено</div></div>
-          <div class="flex flex-wrap items-center gap-1 border-b-2 border-ink bg-bg px-4 py-2"><button v-for="tool in ['B', 'I', 'U', 'H1', 'H2', '• список', '↗']" :key="tool" class="rounded-lg px-3 py-1.5 text-sm font-black transition hover:bg-primary" type="button">{{ tool }}</button></div>
-          <article class="prose prose-sm max-w-none flex-1 p-6 text-ink outline-none sm:p-8" contenteditable="true" spellcheck="false" v-html="editorContent"></article>
-          <div class="border-t-2 border-ink px-5 py-3 text-xs text-ink-light">Tiptap editor · Markdown підтримується</div>
+          <TextEditor v-model:content="editorContent" class="m-4 flex-1 sm:m-6" />
         </section>
       </section>
     </div>
