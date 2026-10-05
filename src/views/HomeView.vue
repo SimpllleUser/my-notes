@@ -27,20 +27,20 @@ async function testAppwrite() {
 </script>
 
 <template>
-  <main class="p-6">
-    <div class="max-w-sm mx-auto rounded-xl bg-white p-6 shadow-md">
-      <h1 class="text-xl font-medium text-black">Перевірка Appwrite</h1>
-      <p class="mt-2 text-gray-500">Натисніть кнопку, щоб виконати пробний запит.</p>
+  <main class="min-h-screen bg-bg p-6 text-ink">
+    <div class="mx-auto max-w-sm rounded-brutal-lg border-3 border-ink bg-accent-paper p-6 shadow-brutal">
+      <h1 class="text-xl font-bold">Перевірка Appwrite</h1>
+      <p class="mt-2 text-ink-light">Натисніть кнопку, щоб виконати пробний запит.</p>
 
       <button
-        class="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
+        class="mt-4 rounded-brutal border-3 border-ink bg-primary px-4 py-2 font-bold text-ink shadow-brutal-sm transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
         :disabled="loading"
         @click="testAppwrite"
       >
         {{ loading ? 'Перевіряю...' : 'Перевірити Appwrite' }}
       </button>
 
-      <p v-if="result" class="mt-4 text-sm text-gray-700">{{ result }}</p>
+      <p v-if="result" class="mt-4 text-sm text-ink-light">{{ result }}</p>
     </div>
   </main>
 </template>
