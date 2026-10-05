@@ -1,18 +1,12 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import { Node, mergeAttributes } from '@tiptap/core'
-import { EditorContent, Extension, useEditor } from '@tiptap/vue-3'
-import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
-import Link from '@tiptap/extension-link'
-import Highlight from '@tiptap/extension-highlight'
-import TextAlign from '@tiptap/extension-text-align'
-import Image from '@tiptap/extension-image'
-import { Markdown } from '@tiptap/markdown'
-import { CharacterCount, Placeholder } from '@tiptap/extensions'
-import { TaskItem, TaskList } from '@tiptap/extension-list'
-import { TableKit } from '@tiptap/extension-table'
-import UniqueID from '@tiptap/extension-unique-id'
+import { computed, nextTick, ref, watch } from 'vue'
+import { EditorContent, useEditor } from '@tiptap/vue-3'
+import { createExtensions } from '../model/extensions'
+import { pasteMarkdown } from '../model/markdown'
+import { createSlashCommands } from '../model/slashCommands'
+import { useEditorActions } from '../model/useEditorActions'
+import { useImagePopover } from '../model/useImagePopover'
+import { useSlashMenu } from '../model/useSlashMenu'
 
 defineOptions({ name: 'TextEditor' })
 
@@ -22,537 +16,44 @@ const props = withDefaults(defineProps<{ content?: string; placeholder?: string 
 })
 const emit = defineEmits<{ 'update:content': [value: string]; update: [value: string] }>()
 
-type SlashCommand = {
-  name: string
-  description: string
-  icon: string
-  keywords?: string
-  run: () => void
-}
-
-const Callout = Node.create({
-  name: 'callout',
-  group: 'block',
-  content: 'block+',
-  defining: true,
-  addAttributes() {
-    return { emoji: { default: '💡' }, tone: { default: 'yellow' } }
-  },
-  parseHTML() {
-    return [{ tag: 'aside[data-type="callout"]' }]
-  },
-  renderHTML({ HTMLAttributes }) {
-    return [
-      'aside',
-      mergeAttributes(HTMLAttributes, { 'data-type': 'callout' }),
-      ['span', { class: 'callout-emoji' }, HTMLAttributes.emoji],
-      ['div', { class: 'callout-content' }, 0],
-    ]
-  },
-})
-
-const Toggle = Node.create({
-  name: 'toggle',
-  group: 'block',
-  content: 'block+',
-  defining: true,
-  addAttributes() {
-    return {
-      title: {
-        default: 'Toggle',
-        parseHTML: (element) =>
-          element.getAttribute('data-title') ??
-          element.querySelector('summary')?.textContent ??
-          'Toggle',
-        renderHTML: (attrs) => ({ 'data-title': attrs.title }),
-      },
-      open: {
-        default: true,
-        parseHTML: (element) =>
-          element.hasAttribute('data-open')
-            ? element.getAttribute('data-open') !== 'false'
-            : element.hasAttribute('open'),
-        renderHTML: (attrs) => ({ 'data-open': attrs.open ? 'true' : 'false' }),
-      },
-    }
-  },
-  parseHTML() {
-    const contentElement = (element: HTMLElement) =>
-      element.querySelector<HTMLElement>(':scope > .toggle-content') ?? element
-    return [
-      { tag: 'div[data-type="toggle"]', contentElement },
-      { tag: 'details[data-type="toggle"]', contentElement },
-    ]
-  },
-  renderHTML({ node, HTMLAttributes }) {
-    return [
-      'div',
-      mergeAttributes(HTMLAttributes, { 'data-type': 'toggle' }),
-      [
-        'div',
-        { class: 'toggle-header' },
-        ['span', { class: 'toggle-caret', 'aria-hidden': 'true' }, node.attrs.open ? '▾' : '▸'],
-        ['span', { class: 'toggle-title' }, node.attrs.title || 'Toggle'],
-      ],
-      ['div', { class: 'toggle-content' }, 0],
-    ]
-  },
-  // A native <details>/<summary> doesn't reliably toggle when nested inside a
-  // contenteditable region (clicks get swallowed by ProseMirror's selection
-  // handling), and it always starts collapsed, hiding newly inserted content.
-  // A node view with a plain div + manually managed `open` attr avoids both.
-  addNodeView() {
-    return ({ node, getPos, editor }) => {
-      const dom = document.createElement('div')
-      const header = document.createElement('div')
-      const caret = document.createElement('button')
-      const titleInput = document.createElement('input')
-      const content = document.createElement('div')
-
-      dom.className = 'toggle-block'
-      header.className = 'toggle-header'
-      header.contentEditable = 'false'
-      caret.type = 'button'
-      caret.className = 'toggle-caret'
-      caret.setAttribute('aria-label', 'Згорнути або розгорнути блок')
-      titleInput.type = 'text'
-      titleInput.className = 'toggle-title'
-      titleInput.placeholder = 'Toggle'
-      content.className = 'toggle-content'
-
-      const applyAttrs = (currentNode: typeof node) => {
-        dom.dataset.open = String(currentNode.attrs.open)
-        caret.textContent = currentNode.attrs.open ? '▾' : '▸'
-        content.style.display = currentNode.attrs.open ? '' : 'none'
-        if (document.activeElement !== titleInput && titleInput.value !== currentNode.attrs.title) {
-          titleInput.value = currentNode.attrs.title
-        }
-      }
-
-      const setAttrs = (partial: Record<string, unknown>) => {
-        if (typeof getPos !== 'function') return
-        const pos = getPos()
-        if (typeof pos !== 'number') return
-        const liveNode = editor.state.doc.nodeAt(pos)
-        if (!liveNode) return
-        editor.view.dispatch(
-          editor.view.state.tr.setNodeMarkup(pos, undefined, { ...liveNode.attrs, ...partial }),
-        )
-      }
-
-      caret.addEventListener('mousedown', (event) => event.preventDefault())
-      caret.addEventListener('click', () => {
-        if (typeof getPos !== 'function') return
-        const pos = getPos()
-        if (typeof pos !== 'number') return
-        const liveNode = editor.state.doc.nodeAt(pos)
-        if (!liveNode) return
-        setAttrs({ open: !liveNode.attrs.open })
-      })
-
-      titleInput.addEventListener('mousedown', (event) => event.stopPropagation())
-      titleInput.addEventListener('input', () => setAttrs({ title: titleInput.value }))
-
-      header.append(caret, titleInput)
-      dom.append(header, content)
-      applyAttrs(node)
-
-      return {
-        dom,
-        contentDOM: content,
-        update: (updatedNode) => {
-          if (updatedNode.type !== node.type) return false
-          applyAttrs(updatedNode)
-          return true
-        },
-      }
-    }
-  },
-})
-
-function looksLikeMarkdown(value: string) {
-  const basicMarkdown =
-    /(^|\n)\s{0,3}(#{1,6}\s|[-*+]\s|\d+[.)]\s|>\s|```|~~~|---\s*$)|\*\*[^*]+\*\*|__[^_]+__|\[[^\]]+\]\([^\s)]+\)/m
-  const markdownTable =
-    /\|.*\|[ \t]*\n[ \t]*\|?[ \t]*:?-{2,}:?[ \t]*(\|[ \t]*:?-{2,}:?[ \t]*)*\|?[ \t]*(\n|$)/m
-  return basicMarkdown.test(value) || markdownTable.test(value)
-}
-
-const slashQuery = ref('')
-const slashRange = ref<{ from: number; to: number } | null>(null)
-const activeSlashIndex = ref(0)
-const slashMenuOpen = computed(() => slashRange.value !== null)
-
-function pasteMarkdown(event: ClipboardEvent) {
-  const instance = editor.value
-  const markdown = event.clipboardData?.getData('text/plain') ?? ''
-  const html = event.clipboardData?.getData('text/html') ?? ''
-  if (!instance?.markdown || !markdown || (html && !looksLikeMarkdown(markdown))) return false
-  event.preventDefault()
-  event.stopPropagation()
-  const parsed = instance.markdown.parse(markdown)
-  instance.commands.insertContent(parsed.type === 'doc' ? (parsed.content ?? []) : parsed)
-  return true
-}
-const OrderAttributeExtension = Extension.create({
-  name: 'orderAttribute',
-
-  addGlobalAttributes() {
-    return [
-      {
-        // Додаємо поле order до всіх типів блоків, які є на сторінці
-        types: ['paragraph', 'heading', 'bulletList', 'orderedList', 'image'],
-        attributes: {
-          order: {
-            default: null,
-            parseHTML: (element) => element.getAttribute('data-order'),
-            renderHTML: (attributes) => {
-              if (!attributes.order) return {}
-              return { 'data-order': attributes.order }
-            },
-          },
-        },
-      },
-    ]
-  },
-})
-
 const editor = useEditor({
   content: props.content,
-  editorProps: {
-    handlePaste(_view, event) {
-      return pasteMarkdown(event)
-    },
-  },
-  extensions: [
-    StarterKit.configure({
-      heading: { levels: [1, 2, 3] },
-      codeBlock: { HTMLAttributes: { class: 'notion-code-block' } },
-      dropcursor: { color: '#f3c400', width: 3 },
-    }),
-    UniqueID.configure({
-      types: ['heading', 'paragraph'],
-    }),
-    OrderAttributeExtension,
-    Highlight.configure({ multicolor: true }),
-    TextAlign.configure({ types: ['heading', 'paragraph'] }),
-    Callout,
-    Toggle,
-    Image.configure({ inline: true, allowBase64: true }),
-    Markdown.configure({ markedOptions: { gfm: true, breaks: false } }),
-    Underline,
-    Link.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),
-    TaskList,
-    TaskItem.configure({ nested: true }),
-    TableKit.configure({ table: { resizable: true, lastColumnResizable: true } }),
-    Placeholder.configure({
-      placeholder: ({ node }) => (node.type.name === 'heading' ? 'Заголовок' : props.placeholder),
-      showOnlyCurrent: false,
-    }),
-    CharacterCount,
-  ],
+  extensions: createExtensions(() => props.placeholder),
   onUpdate({ editor: instance }) {
     const json = instance.getJSON()
+    json.content.forEach((item, index) => {
+      item.attrs = {
+        ...item.attrs,
+        order: index,
+      }
+    })
+
     emit('update:content', json)
     emit('update', json)
-    console.log(json)
-    updateSlashMenu()
+    slashMenu.syncWithSelection()
   },
-  onSelectionUpdate: updateSlashMenu,
+  onSelectionUpdate: () => slashMenu.syncWithSelection(),
 })
 
-const slashCommands = computed<SlashCommand[]>(() => [
-  {
-    name: 'Заголовок 1',
-    description: 'Великий заголовок',
-    icon: 'H1',
-    keywords: 'heading title h1',
-    run: () => setHeading(1),
-  },
-  {
-    name: 'Заголовок 2',
-    description: 'Середній заголовок',
-    icon: 'H2',
-    keywords: 'heading title h2',
-    run: () => setHeading(2),
-  },
-  {
-    name: 'Список задач',
-    description: 'Задачі з чекбоксами',
-    icon: '☑',
-    keywords: 'task list todo checkbox',
-    run: toggleTaskList,
-  },
-  {
-    name: 'Маркований список',
-    description: 'Простий список',
-    icon: '•',
-    keywords: 'bullet list',
-    run: toggleBulletList,
-  },
-  {
-    name: 'Нумерований список',
-    description: 'Список із номерами',
-    icon: '1.',
-    keywords: 'numbered ordered list',
-    run: toggleOrderedList,
-  },
-  {
-    name: 'Цитата',
-    description: 'Виділена цитата',
-    icon: '❝',
-    keywords: 'quote blockquote',
-    run: toggleBlockquote,
-  },
-  {
-    name: 'Код',
-    description: 'Блок коду',
-    icon: '</>',
-    keywords: 'code block',
-    run: toggleCodeBlock,
-  },
-  {
-    name: 'Callout',
-    description: 'Важна думка або підказка',
-    icon: '💡',
-    keywords: 'callout note tip',
-    run: insertCallout,
-  },
-  {
-    name: 'Toggle',
-    description: 'Згортаний блок',
-    icon: '▸',
-    keywords: 'toggle collapse details',
-    run: insertToggle,
-  },
-  {
-    name: 'Зображення',
-    description: 'Вставити зображення за URL',
-    icon: '▧',
-    keywords: 'image picture photo',
-    run: openImagePopover,
-  },
-  {
-    name: 'Таблиця',
-    description: 'Таблиця 3×3 з заголовком',
-    icon: '▦',
-    keywords: 'table',
-    run: insertTable,
-  },
-  {
-    name: 'Роздільник',
-    description: 'Горизонтальна лінія',
-    icon: '—',
-    keywords: 'divider separator horizontal rule hr',
-    run: insertDivider,
-  },
-])
-const visibleSlashCommands = computed(() => {
-  const query = slashQuery.value.toLocaleLowerCase()
-  return slashCommands.value.filter((item) =>
-    `${item.name} ${item.description} ${item.keywords ?? ''}`.toLocaleLowerCase().includes(query),
-  )
-})
+// The slash menu reads its commands lazily, which breaks the cycle
+// slashMenu -> slashCommands -> actions -> slashMenu.close.
+const slashMenu = useSlashMenu(editor, () => slashCommands)
+const actions = useEditorActions(editor, slashMenu.close)
+const imagePopover = useImagePopover(editor, slashMenu.close)
+const slashCommands = createSlashCommands(actions, imagePopover.open)
+
+const slashMenuRef = ref<HTMLElement | null>(null)
 const characterCount = computed(() => editor.value?.storage.characterCount?.characters() ?? 0)
 
-watch(slashQuery, () => {
-  activeSlashIndex.value = 0
-})
+watch(slashMenu.activeIndex, () =>
+  nextTick(() =>
+    slashMenuRef.value?.querySelector('.is-selected')?.scrollIntoView({ block: 'nearest' }),
+  ),
+)
 
-function setHeading(level: 1 | 2 | 3) {
-  if (editor.value) {
-    clearSlashQuery()
-    editor.value.chain().focus().toggleHeading({ level }).run()
-  }
-}
-function toggleBulletList() {
-  if (editor.value) {
-    clearSlashQuery()
-    editor.value.chain().focus().toggleBulletList().run()
-  }
-}
-function toggleOrderedList() {
-  if (editor.value) {
-    clearSlashQuery()
-    editor.value.chain().focus().toggleOrderedList().run()
-  }
-}
-function toggleTaskList() {
-  if (editor.value) {
-    clearSlashQuery()
-    editor.value.chain().focus().toggleTaskList().run()
-  }
-}
-function toggleBlockquote() {
-  if (editor.value) {
-    clearSlashQuery()
-    editor.value.chain().focus().toggleBlockquote().run()
-  }
-}
-function toggleCodeBlock() {
-  if (editor.value) {
-    clearSlashQuery()
-    editor.value.chain().focus().toggleCodeBlock().run()
-  }
-}
-function insertCallout() {
-  if (!editor.value) return
-  clearSlashQuery()
-  editor.value
-    .chain()
-    .focus()
-    .insertContent({
-      type: 'callout',
-      attrs: { emoji: '💡', tone: 'yellow' },
-      content: [{ type: 'paragraph' }],
-    })
-    .run()
-}
-function insertToggle() {
-  if (!editor.value) return
-  clearSlashQuery()
-  editor.value
-    .chain()
-    .focus()
-    .insertContent({ type: 'toggle', content: [{ type: 'paragraph' }] })
-    .run()
-}
-const imagePopoverOpen = ref(false)
-const imageUrl = ref('')
-const imageAlt = ref('')
-const imageUrlInput = ref<HTMLInputElement | null>(null)
-const imagePopoverRoot = ref<HTMLElement | null>(null)
-
-function openImagePopover() {
-  clearSlashQuery()
-  imageUrl.value = ''
-  imageAlt.value = ''
-  imagePopoverOpen.value = true
-  nextTick(() => imageUrlInput.value?.focus())
-}
-function closeImagePopover() {
-  imagePopoverOpen.value = false
-}
-function confirmImage() {
-  const src = imageUrl.value.trim()
-  if (!src || !editor.value) return
-  editor.value
-    .chain()
-    .focus()
-    .setImage({ src, alt: imageAlt.value.trim() || 'Зображення' })
-    .run()
-  closeImagePopover()
-}
-function handleImagePopoverClickOutside(event: MouseEvent) {
-  if (
-    imagePopoverOpen.value &&
-    imagePopoverRoot.value &&
-    !imagePopoverRoot.value.contains(event.target as globalThis.Node)
-  ) {
-    closeImagePopover()
-  }
-}
-watch(imagePopoverOpen, (isOpen) => {
-  if (isOpen) document.addEventListener('mousedown', handleImagePopoverClickOutside)
-  else document.removeEventListener('mousedown', handleImagePopoverClickOutside)
-})
-function toggleHighlight() {
-  editor.value?.chain().focus().toggleMark('highlight', { color: '#fff3a8' }).run()
-}
-function setAlignment(alignment: 'left' | 'center' | 'right') {
-  if (!editor.value) return
-  const chain = editor.value.chain().focus()
-  if (editor.value.isActive('heading'))
-    chain.updateAttributes('heading', { textAlign: alignment }).run()
-  else chain.updateAttributes('paragraph', { textAlign: alignment }).run()
-}
-function insertDivider() {
-  if (editor.value) {
-    clearSlashQuery()
-    editor.value.chain().focus().setHorizontalRule().run()
-  }
-}
-function insertTable() {
-  if (!editor.value) return
-  clearSlashQuery()
-  editor.value.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
-}
-function addRowAfter() {
-  editor.value?.chain().focus().addRowAfter().run()
-}
-function addColumnAfter() {
-  editor.value?.chain().focus().addColumnAfter().run()
-}
-function deleteRow() {
-  editor.value?.chain().focus().deleteRow().run()
-}
-function deleteColumn() {
-  editor.value?.chain().focus().deleteColumn().run()
-}
-function deleteTable() {
-  editor.value?.chain().focus().deleteTable().run()
-}
-function setLink() {
-  if (!editor.value) return
-  const previous = editor.value.getAttributes('link').href as string | undefined
-  const url = window.prompt('Вставте URL', previous ?? 'https://')
-  if (url === null) return
-  if (url === '') editor.value.chain().focus().unsetLink().run()
-  else editor.value.chain().focus().setLink({ href: url }).run()
-}
-function updateSlashMenu() {
-  const instance = editor.value
-  if (!instance) return
-  const { from } = instance.state.selection
-  const beforeCursor = instance.state.doc.textBetween(Math.max(0, from - 80), from, '\n', '\ufffc')
-  const line = beforeCursor.split('\n').at(-1) ?? ''
-  const match = line.match(/^\/([^\s]*)$/)
-  if (!match) return clearSlashQuery()
-  slashQuery.value = match[1] ?? ''
-  slashRange.value = { from: from - line.length, to: from }
-}
 function handlePaste(event: ClipboardEvent) {
-  pasteMarkdown(event)
+  pasteMarkdown(editor.value, event)
 }
-function clearSlashQuery() {
-  slashRange.value = null
-  slashQuery.value = ''
-  activeSlashIndex.value = 0
-}
-function selectSlashCommand(command: SlashCommand) {
-  if (!editor.value || !slashRange.value) return
-  editor.value.chain().focus().deleteRange(slashRange.value).run()
-  clearSlashQuery()
-  command.run()
-}
-function handleKeydown(event: KeyboardEvent) {
-  if (!slashMenuOpen.value) return
-  if (event.key === 'Escape') {
-    event.preventDefault()
-    clearSlashQuery()
-  }
-  if (!visibleSlashCommands.value.length) return
-  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-    event.preventDefault()
-    const direction = event.key === 'ArrowDown' ? 1 : -1
-    activeSlashIndex.value =
-      (activeSlashIndex.value + direction + visibleSlashCommands.value.length) %
-      visibleSlashCommands.value.length
-    nextTick(() =>
-      document.querySelector('.slash-menu__item.is-selected')?.scrollIntoView({ block: 'nearest' }),
-    )
-  }
-  if ((event.key === 'Enter' || event.key === 'Tab') && visibleSlashCommands.value.length) {
-    event.preventDefault()
-    selectSlashCommand(
-      visibleSlashCommands.value[activeSlashIndex.value] ?? visibleSlashCommands.value[0]!,
-    )
-  }
-}
-onBeforeUnmount(() => {
-  document.removeEventListener('mousedown', handleImagePopoverClickOutside)
-  editor.value?.destroy()
-})
 </script>
 
 <template>
@@ -562,7 +63,7 @@ onBeforeUnmount(() => {
         class="text-editor__tool text-editor__tool--wide"
         type="button"
         title="Заголовок"
-        @click="setHeading(1)"
+        @click="actions.setHeading(1)"
       >
         Aa⌄
       </button>
@@ -572,7 +73,7 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': editor?.isActive('bold') }"
         type="button"
         title="Жирний"
-        @click="editor?.chain().focus().toggleBold().run()"
+        @click="actions.toggleBold"
       >
         <strong>B</strong>
       </button>
@@ -581,7 +82,7 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': editor?.isActive('italic') }"
         type="button"
         title="Курсив"
-        @click="editor?.chain().focus().toggleItalic().run()"
+        @click="actions.toggleItalic"
       >
         <em>I</em>
       </button>
@@ -590,7 +91,7 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': editor?.isActive('underline') }"
         type="button"
         title="Підкреслення"
-        @click="editor?.chain().focus().toggleUnderline().run()"
+        @click="actions.toggleUnderline"
       >
         <u>U</u>
       </button>
@@ -599,7 +100,7 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': editor?.isActive('strike') }"
         type="button"
         title="Закреслення"
-        @click="editor?.chain().focus().toggleStrike().run()"
+        @click="actions.toggleStrike"
       >
         <s>S</s>
       </button>
@@ -609,7 +110,7 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': editor?.isActive('bulletList') }"
         type="button"
         title="Маркований список"
-        @click="toggleBulletList"
+        @click="actions.toggleBulletList"
       >
         ☷
       </button>
@@ -618,7 +119,7 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': editor?.isActive('orderedList') }"
         type="button"
         title="Нумерований список"
-        @click="toggleOrderedList"
+        @click="actions.toggleOrderedList"
       >
         ☷<small>1</small>
       </button>
@@ -627,7 +128,7 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': editor?.isActive('taskList') }"
         type="button"
         title="Список задач"
-        @click="toggleTaskList"
+        @click="actions.toggleTaskList"
       >
         ☑
       </button>
@@ -636,7 +137,7 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': editor?.isActive('blockquote') }"
         type="button"
         title="Цитата"
-        @click="toggleBlockquote"
+        @click="actions.toggleBlockquote"
       >
         ❝
       </button>
@@ -645,7 +146,7 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': editor?.isActive('codeBlock') }"
         type="button"
         title="Код"
-        @click="toggleCodeBlock"
+        @click="actions.toggleCodeBlock"
       >
         &lt;/&gt;
       </button>
@@ -654,7 +155,7 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': editor?.isActive('link') }"
         type="button"
         title="Посилання"
-        @click="setLink"
+        @click="actions.setLink"
       >
         ↗
       </button>
@@ -663,7 +164,7 @@ onBeforeUnmount(() => {
         :class="{ 'is-active': editor?.isActive('highlight') }"
         type="button"
         title="Підсвічування"
-        @click="toggleHighlight"
+        @click="actions.toggleHighlight"
       >
         ▰
       </button>
@@ -671,83 +172,98 @@ onBeforeUnmount(() => {
         class="text-editor__tool"
         type="button"
         title="По центру"
-        @click="setAlignment('center')"
+        @click="actions.setAlignment('center')"
       >
         ≡
       </button>
-      <div ref="imagePopoverRoot" class="text-editor__popover-anchor">
+      <div ref="imagePopover.root" class="text-editor__popover-anchor">
         <button
           class="text-editor__tool"
-          :class="{ 'is-active': imagePopoverOpen }"
+          :class="{ 'is-active': imagePopover.isOpen.value }"
           type="button"
           title="Зображення"
-          @click="imagePopoverOpen ? closeImagePopover() : openImagePopover()"
+          @click="imagePopover.toggle"
         >
           ▧
         </button>
         <div
-          v-if="imagePopoverOpen"
+          v-if="imagePopover.isOpen.value"
           class="image-popover"
           role="dialog"
           aria-label="Вставити зображення"
         >
           <p class="image-popover__title">Зображення за посиланням</p>
           <input
-            ref="imageUrlInput"
-            v-model="imageUrl"
+            ref="imagePopover.urlInput"
+            v-model="imagePopover.url.value"
             type="url"
             class="image-popover__field"
             placeholder="https://..."
-            @keydown.enter.prevent="confirmImage"
-            @keydown.escape.prevent="closeImagePopover"
+            @keydown.enter.prevent="imagePopover.confirm"
+            @keydown.escape.prevent="imagePopover.close"
           />
           <input
-            v-model="imageAlt"
+            v-model="imagePopover.alt.value"
             type="text"
             class="image-popover__field"
             placeholder="Опис зображення (необовʼязково)"
-            @keydown.enter.prevent="confirmImage"
-            @keydown.escape.prevent="closeImagePopover"
+            @keydown.enter.prevent="imagePopover.confirm"
+            @keydown.escape.prevent="imagePopover.close"
           />
           <div class="image-popover__actions">
-            <button class="image-popover__btn" type="button" @click="closeImagePopover">
+            <button class="image-popover__btn" type="button" @click="imagePopover.close">
               Скасувати
             </button>
             <button
               class="image-popover__btn image-popover__btn--primary"
               type="button"
-              :disabled="!imageUrl.trim()"
-              @click="confirmImage"
+              :disabled="!imagePopover.url.value.trim()"
+              @click="imagePopover.confirm"
             >
               Вставити
             </button>
           </div>
         </div>
       </div>
-      <button class="text-editor__tool" type="button" title="Вставити таблицю" @click="insertTable">
+      <button
+        class="text-editor__tool"
+        type="button"
+        title="Вставити таблицю"
+        @click="actions.insertTable"
+      >
         ▦
       </button>
       <template v-if="editor?.isActive('table')">
         <span class="text-editor__divider" />
-        <button class="text-editor__tool" type="button" title="Додати рядок" @click="addRowAfter">
+        <button
+          class="text-editor__tool"
+          type="button"
+          title="Додати рядок"
+          @click="actions.addRowAfter"
+        >
           +▭
         </button>
         <button
           class="text-editor__tool"
           type="button"
           title="Додати колонку"
-          @click="addColumnAfter"
+          @click="actions.addColumnAfter"
         >
           ▯+
         </button>
-        <button class="text-editor__tool" type="button" title="Видалити рядок" @click="deleteRow">
+        <button
+          class="text-editor__tool"
+          type="button"
+          title="Видалити рядок"
+          @click="actions.deleteRow"
+        >
           ▭−
         </button>
         <button
           class="text-editor__tool"
           type="button"
           title="Видалити колонку"
-          @click="deleteColumn"
+          @click="actions.deleteColumn"
         >
           ▯−
         </button>
@@ -755,7 +271,7 @@ onBeforeUnmount(() => {
           class="text-editor__tool"
           type="button"
           title="Видалити таблицю"
-          @click="deleteTable"
+          @click="actions.deleteTable"
         >
           ✕▦
         </button>
@@ -766,7 +282,7 @@ onBeforeUnmount(() => {
         type="button"
         title="Скасувати"
         :disabled="!editor?.can().undo()"
-        @click="editor?.chain().focus().undo().run()"
+        @click="actions.undo"
       >
         ↶
       </button>
@@ -775,25 +291,29 @@ onBeforeUnmount(() => {
         type="button"
         title="Повторити"
         :disabled="!editor?.can().redo()"
-        @click="editor?.chain().focus().redo().run()"
+        @click="actions.redo"
       >
         ↷
       </button>
     </div>
-    <div class="text-editor__body" @keydown.capture="handleKeydown" @paste.capture="handlePaste">
+    <div
+      class="text-editor__body"
+      @keydown.capture="slashMenu.handleKeydown"
+      @paste.capture="handlePaste"
+    >
       <EditorContent :editor="editor" />
-      <div v-if="slashMenuOpen && visibleSlashCommands.length" class="slash-menu" role="menu">
-        <p class="slash-menu__hint">Блоки · {{ visibleSlashCommands.length }}</p>
+      <div v-if="slashMenu.isShown.value" ref="slashMenuRef" class="slash-menu" role="menu">
+        <p class="slash-menu__hint">Блоки · {{ slashMenu.visibleCommands.value.length }}</p>
         <button
-          v-for="(command, index) in visibleSlashCommands"
+          v-for="(command, index) in slashMenu.visibleCommands.value"
           :key="command.name"
           class="slash-menu__item"
-          :class="{ 'is-selected': index === activeSlashIndex }"
+          :class="{ 'is-selected': index === slashMenu.activeIndex.value }"
           type="button"
           role="menuitem"
-          :aria-selected="index === activeSlashIndex"
-          @mouseenter="activeSlashIndex = index"
-          @mousedown.prevent="selectSlashCommand(command)"
+          :aria-selected="index === slashMenu.activeIndex.value"
+          @mouseenter="slashMenu.activeIndex.value = index"
+          @mousedown.prevent="slashMenu.select(command)"
         >
           <span class="slash-menu__icon">{{ command.icon }}</span
           ><span
