@@ -3,4 +3,5 @@ export type Folder = {
   name: string
   color: string
   count: number
+  icon: string
 }

@@ -1,16 +1,27 @@
 <script setup lang="ts">
 import { UiCard, UiIconButton } from '@/shared/ui'
 import { FolderTile, type Folder } from '@/entities/folder'
+import { IconPicker } from '@/features/icon-picker'
 
 defineProps<{ folders: Folder[]; activeFolderId: number }>()
-const emit = defineEmits<{ select: [folderId: number] }>()
+const emit = defineEmits<{ select: [folderId: number]; create: [folder: { name: string; icon: string }] }>()
+
+function handleIconPicked(icon: string) {
+  const name = window.prompt('Назва папки', 'Нова папка')
+  if (!name) return
+  emit('create', { name, icon })
+}
 </script>
 
 <template>
   <UiCard as="aside" compact>
     <div class="mb-4 flex items-center justify-between">
       <h2 class="text-lg font-black">Папки</h2>
-      <UiIconButton label="Додати папку" variant="yellow" size="sm">+</UiIconButton>
+      <IconPicker label="Додати папку" @select="handleIconPicked">
+        <template #trigger="{ toggle }">
+          <UiIconButton label="Додати папку" variant="yellow" size="sm" @click="toggle">+</UiIconButton>
+        </template>
+      </IconPicker>
     </div>
     <div class="grid grid-cols-2 gap-3">
       <FolderTile
@@ -19,6 +30,7 @@ const emit = defineEmits<{ select: [folderId: number] }>()
         :name="folder.name"
         :count="folder.count"
         :color="folder.color"
+        :icon="folder.icon"
         :active="activeFolderId === folder.id"
         @click="emit('select', folder.id)"
       />

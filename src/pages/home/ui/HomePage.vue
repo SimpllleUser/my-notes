@@ -17,6 +17,7 @@ const {
   selectFolder,
   selectNote,
   createNote,
+  addFolder,
 } = useHomePage()
 </script>
 
@@ -35,7 +36,7 @@ const {
       </header>
 
       <section class="grid gap-5 lg:grid-cols-[280px_330px_minmax(0,1fr)]">
-        <FolderSidebar :folders="folders" :active-folder-id="activeFolderId" @select="selectFolder" />
+        <FolderSidebar :folders="folders" :active-folder-id="activeFolderId" @select="selectFolder" @create="addFolder" />
 
         <NoteListPanel
           v-model:search="search"

@@ -4,10 +4,10 @@ import type { Note } from '@/entities/note'
 
 export function useHomePage() {
   const folders = ref<Folder[]>([
-    { id: 1, name: 'Особисте', color: 'bg-primary', count: 12 },
-    { id: 2, name: 'Робота', color: 'bg-secondary-blue', count: 8 },
-    { id: 3, name: 'Навчання', color: 'bg-primary-yellow', count: 5 },
-    { id: 4, name: 'Ідеї', color: 'bg-secondary-green', count: 9 },
+    { id: 1, name: 'Особисте', color: 'bg-primary', count: 12, icon: 'User' },
+    { id: 2, name: 'Робота', color: 'bg-secondary-blue', count: 8, icon: 'Briefcase' },
+    { id: 3, name: 'Навчання', color: 'bg-primary-yellow', count: 5, icon: 'BookOpen' },
+    { id: 4, name: 'Ідеї', color: 'bg-secondary-green', count: 9, icon: 'Lightbulb' },
   ])
 
   const notes = ref<Note[]>([
@@ -51,6 +51,11 @@ export function useHomePage() {
     editorContent.value = '<h1>Нова нотатка</h1><p>Почніть писати тут...</p>'
   }
 
+  function addFolder(payload: { name: string; icon: string }) {
+    const newFolder: Folder = { id: Date.now(), name: payload.name, icon: payload.icon, color: 'bg-secondary-purple', count: 0 }
+    folders.value.push(newFolder)
+  }
+
   return {
     folders,
     notes,
@@ -64,5 +69,6 @@ export function useHomePage() {
     selectFolder,
     selectNote,
     createNote,
+    addFolder,
   }
 }
