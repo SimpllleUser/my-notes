@@ -41,3 +41,31 @@ body {
   color: var(--color-ink);
   transition: background-color .15s ease, color .15s ease;
 }
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-ink) var(--color-bg);
+}
+
+*::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--color-bg);
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-ink);
+  border: 3px solid var(--color-bg);
+  border-radius: 0;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-primary-yellow);
+}
