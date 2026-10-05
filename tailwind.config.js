@@ -4,17 +4,17 @@ export default {
   theme: {
     extend: {
       colors: {
-        bg: '#F8F9FA',
-        primary: { DEFAULT: '#FF3366', hover: '#E60039', yellow: '#FFEA00' },
-        secondary: { blue: '#2563EB', purple: '#8A2BE2', green: '#00E676' },
-        accent: { mint: '#1DE9B6', orange: '#FF6D00', paper: '#FFFFFF' },
-        ink: { DEFAULT: '#000000', light: '#333333' },
+        bg: 'var(--color-bg)',
+        primary: { DEFAULT: 'var(--color-primary)', hover: 'var(--color-primary-hover)', yellow: 'var(--color-primary-yellow)' },
+        secondary: { blue: 'var(--color-secondary-blue)', purple: 'var(--color-secondary-purple)', green: 'var(--color-secondary-green)' },
+        accent: { mint: 'var(--color-accent-mint)', orange: 'var(--color-accent-orange)', paper: 'var(--color-accent-paper)' },
+        ink: { DEFAULT: 'var(--color-ink)', light: 'var(--color-ink-light)' },
       },
       boxShadow: {
-        'brutal-sm': '2px 2px 0px 0px #000000',
-        brutal: '4px 4px 0px 0px #000000',
-        'brutal-md': '6px 6px 0px 0px #000000',
-        'brutal-lg': '8px 8px 0px 0px #000000',
+        'brutal-sm': '2px 2px 0px 0px var(--color-ink)',
+        brutal: '4px 4px 0px 0px var(--color-ink)',
+        'brutal-md': '6px 6px 0px 0px var(--color-ink)',
+        'brutal-lg': '8px 8px 0px 0px var(--color-ink)',
       },
       borderWidth: { 3: '3px', 4: '4px' },
       borderRadius: { brutal: '12px', 'brutal-lg': '18px' },

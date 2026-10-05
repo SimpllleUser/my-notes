@@ -1,3 +1,43 @@
 @import "tailwindcss";
 @config "../../../tailwind.config.js";
 @source "../../";
+
+:root {
+  --color-bg: #f8f9fa;
+  --color-ink: #000000;
+  --color-ink-light: #333333;
+  --color-primary: #ff3366;
+  --color-primary-hover: #e60039;
+  --color-primary-yellow: #ffea00;
+  --color-secondary-blue: #2563eb;
+  --color-secondary-purple: #8a2be2;
+  --color-secondary-green: #00e676;
+  --color-accent-mint: #1de9b6;
+  --color-accent-orange: #ff6d00;
+  --color-accent-paper: #ffffff;
+  --color-code-bg: #191919;
+  --color-code-ink: #f8f5eb;
+}
+
+:root[data-theme='dark'] {
+  --color-bg: #17171a;
+  --color-ink: #ddd9d0;
+  --color-ink-light: #918d84;
+  --color-primary: #ff4d7d;
+  --color-primary-hover: #ff6b93;
+  --color-primary-yellow: #e6c200;
+  --color-secondary-blue: #5b9dff;
+  --color-secondary-purple: #b388ff;
+  --color-secondary-green: #00c975;
+  --color-accent-mint: #3df0c7;
+  --color-accent-orange: #ff8a3d;
+  --color-accent-paper: #232327;
+  --color-code-bg: #0e0e10;
+  --color-code-ink: #ece9e1;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  transition: background-color .15s ease, color .15s ease;
+}

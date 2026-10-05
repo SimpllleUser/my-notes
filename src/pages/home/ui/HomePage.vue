@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { UiButton } from '@/shared/ui'
+import { useTheme } from '@/shared/lib/theme'
 import { FolderSidebar } from '@/widgets/folder-sidebar'
 import { NoteListPanel } from '@/widgets/note-list-panel'
 import { NoteEditorPanel } from '@/widgets/note-editor-panel'
 import { useHomePage } from '../model/useHomePage'
+
+const { theme, toggleTheme } = useTheme()
 
 const {
   folders,
@@ -32,7 +35,9 @@ const {
             <h1 class="text-2xl font-black tracking-tight sm:text-3xl">my-notes</h1>
           </div>
         </div>
-        <UiButton class="hidden sm:inline-flex" variant="paper">☼ <span>Тема</span></UiButton>
+        <UiButton class="hidden sm:inline-flex" variant="paper" @click="toggleTheme">
+          <span aria-hidden="true">{{ theme === 'dark' ? '☾' : '☼' }}</span> <span>Тема</span>
+        </UiButton>
       </header>
 
       <section class="grid gap-5 lg:grid-cols-[280px_330px_minmax(0,1fr)]">
