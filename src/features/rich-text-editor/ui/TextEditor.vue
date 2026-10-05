@@ -11,6 +11,7 @@ import Image from '@tiptap/extension-image'
 import { Markdown } from '@tiptap/markdown'
 import { CharacterCount, Placeholder } from '@tiptap/extensions'
 import { TaskItem, TaskList } from '@tiptap/extension-list'
+import { TableKit } from '@tiptap/extension-table'
 
 defineOptions({ name: 'TextEditor' })
 
@@ -20,7 +21,7 @@ const props = withDefaults(defineProps<{ content?: string; placeholder?: string 
 })
 const emit = defineEmits<{ 'update:content': [value: string]; update: [value: string] }>()
 
-type SlashCommand = { name: string; description: string; icon: string; run: () => void }
+type SlashCommand = { name: string; description: string; icon: string; keywords?: string; run: () => void }
 
 const Callout = Node.create({
   name: 'callout', group: 'block', content: 'block+', defining: true,
@@ -30,14 +31,119 @@ const Callout = Node.create({
 })
 
 const Toggle = Node.create({
-  name: 'toggle', group: 'block', content: 'block+', defining: true,
-  addAttributes() { return { title: { default: 'Розгорнути' } } },
-  parseHTML() { return [{ tag: 'details[data-type="toggle"]' }] },
-  renderHTML({ HTMLAttributes }) { return ['details', mergeAttributes(HTMLAttributes, { 'data-type': 'toggle' }), ['summary', {}, HTMLAttributes.title], ['div', { class: 'toggle-content' }, 0]] },
+  name: 'toggle',
+  group: 'block',
+  content: 'block+',
+  defining: true,
+  addAttributes() {
+    return {
+      title: {
+        default: 'Toggle',
+        parseHTML: (element) => element.getAttribute('data-title') ?? element.querySelector('summary')?.textContent ?? 'Toggle',
+        renderHTML: (attrs) => ({ 'data-title': attrs.title }),
+      },
+      open: {
+        default: true,
+        parseHTML: (element) => (element.hasAttribute('data-open') ? element.getAttribute('data-open') !== 'false' : element.hasAttribute('open')),
+        renderHTML: (attrs) => ({ 'data-open': attrs.open ? 'true' : 'false' }),
+      },
+    }
+  },
+  parseHTML() {
+    const contentElement = (element: HTMLElement) => (element.querySelector<HTMLElement>(':scope > .toggle-content') ?? element)
+    return [
+      { tag: 'div[data-type="toggle"]', contentElement },
+      { tag: 'details[data-type="toggle"]', contentElement },
+    ]
+  },
+  renderHTML({ node, HTMLAttributes }) {
+    return [
+      'div',
+      mergeAttributes(HTMLAttributes, { 'data-type': 'toggle' }),
+      [
+        'div',
+        { class: 'toggle-header' },
+        ['span', { class: 'toggle-caret', 'aria-hidden': 'true' }, node.attrs.open ? '▾' : '▸'],
+        ['span', { class: 'toggle-title' }, node.attrs.title || 'Toggle'],
+      ],
+      ['div', { class: 'toggle-content' }, 0],
+    ]
+  },
+  // A native <details>/<summary> doesn't reliably toggle when nested inside a
+  // contenteditable region (clicks get swallowed by ProseMirror's selection
+  // handling), and it always starts collapsed, hiding newly inserted content.
+  // A node view with a plain div + manually managed `open` attr avoids both.
+  addNodeView() {
+    return ({ node, getPos, editor }) => {
+      const dom = document.createElement('div')
+      const header = document.createElement('div')
+      const caret = document.createElement('button')
+      const titleInput = document.createElement('input')
+      const content = document.createElement('div')
+
+      dom.className = 'toggle-block'
+      header.className = 'toggle-header'
+      header.contentEditable = 'false'
+      caret.type = 'button'
+      caret.className = 'toggle-caret'
+      caret.setAttribute('aria-label', 'Згорнути або розгорнути блок')
+      titleInput.type = 'text'
+      titleInput.className = 'toggle-title'
+      titleInput.placeholder = 'Toggle'
+      content.className = 'toggle-content'
+
+      const applyAttrs = (currentNode: typeof node) => {
+        dom.dataset.open = String(currentNode.attrs.open)
+        caret.textContent = currentNode.attrs.open ? '▾' : '▸'
+        content.style.display = currentNode.attrs.open ? '' : 'none'
+        if (document.activeElement !== titleInput && titleInput.value !== currentNode.attrs.title) {
+          titleInput.value = currentNode.attrs.title
+        }
+      }
+
+      const setAttrs = (partial: Record<string, unknown>) => {
+        if (typeof getPos !== 'function') return
+        const pos = getPos()
+        if (typeof pos !== 'number') return
+        const liveNode = editor.state.doc.nodeAt(pos)
+        if (!liveNode) return
+        editor.view.dispatch(editor.view.state.tr.setNodeMarkup(pos, undefined, { ...liveNode.attrs, ...partial }))
+      }
+
+      caret.addEventListener('mousedown', (event) => event.preventDefault())
+      caret.addEventListener('click', () => {
+        if (typeof getPos !== 'function') return
+        const pos = getPos()
+        if (typeof pos !== 'number') return
+        const liveNode = editor.state.doc.nodeAt(pos)
+        if (!liveNode) return
+        setAttrs({ open: !liveNode.attrs.open })
+      })
+
+      titleInput.addEventListener('mousedown', (event) => event.stopPropagation())
+      titleInput.addEventListener('input', () => setAttrs({ title: titleInput.value }))
+
+      header.append(caret, titleInput)
+      dom.append(header, content)
+      applyAttrs(node)
+
+      return {
+        dom,
+        contentDOM: content,
+        update: (updatedNode) => {
+          if (updatedNode.type !== node.type) return false
+          applyAttrs(updatedNode)
+          return true
+        },
+      }
+    }
+  },
 })
 
 function looksLikeMarkdown(value: string) {
-  return /(^|\n)\s{0,3}(#{1,6}\s|[-*+]\s|\d+[.)]\s|>\s|```|~~~|---\s*$)|\*\*[^*]+\*\*|__[^_]+__|\[[^\]]+\]\([^\s)]+\)/m.test(value)
+  const basicMarkdown = /(^|\n)\s{0,3}(#{1,6}\s|[-*+]\s|\d+[.)]\s|>\s|```|~~~|---\s*$)|\*\*[^*]+\*\*|__[^_]+__|\[[^\]]+\]\([^\s)]+\)/m
+  const markdownTable = /\|.*\|[ \t]*\n[ \t]*\|?[ \t]*:?-{2,}:?[ \t]*(\|[ \t]*:?-{2,}:?[ \t]*)*\|?[ \t]*(\n|$)/m
+  return basicMarkdown.test(value) || markdownTable.test(value)
 }
 
 const slashQuery = ref('')
@@ -80,6 +186,7 @@ const editor = useEditor({
     Link.configure({ openOnClick: false, autolink: true, linkOnPaste: true }),
     TaskList,
     TaskItem.configure({ nested: true }),
+    TableKit.configure({ table: { resizable: true, lastColumnResizable: true } }),
     Placeholder.configure({
       placeholder: ({ node }) => (node.type.name === 'heading' ? 'Заголовок' : props.placeholder),
       showOnlyCurrent: false,
@@ -96,19 +203,23 @@ const editor = useEditor({
 })
 
 const slashCommands = computed<SlashCommand[]>(() => [
-  { name: 'Заголовок 1', description: 'Великий заголовок', icon: 'H1', run: () => setHeading(1) },
-  { name: 'Заголовок 2', description: 'Середній заголовок', icon: 'H2', run: () => setHeading(2) },
-  { name: 'Список задач', description: 'Задачі з чекбоксами', icon: '☑', run: toggleTaskList },
-  { name: 'Маркований список', description: 'Простий список', icon: '•', run: toggleBulletList },
-  { name: 'Нумерований список', description: 'Список із номерами', icon: '1.', run: toggleOrderedList },
-  { name: 'Цитата', description: 'Виділена цитата', icon: '❝', run: toggleBlockquote },
-  { name: 'Код', description: 'Блок коду', icon: '</>', run: toggleCodeBlock },
-  { name: 'Callout', description: 'Важна думка або підказка', icon: '💡', run: insertCallout },
-  { name: 'Toggle', description: 'Згортаний блок', icon: '▸', run: insertToggle },
-  { name: 'Зображення', description: 'Вставити зображення за URL', icon: '▧', run: insertImage },
-  { name: 'Роздільник', description: 'Горизонтальна лінія', icon: '—', run: insertDivider },
+  { name: 'Заголовок 1', description: 'Великий заголовок', icon: 'H1', keywords: 'heading title h1', run: () => setHeading(1) },
+  { name: 'Заголовок 2', description: 'Середній заголовок', icon: 'H2', keywords: 'heading title h2', run: () => setHeading(2) },
+  { name: 'Список задач', description: 'Задачі з чекбоксами', icon: '☑', keywords: 'task list todo checkbox', run: toggleTaskList },
+  { name: 'Маркований список', description: 'Простий список', icon: '•', keywords: 'bullet list', run: toggleBulletList },
+  { name: 'Нумерований список', description: 'Список із номерами', icon: '1.', keywords: 'numbered ordered list', run: toggleOrderedList },
+  { name: 'Цитата', description: 'Виділена цитата', icon: '❝', keywords: 'quote blockquote', run: toggleBlockquote },
+  { name: 'Код', description: 'Блок коду', icon: '</>', keywords: 'code block', run: toggleCodeBlock },
+  { name: 'Callout', description: 'Важна думка або підказка', icon: '💡', keywords: 'callout note tip', run: insertCallout },
+  { name: 'Toggle', description: 'Згортаний блок', icon: '▸', keywords: 'toggle collapse details', run: insertToggle },
+  { name: 'Зображення', description: 'Вставити зображення за URL', icon: '▧', keywords: 'image picture photo', run: openImagePopover },
+  { name: 'Таблиця', description: 'Таблиця 3×3 з заголовком', icon: '▦', keywords: 'table', run: insertTable },
+  { name: 'Роздільник', description: 'Горизонтальна лінія', icon: '—', keywords: 'divider separator horizontal rule hr', run: insertDivider },
 ])
-const visibleSlashCommands = computed(() => slashCommands.value.filter((item) => `${item.name} ${item.description}`.toLocaleLowerCase().includes(slashQuery.value.toLocaleLowerCase())))
+const visibleSlashCommands = computed(() => {
+  const query = slashQuery.value.toLocaleLowerCase()
+  return slashCommands.value.filter((item) => `${item.name} ${item.description} ${item.keywords ?? ''}`.toLocaleLowerCase().includes(query))
+})
 const characterCount = computed(() => editor.value?.storage.characterCount?.characters() ?? 0)
 
 watch(slashQuery, () => { activeSlashIndex.value = 0 })
@@ -127,15 +238,39 @@ function insertCallout() {
 function insertToggle() {
   if (!editor.value) return
   clearSlashQuery()
-  editor.value.chain().focus().insertContent({ type: 'toggle', attrs: { title: 'Натисніть, щоб розгорнути' }, content: [{ type: 'paragraph' }] }).run()
+  editor.value.chain().focus().insertContent({ type: 'toggle', content: [{ type: 'paragraph' }] }).run()
 }
-function insertImage() {
-  if (!editor.value) return
-  const src = window.prompt('URL зображення', 'https://')
-  if (!src) return
+const imagePopoverOpen = ref(false)
+const imageUrl = ref('')
+const imageAlt = ref('')
+const imageUrlInput = ref<HTMLInputElement | null>(null)
+const imagePopoverRoot = ref<HTMLElement | null>(null)
+
+function openImagePopover() {
   clearSlashQuery()
-  editor.value.chain().focus().setImage({ src, alt: 'Зображення' }).run()
+  imageUrl.value = ''
+  imageAlt.value = ''
+  imagePopoverOpen.value = true
+  nextTick(() => imageUrlInput.value?.focus())
 }
+function closeImagePopover() {
+  imagePopoverOpen.value = false
+}
+function confirmImage() {
+  const src = imageUrl.value.trim()
+  if (!src || !editor.value) return
+  editor.value.chain().focus().setImage({ src, alt: imageAlt.value.trim() || 'Зображення' }).run()
+  closeImagePopover()
+}
+function handleImagePopoverClickOutside(event: MouseEvent) {
+  if (imagePopoverOpen.value && imagePopoverRoot.value && !imagePopoverRoot.value.contains(event.target as globalThis.Node)) {
+    closeImagePopover()
+  }
+}
+watch(imagePopoverOpen, (isOpen) => {
+  if (isOpen) document.addEventListener('mousedown', handleImagePopoverClickOutside)
+  else document.removeEventListener('mousedown', handleImagePopoverClickOutside)
+})
 function toggleHighlight() { editor.value?.chain().focus().toggleMark('highlight', { color: '#fff3a8' }).run() }
 function setAlignment(alignment: 'left' | 'center' | 'right') {
   if (!editor.value) return
@@ -144,6 +279,16 @@ function setAlignment(alignment: 'left' | 'center' | 'right') {
   else chain.updateAttributes('paragraph', { textAlign: alignment }).run()
 }
 function insertDivider() { if (editor.value) { clearSlashQuery(); editor.value.chain().focus().setHorizontalRule().run() } }
+function insertTable() {
+  if (!editor.value) return
+  clearSlashQuery()
+  editor.value.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+}
+function addRowAfter() { editor.value?.chain().focus().addRowAfter().run() }
+function addColumnAfter() { editor.value?.chain().focus().addColumnAfter().run() }
+function deleteRow() { editor.value?.chain().focus().deleteRow().run() }
+function deleteColumn() { editor.value?.chain().focus().deleteColumn().run() }
+function deleteTable() { editor.value?.chain().focus().deleteTable().run() }
 function setLink() {
   if (!editor.value) return
   const previous = editor.value.getAttributes('link').href as string | undefined
@@ -188,7 +333,10 @@ function handleKeydown(event: KeyboardEvent) {
     selectSlashCommand(visibleSlashCommands.value[activeSlashIndex.value] ?? visibleSlashCommands.value[0]!)
   }
 }
-onBeforeUnmount(() => editor.value?.destroy())
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', handleImagePopoverClickOutside)
+  editor.value?.destroy()
+})
 </script>
 
 <template>
@@ -209,6 +357,42 @@ onBeforeUnmount(() => editor.value?.destroy())
       <button class="text-editor__tool" :class="{ 'is-active': editor?.isActive('link') }" type="button" title="Посилання" @click="setLink">↗</button>
       <button class="text-editor__tool" :class="{ 'is-active': editor?.isActive('highlight') }" type="button" title="Підсвічування" @click="toggleHighlight">▰</button>
       <button class="text-editor__tool" type="button" title="По центру" @click="setAlignment('center')">≡</button>
+      <div ref="imagePopoverRoot" class="text-editor__popover-anchor">
+        <button class="text-editor__tool" :class="{ 'is-active': imagePopoverOpen }" type="button" title="Зображення" @click="imagePopoverOpen ? closeImagePopover() : openImagePopover()">▧</button>
+        <div v-if="imagePopoverOpen" class="image-popover" role="dialog" aria-label="Вставити зображення">
+          <p class="image-popover__title">Зображення за посиланням</p>
+          <input
+            ref="imageUrlInput"
+            v-model="imageUrl"
+            type="url"
+            class="image-popover__field"
+            placeholder="https://..."
+            @keydown.enter.prevent="confirmImage"
+            @keydown.escape.prevent="closeImagePopover"
+          />
+          <input
+            v-model="imageAlt"
+            type="text"
+            class="image-popover__field"
+            placeholder="Опис зображення (необовʼязково)"
+            @keydown.enter.prevent="confirmImage"
+            @keydown.escape.prevent="closeImagePopover"
+          />
+          <div class="image-popover__actions">
+            <button class="image-popover__btn" type="button" @click="closeImagePopover">Скасувати</button>
+            <button class="image-popover__btn image-popover__btn--primary" type="button" :disabled="!imageUrl.trim()" @click="confirmImage">Вставити</button>
+          </div>
+        </div>
+      </div>
+      <button class="text-editor__tool" type="button" title="Вставити таблицю" @click="insertTable">▦</button>
+      <template v-if="editor?.isActive('table')">
+        <span class="text-editor__divider" />
+        <button class="text-editor__tool" type="button" title="Додати рядок" @click="addRowAfter">+▭</button>
+        <button class="text-editor__tool" type="button" title="Додати колонку" @click="addColumnAfter">▯+</button>
+        <button class="text-editor__tool" type="button" title="Видалити рядок" @click="deleteRow">▭−</button>
+        <button class="text-editor__tool" type="button" title="Видалити колонку" @click="deleteColumn">▯−</button>
+        <button class="text-editor__tool" type="button" title="Видалити таблицю" @click="deleteTable">✕▦</button>
+      </template>
       <span class="text-editor__spacer" />
       <button class="text-editor__tool" type="button" title="Скасувати" :disabled="!editor?.can().undo()" @click="editor?.chain().focus().undo().run()">↶</button>
       <button class="text-editor__tool" type="button" title="Повторити" :disabled="!editor?.can().redo()" @click="editor?.chain().focus().redo().run()">↷</button>
@@ -236,13 +420,33 @@ onBeforeUnmount(() => editor.value?.destroy())
 .text-editor__tool small { margin-left: -8px; align-self: end; font-size: 9px; }
 .text-editor__divider { height: 22px; width: 2px; background: #000; opacity: .2; margin: 0 5px; }
 .text-editor__spacer { flex: 1; }
+.text-editor__popover-anchor { position: relative; display: inline-flex; }
+.image-popover { position: absolute; z-index: 20; top: calc(100% + 8px); left: 0; width: min(300px, calc(100vw - 40px)); border: 3px solid #000; border-radius: 12px; background: #fff; padding: 14px; box-shadow: 4px 4px 0 #000; }
+.image-popover__title { margin: 0 0 9px; color: #858174; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
+.image-popover__field { display: block; width: 100%; border: 2px solid #000; border-radius: 8px; background: #f8f9fa; padding: 8px 10px; font-size: 14px; }
+.image-popover__field + .image-popover__field { margin-top: 8px; }
+.image-popover__field:focus { outline: none; background: #fff; box-shadow: 0 0 0 2px #ffea00 inset; }
+.image-popover__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+.image-popover__btn { border: 2px solid #000; border-radius: 8px; background: #fff; padding: 6px 14px; font-size: 13px; font-weight: 800; cursor: pointer; }
+.image-popover__btn:hover { transform: translateY(-1px); }
+.image-popover__btn--primary { background: #ffea00; }
+.image-popover__btn--primary:disabled { cursor: not-allowed; opacity: .4; transform: none; }
 .text-editor__body { position: relative; min-height: 450px; padding: 34px clamp(20px, 5vw, 72px) 52px; }
 .text-editor__body :deep(.ProseMirror) { min-height: 365px; outline: none; font-size: 16px; line-height: 1.75; }
 .text-editor__body :deep(.ProseMirror > *) { margin: .65em 0; }
 .text-editor__body :deep(.ProseMirror h1) { margin-top: 0; font-size: clamp(2rem, 4vw, 3.15rem); line-height: 1.05; letter-spacing: -.04em; }
 .text-editor__body :deep(.ProseMirror h2) { margin-top: 1.5em; font-size: 1.7rem; line-height: 1.15; letter-spacing: -.03em; }
 .text-editor__body :deep(.ProseMirror h3) { font-size: 1.25rem; }
-.text-editor__body :deep(.ProseMirror ul), .text-editor__body :deep(.ProseMirror ol) { padding-left: 1.5em; }
+.text-editor__body :deep(.ProseMirror ul), .text-editor__body :deep(.ProseMirror ol) { padding-left: 1.4em; }
+.text-editor__body :deep(.ProseMirror ul) { list-style: disc outside; }
+.text-editor__body :deep(.ProseMirror ol) { list-style: decimal outside; }
+.text-editor__body :deep(.ProseMirror ul ul) { list-style-type: circle; }
+.text-editor__body :deep(.ProseMirror ul ul ul) { list-style-type: square; }
+.text-editor__body :deep(.ProseMirror ol ol) { list-style-type: lower-alpha; }
+.text-editor__body :deep(.ProseMirror ol ol ol) { list-style-type: lower-roman; }
+.text-editor__body :deep(.ProseMirror li) { margin: .2em 0; padding-left: .2em; }
+.text-editor__body :deep(.ProseMirror li::marker) { font-weight: 700; }
+.text-editor__body :deep(.ProseMirror li > ul), .text-editor__body :deep(.ProseMirror li > ol) { margin-top: .2em; }
 .text-editor__body :deep(.ProseMirror blockquote) { border-left: 4px solid #ff3366; background: #fff0f4; padding: .75rem 1rem; font-weight: 600; }
 .text-editor__body :deep(.ProseMirror code) { border-radius: 5px; background: #e9e7df; padding: .15em .35em; font-size: .9em; }
 .text-editor__body :deep(.ProseMirror pre) { overflow-x: auto; border: 2px solid #171717; border-radius: 10px; background: #191919; color: #f8f5eb; padding: 1rem; }
@@ -254,14 +458,28 @@ onBeforeUnmount(() => editor.value?.destroy())
 .text-editor__body :deep(.ProseMirror aside[data-type='callout']) { display: flex; gap: 12px; align-items: flex-start; border: 3px solid #000; border-radius: 12px; background: #ffea00; padding: 14px; box-shadow: 2px 2px 0 #000; }
 .text-editor__body :deep(.ProseMirror .callout-emoji) { flex: 0 0 auto; font-size: 1.35rem; line-height: 1.5; }
 .text-editor__body :deep(.ProseMirror .callout-content) { min-width: 0; flex: 1; }
-.text-editor__body :deep(.ProseMirror details[data-type='toggle']) { border: 2px solid #d8d3c4; border-radius: 10px; padding: 0 13px; }
-.text-editor__body :deep(.ProseMirror details[data-type='toggle'] summary) { cursor: pointer; padding: 10px 0; font-weight: 800; }
-.text-editor__body :deep(.ProseMirror .toggle-content) { padding-bottom: 8px; }
+.text-editor__body :deep(.ProseMirror .toggle-block) { border: 2px solid #d8d3c4; border-radius: 10px; padding: 2px 13px; }
+.text-editor__body :deep(.ProseMirror .toggle-header) { display: flex; align-items: center; gap: 8px; padding: 10px 0; }
+.text-editor__body :deep(.ProseMirror .toggle-caret) { display: grid; place-items: center; width: 22px; height: 22px; border: 0; border-radius: 6px; background: transparent; color: inherit; cursor: pointer; font-size: 12px; }
+.text-editor__body :deep(.ProseMirror .toggle-caret:hover) { background: #f8f9fa; }
+.text-editor__body :deep(.ProseMirror .toggle-title) { flex: 1; border: 0; background: transparent; padding: 0; font-family: inherit; font-size: inherit; font-weight: 800; color: inherit; outline: none; }
+.text-editor__body :deep(.ProseMirror .toggle-title::placeholder) { color: #9b978b; font-weight: 800; }
+.text-editor__body :deep(.ProseMirror .toggle-content) { padding: 0 0 10px 30px; }
 .text-editor__body :deep(.ProseMirror ul[data-type='taskList']) { padding: 0; list-style: none; }
-.text-editor__body :deep(.ProseMirror li[data-type='taskItem']) { display: flex; gap: .6rem; align-items: flex-start; }
-.text-editor__body :deep(.ProseMirror li[data-type='taskItem'] > label) { margin-top: .45rem; }
-.text-editor__body :deep(.ProseMirror li[data-type='taskItem'] > div) { flex: 1; }
-.text-editor__body :deep(.ProseMirror input[type='checkbox']) { accent-color: #171717; width: 16px; height: 16px; }
+.text-editor__body :deep(.ProseMirror ul[data-type='taskList'] > li) { display: flex; gap: .6rem; align-items: flex-start; margin: .35em 0; }
+.text-editor__body :deep(.ProseMirror ul[data-type='taskList'] > li > label) { display: flex; margin-top: .25rem; user-select: none; }
+.text-editor__body :deep(.ProseMirror ul[data-type='taskList'] > li > div) { min-width: 0; flex: 1; }
+.text-editor__body :deep(.ProseMirror ul[data-type='taskList'] > li > div p) { margin: 0; }
+.text-editor__body :deep(.ProseMirror ul[data-type='taskList'] > li[data-checked='true'] > div) { color: #9b978b; text-decoration: line-through; }
+.text-editor__body :deep(.ProseMirror input[type='checkbox']) { accent-color: #171717; width: 16px; height: 16px; cursor: pointer; }
+.text-editor__body :deep(.ProseMirror .tableWrapper) { margin: 1em 0; overflow-x: auto; }
+.text-editor__body :deep(.ProseMirror table) { border-collapse: collapse; table-layout: fixed; width: 100%; border: 2px solid #171717; border-radius: 10px; overflow: hidden; }
+.text-editor__body :deep(.ProseMirror td), .text-editor__body :deep(.ProseMirror th) { position: relative; box-sizing: border-box; min-width: 90px; border: 1px solid #171717; padding: .5em .7em; vertical-align: top; }
+.text-editor__body :deep(.ProseMirror td > *), .text-editor__body :deep(.ProseMirror th > *) { margin: 0; }
+.text-editor__body :deep(.ProseMirror th) { background: #ffea00; font-weight: 800; text-align: left; }
+.text-editor__body :deep(.ProseMirror .column-resize-handle) { position: absolute; top: 0; bottom: -2px; right: -2px; width: 4px; background: #171717; pointer-events: none; }
+.text-editor__body :deep(.ProseMirror.resize-cursor) { cursor: col-resize; }
+.text-editor__body :deep(.ProseMirror .selectedCell) { background: rgba(255, 234, 0, 0.35); }
 .text-editor__body :deep(.ProseMirror p.is-editor-empty:first-child::before), .text-editor__body :deep(.ProseMirror p.is-empty::before) { float: left; height: 0; color: #9b978b; content: attr(data-placeholder); pointer-events: none; }
 .text-editor__footer { display: flex; justify-content: space-between; border-top: 2px solid #000; color: #333; font-size: 11px; padding: 9px 16px; }
 .text-editor__footer kbd { border: 1px solid #000; border-radius: 4px; background: #f8f9fa; padding: 1px 4px; margin-right: 2px; }
