@@ -3,7 +3,7 @@ import { computed, ref } from 'vue'
 import type { Folder } from '@/entities/folder'
 import type { Note } from '@/entities/note'
 
-export function useHomePage() {
+export function useUIKit() {
   const folders = ref<Folder[]>([
     { id: 1, name: 'Особисте', color: 'bg-primary', count: 12, icon: 'User' },
     { id: 2, name: 'Робота', color: 'bg-secondary-blue', count: 8, icon: 'Briefcase' },
