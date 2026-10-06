@@ -15,14 +15,14 @@ export const useAuthStore = defineStore('auth', {
     },
 
   getters: {
-    isAuthed: (state) => state.user?.$id || state.session?.$id
+    isAuthed: (state) => Boolean(state.user?.$id || state.session?.$id),
   },
   actions: {
     async signIn(payload: SingInPayload) {
       const { session, error } = await authAPI.signIn(payload)
       if (session) {
         this.session = session
-      } else  {
+      } else {
         console.log(error)
       }
     },
@@ -33,6 +33,6 @@ export const useAuthStore = defineStore('auth', {
       } else {
         console.log(error)
       }
-    }
+    },
   },
 })
