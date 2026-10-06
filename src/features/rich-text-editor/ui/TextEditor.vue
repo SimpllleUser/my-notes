@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import { EditorContent, useEditor } from '@tiptap/vue-3'
+import { EditorContent, useEditor, type Content, type JSONContent } from '@tiptap/vue-3'
 import { createExtensions } from '../model/extensions'
 import { pasteMarkdown } from '../model/markdown'
 import { createSlashCommands } from '../model/slashCommands'
@@ -10,11 +10,11 @@ import { useSlashMenu } from '../model/useSlashMenu'
 
 defineOptions({ name: 'TextEditor' })
 
-const props = withDefaults(defineProps<{ content?: string; placeholder?: string }>(), {
+const props = withDefaults(defineProps<{ content?: Content; placeholder?: string }>(), {
   content: '<h1>Нова нотатка</h1><p>Почніть писати тут...</p>',
   placeholder: 'Натисніть «/», щоб додати блок, або почніть писати…',
 })
-const emit = defineEmits<{ 'update:content': [value: string]; update: [value: string] }>()
+const emit = defineEmits<{ 'update:content': [value: JSONContent]; update: [value: JSONContent] }>()
 
 const editor = useEditor({
   content: props.content,

@@ -1,3 +1,4 @@
+import type { Content } from '@tiptap/vue-3'
 import { computed, ref } from 'vue'
 import type { Folder } from '@/entities/folder'
 import type { Note } from '@/entities/note'
@@ -21,7 +22,7 @@ export function useHomePage() {
   const activeFolderId = ref(1)
   const activeNoteId = ref(1)
   const search = ref('')
-  const editorContent = ref(
+  const editorContent = ref<Content>(
     '<h1>План на тиждень</h1><p>Невеликий план допомагає зберігати фокус і не перевантажувати себе.</p><h2>Головні задачі</h2><ul><li>Завершити дизайн головного екрану</li><li>Підготувати нотатки до зустрічі</li><li>Залишити вечір для відпочинку</li></ul>',
   )
 
