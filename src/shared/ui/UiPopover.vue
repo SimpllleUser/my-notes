@@ -1,9 +1,22 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
-withDefaults(defineProps<{ align?: 'left' | 'right'; panelClass?: string }>(), {
+const props = withDefaults(defineProps<{ align?: 'left' | 'right' | 'top' | 'bottom'; panelClass?: string }>(), {
   align: 'right',
   panelClass: '',
+})
+
+const positionClass = computed(() => {
+  switch (props.align) {
+    case 'left':
+      return 'left-0 top-full mt-2'
+    case 'top':
+      return 'left-0 bottom-full mb-2'
+    case 'bottom':
+      return 'left-0 top-full mt-2'
+    default:
+      return 'right-0 top-full mt-2'
+  }
 })
 
 const open = defineModel<boolean>('open', { default: false })
@@ -41,8 +54,8 @@ defineExpose({ open, show, hide, toggle })
 
     <div
       v-if="open"
-      class="absolute z-20 mt-2 max-w-[calc(100vw-2rem)] rounded-brutal border-3 border-ink bg-accent-paper p-3 shadow-brutal"
-      :class="[align === 'right' ? 'right-0' : 'left-0', panelClass]"
+      class="absolute z-20 max-w-[calc(100vw-2rem)] rounded-brutal border-3 border-ink bg-accent-paper p-3 shadow-brutal"
+      :class="[positionClass, panelClass]"
     >
       <slot :hide="hide" />
     </div>
