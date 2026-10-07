@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { ref, shallowRef, watch, type Component } from 'vue'
+import { ref, shallowRef, watch, type Component, onMounted } from 'vue'
 import { resolveLucideIcon } from '@/shared/lib/lucide'
 import { UiPopover } from '@/shared/ui'
 import { useIconPicker } from '../model/useIconPicker'
+import { getRandomArrayItem } from '@/shared/utils/arrays.ts'
+import type { ColorSwatch } from '@/features/color-picker/model/useColorPicker.ts'
 
-withDefaults(defineProps<{ label?: string }>(), { label: 'Обрати іконку' })
+const props = withDefaults(defineProps<{ label?: string; autoInit?: boolean }>(), {
+  label: 'Обрати іконку',
+  autoInit: false,
+})
 const model = defineModel<string | undefined>()
 const emit = defineEmits<{ select: [name: string] }>()
 
@@ -13,7 +18,13 @@ const popoverRef = ref<InstanceType<typeof UiPopover> | null>(null)
 const { query, results, loading, ensureLoaded } = useIconPicker()
 const selectedIcon = shallowRef<Component | null>(null)
 
-watch(() => model.value, async (name) => { selectedIcon.value = await resolveLucideIcon(name) }, { immediate: true })
+watch(
+  () => model.value,
+  async (name) => {
+    selectedIcon.value = await resolveLucideIcon(name)
+  },
+  { immediate: true },
+)
 
 watch(isOpen, (open) => {
   if (open) {
@@ -28,6 +39,19 @@ function select(name: string, component: Component) {
   emit('select', name)
   isOpen.value = false
 }
+
+const getRandomIcon = async () => {
+  query.value = ' '
+  await ensureLoaded()
+  return getRandomArrayItem<{ name: string; component: Component }>(results.value)
+}
+
+onMounted(async () => {
+  if (props.autoInit) {
+    const icon = await getRandomIcon<{ name: string; component: Component }>()
+    select(icon.name, icon.component)
+  }
+})
 
 defineExpose({
   show: () => popoverRef.value?.show(),
@@ -52,7 +76,9 @@ defineExpose({
       </slot>
     </template>
 
-    <label class="mb-2 flex items-center gap-2 rounded-brutal border-2 border-ink bg-bg px-3 py-2 focus-within:bg-white">
+    <label
+      class="mb-2 flex items-center gap-2 rounded-brutal border-2 border-ink bg-bg px-3 py-2 focus-within:bg-white"
+    >
       <span class="text-lg leading-none" aria-hidden="true">⌕</span>
       <input
         v-model="query"
@@ -77,7 +103,9 @@ defineExpose({
         >
           <component :is="item.component" :size="18" />
         </button>
-        <p v-if="results.length === 0" class="col-span-6 py-4 text-center text-sm text-ink-light">Нічого не знайдено</p>
+        <p v-if="results.length === 0" class="col-span-6 py-4 text-center text-sm text-ink-light">
+          Нічого не знайдено
+        </p>
       </template>
     </div>
   </UiPopover>

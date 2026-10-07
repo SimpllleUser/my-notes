@@ -1,9 +1,17 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { UiPopover } from '@/shared/ui'
-import { useColorPicker } from '../model/useColorPicker'
+import { type ColorSwatch, useColorPicker } from '../model/useColorPicker'
+import { getRandomArrayItem } from '@/shared/utils/arrays.ts'
 
-const props = withDefaults(defineProps<{ label?: string; autoOpen?: boolean }>(), { label: 'Обрати колір', autoOpen: false })
+const props = withDefaults(
+  defineProps<{ label?: string; autoOpen?: boolean; autoInit?: boolean }>(),
+  {
+    label: 'Обрати колір',
+    autoOpen: false,
+    autoInit: false,
+  },
+)
 const model = defineModel<string | undefined>()
 const emit = defineEmits<{ select: [value: string] }>()
 
@@ -19,6 +27,7 @@ function select(value: string) {
 
 onMounted(() => {
   if (props.autoOpen) isOpen.value = true
+  if (!model.value && props.autoInit) select(getRandomArrayItem<ColorSwatch>(swatches).class)
 })
 
 defineExpose({
