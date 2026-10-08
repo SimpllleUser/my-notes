@@ -11,6 +11,9 @@ export const useFoldersStore = defineStore('folders', {
     }) as {
       folders: Nullable<Folder[]>
     },
+  getters: {
+    getFolders: (state) => state.folders || []
+  },
   actions: {
     async getAll() {
       const { data, error } = await folderAPI.getAll()

@@ -2,7 +2,7 @@
 import { shallowRef, watch, type Component } from 'vue'
 import { resolveLucideIcon } from '@/shared/lib/lucide'
 
-const props = defineProps<{ name: string; count: number; color: string; icon?: string; active?: boolean }>()
+const props = defineProps<{ name: string; count?: number; color: string; icon?: string; active?: boolean }>()
 
 const iconComponent = shallowRef<Component | null>(null)
 
@@ -20,6 +20,9 @@ watch(
     <span class="grid h-10 w-10 place-items-center rounded-xl border-2 border-ink" :class="color">
       <component :is="iconComponent" v-if="iconComponent" :size="20" />
     </span>
-    <span><span class="block truncate font-bold">{{ name }}</span><span class="text-xs opacity-70">{{ count }} нотаток</span></span>
+    <span>
+      <span class="block truncate font-bold">{{ name }}</span>
+      <span class="text-xs opacity-70">{{ count }} нотаток</span>
+    </span>
   </button>
 </template>
