@@ -28,8 +28,9 @@ const folder = ref<Nullable<Folder>>(null)
 const edit = (payload: Folder) => {
   folder.value = payload
 }
-const remove = (payload: Folder) => {
-  foldersStore.delete(payload.$id)
+const remove = async (payload: Folder) => {
+  await foldersStore.delete(payload.$id)
+  await foldersStore.getAll()
 }
 </script>
 

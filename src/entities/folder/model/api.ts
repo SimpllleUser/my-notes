@@ -1,5 +1,5 @@
 import { tablesDB } from '@/shared/api/appwrite.ts'
-import { ID, type Models, type TablesDB } from 'appwrite'
+import { ID, type Models, Permission, Role, type TablesDB } from 'appwrite'
 import type { Folder, FolderPayload } from '@/entities/folder/model/types.ts'
 import type { APIResponse } from '@/shared/model/types.ts'
 
