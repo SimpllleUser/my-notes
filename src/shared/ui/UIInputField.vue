@@ -1,40 +1,27 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-
-const props = withDefaults(
+withDefaults(
   defineProps<{
-    modelValue: string
     placeholder?: string
     type?: 'text' | 'password' | 'email'
+    disabled?: boolean
   }>(),
-  {
-    type: 'text',
-    placeholder: '',
-  },
+  { type: 'text', placeholder: '', disabled: false },
 )
 
-const emits = defineEmits(['update:modelValue'])
-
-const internalValue = computed({
-  get: () => props.modelValue,
-  set: (value: string) => {
-    emits('update:modelValue', value)
-  },
-})
+const value = defineModel<string>({ default: '' })
 </script>
 
 <template>
   <label
-    class="mb-2 flex items-center gap-2 rounded-brutal border-2 border-ink bg-bg px-3 py-2 focus-within:bg-white"
+    class="flex items-center rounded-brutal border-2 border-ink px-3 py-2 text-base transition duration-150 hover:shadow-brutal focus-within:bg-accent-paper focus-within:shadow-brutal has-disabled:pointer-events-none has-disabled:opacity-50 sm:text-sm"
   >
     <input
-      v-model="internalValue"
+      v-model="value"
       :type="type"
-      autofocus
       :placeholder="placeholder"
-      class="text-sm font-black w-full bg-transparent outline-none placeholder:text-opacity-50"
+      :disabled="disabled"
+      autofocus
+      class="w-full bg-transparent outline-none placeholder:font-normal placeholder:text-ink-light disabled:cursor-not-allowed"
     />
   </label>
 </template>
-
-<style scoped></style>

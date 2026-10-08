@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useFoldersStore } from '@/entities/folder/model/store.ts'
-import { onMounted, reactive, ref } from 'vue'
+import { onMounted, reactive } from 'vue'
 import type { FolderPayload } from '@/entities/folder/model/types.ts'
 import { UiButton, UIInputField } from '@/shared/ui'
 import { ColorPicker } from '@/features/color-picker'
@@ -24,40 +24,38 @@ onMounted(() => {
 })
 
 const create = () => {
-  foldersStore.create(folderForm)
+  // foldersStore.create(folderForm)
+  console.log(folderForm)
   folderForm.name = ''
-  folderForm.color = ''
-  folderForm.icon = ''
 }
-const showForm = ref<boolean>(false)
 </script>
 
 <template>
   <main>
-    <h1 class="cursor-pointer" @click="showForm = !showForm">Home</h1>
-    <div v-if="showForm">
-      <div class="form flex justify-between">
-        <UIInputField v-model="folderForm.name" />
-        <hr />
-        <ColorPicker v-model="folderForm.color" label="Колір папки" auto-init>
-          <template #trigger="{ toggle, value }">
-            <UiButton @click="toggle">
-              <span class="h-4 w-4 rounded border-2 border-ink" :class="value ?? 'bg-bg'" />
-              Колір
-            </UiButton>
-          </template>
-        </ColorPicker>
-        <hr />
-        <IconPicker v-model="folderForm.icon" auto-init>
-          <template #trigger="{ toggle, icon: Icon }">
-            <UiButton @click="toggle"> <component :is="Icon" :size="16" /> Обрати іконку </UiButton>
-          </template>
-        </IconPicker>
-      </div>
-      <UiButton @click="create"> Create </UiButton>
-    </div>
     <div class="folder-list-wrapper p-8x overflow-y-auto">
-      <FolderList />
+      <FolderList>
+        <template #header>
+          <div class="mb-3">
+            <div class="flex justify-center gap-3 pb-6">
+              <UIInputField v-model="folderForm.name" placeholder="Create some folder" />
+              <ColorPicker v-model="folderForm.color" label="Колір папки" auto-init>
+                <template #trigger="{ toggle, value }">
+                  <UiButton @click="toggle">
+                    <span class="h-4 w-4 rounded border-2 border-ink" :class="value ?? 'bg-bg'" />
+                  </UiButton>
+                </template>
+              </ColorPicker>
+              <IconPicker v-model="folderForm.icon" auto-init>
+                <template #trigger="{ toggle, icon: Icon }">
+                  <UiButton @click="toggle"> <component :is="Icon" :size="16" /> </UiButton>
+                </template>
+              </IconPicker>
+              <UiButton @click="create" @keyup.enter="create()"> Create </UiButton>
+            </div>
+            <hr />
+          </div>
+        </template>
+      </FolderList>
     </div>
   </main>
 </template>

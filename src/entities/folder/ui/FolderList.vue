@@ -18,16 +18,17 @@ onBeforeMount(() => {
 
 <template>
   <UiCard>
-    <div
-      class="grid grid-cols-2 gap-4 min-[480px]:grid-cols-4 md:grid-cols-4 lg:grid-cols-8 min-h-[80vh]"
-    >
-      <FolderTile
-        v-for="folder in folders"
-        :key="folder.$id"
-        :name="folder.name"
-        :color="folder.color"
-        :icon="folder.icon"
-      />
+    <div class="min-h-[80vh]">
+      <slot name="header"></slot>
+      <div class="grid grid-cols-2 gap-4 min-[480px]:grid-cols-4 md:grid-cols-4 lg:grid-cols-8">
+        <FolderTile
+          v-for="folder in folders"
+          :key="folder.$id"
+          :name="folder.name"
+          :color="folder.color"
+          :icon="folder.icon"
+        />
+      </div>
     </div>
   </UiCard>
 </template>

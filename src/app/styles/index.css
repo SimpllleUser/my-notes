@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @config "../../../tailwind.config.js";
 @source "../../";
 
@@ -39,7 +39,18 @@
 body {
   background-color: var(--color-bg);
   color: var(--color-ink);
-  transition: background-color .15s ease, color .15s ease;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+/* Розділювач у стилі бруталізму: 2px ink-лінія, як у панелей/тулбарі.
+   `w-full` + `self-center` — щоб працював і в flex/grid-рядках (height:0 від preflight
+   інакше «прилипає» до верхнього краю). Утиліти Tailwind його перевизначають. */
+@layer base {
+  hr {
+    @apply w-full self-center border-t-2 border-ink;
+  }
 }
 
 * {

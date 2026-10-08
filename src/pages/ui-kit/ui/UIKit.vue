@@ -75,6 +75,8 @@ const { color, icon, inlineColor, inlineIcon, customColor, customIcon, snippets 
         />
       </section>
 
+      <hr class="mt-5 sm:mt-8" />
+
       <section class="mt-5 sm:mt-8">
         <div class="mb-3 flex flex-wrap items-end justify-between gap-3 sm:mb-4">
           <div>

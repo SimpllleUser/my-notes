@@ -22,7 +22,7 @@ const emit = defineEmits<{
 <template>
   <p class="mb-2 text-xs font-bold uppercase tracking-wider text-ink-light">{{ label }}</p>
   <label
-    class="mb-2 flex items-center gap-2 rounded-brutal border-2 border-ink bg-bg px-3 py-2 focus-within:bg-white"
+    class="mb-2 flex items-center gap-2 rounded-brutal border-2 border-ink bg-bg px-3 py-2 shadow-brutal-sm transition duration-150 hover:shadow-brutal focus-within:bg-accent-paper focus-within:shadow-brutal"
   >
     <span class="text-lg leading-none" aria-hidden="true">⌕</span>
     <input
@@ -30,7 +30,7 @@ const emit = defineEmits<{
       :autofocus="autofocus"
       type="search"
       placeholder="Пошук іконки..."
-      class="w-full bg-transparent text-sm outline-none placeholder:text-ink-light"
+      class="w-full bg-transparent text-base outline-none sm:text-sm placeholder:text-ink-light"
       @input="emit('update:query', ($event.target as HTMLInputElement).value)"
     />
   </label>
