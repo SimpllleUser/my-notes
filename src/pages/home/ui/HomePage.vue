@@ -39,9 +39,20 @@ const showForm = ref<boolean>(false)
       <div class="form flex justify-between">
         <UIInputField v-model="folderForm.name" />
         <hr />
-        <ColorPicker v-model="folderForm.color" auto-init />
+        <ColorPicker v-model="folderForm.color" label="Колір папки" auto-init>
+          <template #trigger="{ toggle, value }">
+            <UiButton @click="toggle">
+              <span class="h-4 w-4 rounded border-2 border-ink" :class="value ?? 'bg-bg'" />
+              Колір
+            </UiButton>
+          </template>
+        </ColorPicker>
         <hr />
-        <IconPicker v-model="folderForm.icon" auto-init />
+        <IconPicker v-model="folderForm.icon" auto-init>
+          <template #trigger="{ toggle, icon: Icon }">
+            <UiButton @click="toggle"> <component :is="Icon" :size="16" /> Обрати іконку </UiButton>
+          </template>
+        </IconPicker>
       </div>
       <UiButton @click="create"> Create </UiButton>
     </div>

@@ -1,21 +1,24 @@
 <script setup lang="ts">
-import { ref, shallowRef, watch, type Component, onMounted } from 'vue'
+import { onMounted, shallowRef, watch, type Component } from 'vue'
 import { resolveLucideIcon } from '@/shared/lib/lucide'
-import { UiPopover } from '@/shared/ui'
+import { usePickerOpen } from '@/shared/lib/usePickerOpen'
+import { UiPicker } from '@/shared/ui'
 import { useIconPicker } from '../model/useIconPicker'
-import { getRandomArrayItem } from '@/shared/utils/arrays.ts'
-import type { ColorSwatch } from '@/features/color-picker/model/useColorPicker.ts'
+import IconPickerContent from './IconPickerContent.vue'
 
-const props = withDefaults(defineProps<{ label?: string; autoInit?: boolean }>(), {
-  label: 'Обрати іконку',
-  autoInit: false,
-})
+const props = withDefaults(
+  defineProps<{ label?: string; autoInit?: boolean; popover?: boolean }>(),
+  {
+    label: 'Обрати іконку',
+    autoInit: false,
+    popover: true,
+  },
+)
 const model = defineModel<string | undefined>()
 const emit = defineEmits<{ select: [name: string] }>()
 
-const isOpen = ref(false)
-const popoverRef = ref<InstanceType<typeof UiPopover> | null>(null)
-const { query, results, loading, ensureLoaded } = useIconPicker()
+const { open, show, hide, toggle } = usePickerOpen(() => props.popover)
+const { query, results, loading, ensureLoaded, getRandomIcon } = useIconPicker()
 const selectedIcon = shallowRef<Component | null>(null)
 
 watch(
@@ -26,87 +29,57 @@ watch(
   { immediate: true },
 )
 
-watch(isOpen, (open) => {
-  if (open) {
+// Ліниве завантаження: щойно пікер стає видимим (popover відкрито) або одразу в inline-режимі.
+watch(
+  open,
+  (visible) => {
+    if (!visible) return
     query.value = ''
     void ensureLoaded()
-  }
-})
+  },
+  { immediate: true },
+)
 
 function select(name: string, component: Component) {
   model.value = name
   selectedIcon.value = component
   emit('select', name)
-  isOpen.value = false
-}
-
-const getRandomIcon = async () => {
-  query.value = ' '
-  await ensureLoaded()
-  return getRandomArrayItem<{ name: string; component: Component }>(results.value)
+  hide()
 }
 
 onMounted(async () => {
-  if (props.autoInit) {
-    const icon = await getRandomIcon<{ name: string; component: Component }>()
-    select(icon.name, icon.component)
-  }
+  if (!props.autoInit || model.value) return
+  const icon = await getRandomIcon()
+  select(icon.name, icon.component)
 })
 
-defineExpose({
-  show: () => popoverRef.value?.show(),
-  hide: () => popoverRef.value?.hide(),
-  toggle: () => popoverRef.value?.toggle(),
-})
+defineExpose({ show, hide, toggle })
 </script>
 
 <template>
-  <UiPopover ref="popoverRef" v-model:open="isOpen" panel-class="w-72">
-    <template #trigger="{ toggle, open }">
-      <slot name="trigger" :open="open" :toggle="toggle" :icon="selectedIcon">
+  <UiPicker v-model:open="open" :popover="popover" panel-class="w-72">
+    <template #trigger="triggerProps">
+      <slot name="trigger" v-bind="triggerProps" :icon="selectedIcon">
         <button
           type="button"
           :aria-label="label"
           :title="label"
           class="grid h-10 w-10 place-items-center rounded-brutal border-2 border-ink bg-bg transition duration-150 hover:-translate-y-0.5 hover:shadow-brutal-sm active:translate-y-0 active:shadow-none"
-          @click="toggle"
+          @click="triggerProps.toggle"
         >
           <component :is="selectedIcon" v-if="selectedIcon" :size="20" />
         </button>
       </slot>
     </template>
 
-    <label
-      class="mb-2 flex items-center gap-2 rounded-brutal border-2 border-ink bg-bg px-3 py-2 focus-within:bg-white"
-    >
-      <span class="text-lg leading-none" aria-hidden="true">⌕</span>
-      <input
-        v-model="query"
-        type="search"
-        autofocus
-        placeholder="Пошук іконки..."
-        class="w-full bg-transparent text-sm outline-none placeholder:text-ink-light"
-      />
-    </label>
-
-    <div class="grid max-h-56 grid-cols-6 gap-1 overflow-y-auto">
-      <p v-if="loading" class="col-span-6 py-4 text-center text-sm text-ink-light">Завантаження…</p>
-      <template v-else>
-        <button
-          v-for="item in results"
-          :key="item.name"
-          type="button"
-          :title="item.name"
-          class="grid aspect-square place-items-center rounded-lg border-2 border-transparent transition duration-150 hover:border-ink hover:bg-primary-yellow active:scale-90"
-          :class="{ 'border-ink bg-primary-yellow': item.name === model }"
-          @click="select(item.name, item.component)"
-        >
-          <component :is="item.component" :size="18" />
-        </button>
-        <p v-if="results.length === 0" class="col-span-6 py-4 text-center text-sm text-ink-light">
-          Нічого не знайдено
-        </p>
-      </template>
-    </div>
-  </UiPopover>
+    <IconPickerContent
+      v-model:query="query"
+      :label
+      :results
+      :loading
+      :model-value="model"
+      :autofocus="popover"
+      @select="select"
+    />
+  </UiPicker>
 </template>
