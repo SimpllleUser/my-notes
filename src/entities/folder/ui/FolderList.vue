@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeMount } from 'vue'
 import { useFoldersStore } from '@/entities/folder/model/store.ts'
-import { FolderTile } from '@/entities/folder'
+import { type Folder, FolderTile } from '@/entities/folder'
 import { UiCard } from '@/shared/ui'
 
 defineOptions({
@@ -10,6 +10,11 @@ defineOptions({
 
 const foldersStore = useFoldersStore()
 const folders = computed(() => foldersStore.getFolders)
+
+defineEmits<{
+  edit: [payload: Folder];
+  delete: [payload: Folder];
+}>()
 
 onBeforeMount(() => {
   foldersStore.getAll()
@@ -24,9 +29,10 @@ onBeforeMount(() => {
         <FolderTile
           v-for="folder in folders"
           :key="folder.$id"
-          :name="folder.name"
-          :color="folder.color"
-          :icon="folder.icon"
+          :folder="folder"
+          @delete="$emit('delete', folder)"
+          @edit="$emit('edit', folder)"
+          actions
         />
       </div>
     </div>
