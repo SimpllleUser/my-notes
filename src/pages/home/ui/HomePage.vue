@@ -5,11 +5,13 @@ import FolderList from '@/entities/folder/ui/FolderList.vue'
 import { type Folder, FolderForm } from '@/entities/folder'
 import type { FolderPayload } from '@/entities/folder/model/types.ts'
 import type { Nullable } from '@/shared/model/types.ts'
+import { useRouter } from 'vue-router'
 
 defineOptions({
   name: 'HomePage',
 })
 
+const router = useRouter()
 const foldersStore = useFoldersStore()
 
 onMounted(() => {
@@ -25,6 +27,10 @@ const onSubmit = async (payload: Folder | FolderPayload) => {
 
 const folder = ref<Nullable<Folder>>(null)
 
+const selectFolder = (folder: Folder) => {
+  router.push({ name: 'folder', params: { name: folder.name, id: folder.$id } })
+}
+
 const edit = (payload: Folder) => {
   folder.value = payload
 }
@@ -37,7 +43,7 @@ const remove = async (payload: Folder) => {
 <template>
   <main>
     <div class="folder-list-wrapper p-8x overflow-y-auto">
-      <FolderList @edit="edit" @delete="remove">
+      <FolderList @click="selectFolder" @edit="edit" @delete="remove">
         <template #header>
           <div class="mb-3 pb-3">
             <FolderForm :folder="folder" @submit="onSubmit" />
