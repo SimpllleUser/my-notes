@@ -8,12 +8,13 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: () => import('@/pages/home').then((m) => m.HomePage),
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, layout: 'DefaultLayout' },
     },
     {
       path: '/auth',
       name: 'auth',
       component: () => import('@/pages/auth').then((m) => m.AuthPage),
+      meta: { layout: 'DefaultLayout' },
     },
     {
       path: '/ui-kit',
