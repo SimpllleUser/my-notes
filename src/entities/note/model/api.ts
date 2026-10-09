@@ -3,6 +3,7 @@ import { ID, type Models, Query, type TablesDB } from 'appwrite'
 import type { FolderPayload } from '@/entities/folder/model/types.ts'
 import type { APIResponse } from '@/shared/model/types.ts'
 import type { Note } from '@/entities/note'
+import type { NotePayload } from '@/entities/note/model/types.ts'
 
 export class NoteAPI {
   tablesDB: TablesDB
@@ -33,7 +34,7 @@ export class NoteAPI {
     }
   }
 
-  async create(payload: FolderPayload): APIResponse<Note> {
+  async create(payload: NotePayload): APIResponse<Note> {
     try {
       const result = await this.tablesDB.createRow<Note>({
         databaseId: this.databaseId,

@@ -9,3 +9,8 @@ export interface Note {
   $databaseId: string
   $tableId: string
 }
+
+export interface NotePayload {
+  name: string
+  folder: string
+}
