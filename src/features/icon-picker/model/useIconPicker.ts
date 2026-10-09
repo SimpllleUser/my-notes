@@ -1,5 +1,6 @@
 import { computed, ref, shallowRef, type Component } from 'vue'
 import { loadLucideIcons } from '@/shared/lib/lucide'
+import { getRandomArrayItem } from '@/shared/utils/arrays.ts'
 
 const RESULTS_LIMIT = 60
 
@@ -11,12 +12,18 @@ export function useIconPicker() {
   const query = ref('')
   const loading = ref(false)
   const allIcons = shallowRef<Record<string, Component> | null>(null)
+  let loadPromise: Promise<Record<string, Component>> | null = null
 
-  async function ensureLoaded() {
-    if (allIcons.value || loading.value) return
-    loading.value = true
-    allIcons.value = await loadLucideIcons()
-    loading.value = false
+  function ensureLoaded() {
+    if (!loadPromise) {
+      loading.value = true
+      loadPromise = loadLucideIcons().then((icons) => {
+        allIcons.value = icons
+        loading.value = false
+        return icons
+      })
+    }
+    return loadPromise
   }
 
   const results = computed(() => {
@@ -24,9 +31,17 @@ export function useIconPicker() {
     const icons = allIcons.value
     const normalizedQuery = query.value.trim().toLowerCase()
     const names = Object.keys(icons)
-    const filtered = normalizedQuery ? names.filter((name) => toSearchableLabel(name).toLowerCase().includes(normalizedQuery)) : names
+    const filtered = normalizedQuery
+      ? names.filter((name) => toSearchableLabel(name).toLowerCase().includes(normalizedQuery))
+      : names
     return filtered.slice(0, RESULTS_LIMIT).map((name) => ({ name, component: icons[name]! }))
   })
 
-  return { query, results, loading, ensureLoaded }
+  async function getRandomIcon() {
+    const icons = await ensureLoaded()
+    const name = getRandomArrayItem(Object.keys(icons))
+    return { name, component: icons[name]! }
+  }
+
+  return { query, results, loading, ensureLoaded, getRandomIcon }
 }

@@ -1,59 +1,55 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { UiPopover } from '@/shared/ui'
+import { onMounted } from 'vue'
+import { usePickerOpen } from '@/shared/lib/usePickerOpen'
+import { UiPicker } from '@/shared/ui'
+import { getRandomArrayItem } from '@/shared/utils/arrays.ts'
 import { useColorPicker } from '../model/useColorPicker'
+import ColorPickerContent from './ColorPickerContent.vue'
 
-const props = withDefaults(defineProps<{ label?: string; autoOpen?: boolean }>(), { label: 'Обрати колір', autoOpen: false })
+const props = withDefaults(
+  defineProps<{ label?: string; autoOpen?: boolean; autoInit?: boolean; popover?: boolean }>(),
+  {
+    label: 'Обрати колір',
+    autoOpen: false,
+    autoInit: false,
+    popover: true,
+  },
+)
 const model = defineModel<string | undefined>()
 const emit = defineEmits<{ select: [value: string] }>()
 
-const isOpen = ref(false)
-const popoverRef = ref<InstanceType<typeof UiPopover> | null>(null)
+const { open, show, hide, toggle } = usePickerOpen(() => props.popover)
 const { swatches } = useColorPicker()
 
 function select(value: string) {
   model.value = value
   emit('select', value)
-  isOpen.value = false
+  hide()
 }
 
 onMounted(() => {
-  if (props.autoOpen) isOpen.value = true
+  if (props.autoOpen) show()
+  if (!model.value && props.autoInit) select(getRandomArrayItem(swatches).class)
 })
 
-defineExpose({
-  show: () => popoverRef.value?.show(),
-  hide: () => popoverRef.value?.hide(),
-  toggle: () => popoverRef.value?.toggle(),
-})
+defineExpose({ show, hide, toggle })
 </script>
 
 <template>
-  <UiPopover ref="popoverRef" v-model:open="isOpen" panel-class="w-56">
-    <template #trigger="{ toggle, open }">
-      <slot name="trigger" :open="open" :toggle="toggle" :value="model">
+  <UiPicker v-model:open="open" :popover="popover" panel-class="w-56">
+    <template #trigger="triggerProps">
+      <slot name="trigger" v-bind="triggerProps" :value="model">
         <button
           type="button"
           :aria-label="label"
           :title="label"
           class="grid h-10 w-10 place-items-center rounded-brutal border-2 border-ink transition duration-150 hover:-translate-y-0.5 hover:shadow-brutal-sm active:translate-y-0 active:shadow-none"
           :class="model ?? 'bg-bg'"
-          @click="toggle"
+          @click="triggerProps.toggle"
         />
       </slot>
     </template>
 
-    <p class="mb-2 text-xs font-bold uppercase tracking-wider text-ink-light">{{ label }}</p>
-    <div class="grid grid-cols-4 gap-2">
-      <button
-        v-for="swatch in swatches"
-        :key="swatch.class"
-        type="button"
-        :title="swatch.name"
-        class="aspect-square rounded-lg border-2 transition duration-150 hover:-translate-y-0.5 active:translate-y-0 active:scale-90"
-        :class="[swatch.class, swatch.class === model ? 'border-ink' : 'border-transparent']"
-        @click="select(swatch.class)"
-      />
-    </div>
-  </UiPopover>
+    <ColorPickerContent :label :swatches :model-value="model" @select="select" />
+  </UiPicker>
 </template>

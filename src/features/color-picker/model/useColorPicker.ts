@@ -11,6 +11,7 @@ const SWATCHES: ColorSwatch[] = [
   { name: 'Чорнило', class: 'bg-ink' },
 ]
 
+
 export function useColorPicker() {
   return { swatches: SWATCHES }
 }
