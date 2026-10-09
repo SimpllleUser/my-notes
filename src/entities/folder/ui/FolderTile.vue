@@ -2,15 +2,15 @@
 import { shallowRef, watch, type Component } from 'vue'
 import { resolveLucideIcon } from '@/shared/lib/lucide'
 import { UiIconButton } from '@/shared/ui'
-import type { Folder } from '@/entities/folder'
+import type { FolderTileData } from '@/entities/folder'
 
 const props = defineProps<{
-  folder: Folder
+  folder: FolderTileData
   active?: boolean
   actions?: boolean
 }>()
 
- defineEmits<{ edit: [Folder]; delete: [Folder] }>()
+defineEmits<{ edit: [FolderTileData]; delete: [FolderTileData] }>()
 
 const iconComponent = shallowRef<Component | null>(null)
 const editIcon = shallowRef<Component | null>(null)
@@ -41,14 +41,19 @@ watch(
       class="flex aspect-square w-full flex-col justify-between rounded-brutal border-2 border-ink min-w-0 p-3 text-left transition duration-150 hover:-translate-y-1 hover:shadow-brutal-sm active:translate-y-0 active:shadow-none"
       :class="active ? 'bg-ink text-accent-paper shadow-brutal-sm' : 'bg-bg'"
     >
-      <span class="grid h-20 w-20 place-items-center rounded-xl border-2 border-ink" :class="folder.color">
+      <span
+        class="grid h-20 w-20 place-items-center rounded-xl border-2 border-ink"
+        :class="folder.color"
+      >
         <component :is="iconComponent" v-if="iconComponent" :size="40" />
       </span>
       <span>
         <span class="block truncate font-bold" :class="actions && 'max-sm:pr-24'">{{
           folder.name
         }}</span>
-        <span class="text-xs opacity-70"> нотаток</span>
+        <span v-if="folder.count != null" class="text-xs opacity-70"
+          >{{ folder.count }} нотаток</span
+        >
       </span>
       <div
         v-if="actions"
