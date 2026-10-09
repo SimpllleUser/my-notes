@@ -2,6 +2,7 @@
 import { UiCard, UiButton, UIInputField, UiPopover } from '@/shared/ui'
 import { reactive, ref } from 'vue'
 import { type SingInPayload, useAuthStore } from '@/entities/auth'
+import { ButtonVariant } from '@/shared/model/enums.ts'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -43,7 +44,9 @@ const submit = async (payload: SingInPayload) => {
       <UIInputField v-model="form.password" placeholder="Password" type="password" />
     </div>
     <div class="flex justify-end pt-2">
-      <UiButton label="Sign in" variant="blue" @click="submit(form)">Sing in</UiButton>
+      <UiButton label="Sign in" :variant="ButtonVariant.Blue" @click="submit(form)"
+        >Sing in</UiButton
+      >
     </div>
   </UiCard>
 </template>

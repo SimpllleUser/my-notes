@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { UiButton, UiCard } from '@/shared/ui'
+import { ButtonVariant } from '@/shared/model/enums.ts'
 import { useTheme } from '@/shared/lib/theme'
 import { FolderSidebar } from '@/widgets/folder-sidebar'
 import { NoteListPanel } from '@/widgets/note-list-panel'
@@ -45,7 +46,7 @@ const { color, icon, inlineColor, inlineIcon, customColor, customIcon, snippets 
             <h1 class="text-2xl font-black tracking-tight sm:text-3xl">my-notes</h1>
           </div>
         </div>
-        <UiButton variant="paper" @click="toggleTheme">
+        <UiButton :variant="ButtonVariant.Paper" @click="toggleTheme">
           <span aria-hidden="true">{{ theme === 'dark' ? '☾' : '☼' }}</span>
           <span class="hidden sm:inline">Тема</span>
         </UiButton>
@@ -159,7 +160,7 @@ const { color, icon, inlineColor, inlineIcon, customColor, customIcon, snippets 
 
               <IconPicker v-model="customIcon" label="Іконка папки" auto-init>
                 <template #trigger="{ toggle, icon: Icon }">
-                  <UiButton variant="yellow" size="sm" @click="toggle">
+                  <UiButton :variant="ButtonVariant.Yellow" size="sm" @click="toggle">
                     <component :is="Icon" v-if="Icon" :size="16" />
                     Обрати іконку
                   </UiButton>

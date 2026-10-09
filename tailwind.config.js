@@ -5,9 +5,29 @@ export default {
     extend: {
       colors: {
         bg: 'var(--color-bg)',
-        primary: { DEFAULT: 'var(--color-primary)', hover: 'var(--color-primary-hover)', yellow: 'var(--color-primary-yellow)' },
-        secondary: { blue: 'var(--color-secondary-blue)', purple: 'var(--color-secondary-purple)', green: 'var(--color-secondary-green)' },
-        accent: { mint: 'var(--color-accent-mint)', orange: 'var(--color-accent-orange)', paper: 'var(--color-accent-paper)' },
+        primary: {
+          DEFAULT: 'var(--color-primary)',
+          hover: 'var(--color-primary-hover)',
+          yellow: 'var(--color-primary-yellow)',
+        },
+        secondary: {
+          blue: 'var(--color-secondary-blue)',
+          purple: 'var(--color-secondary-purple)',
+          green: 'var(--color-secondary-green)',
+          red: 'var(--color-secondary-red)',
+          cyan: 'var(--color-secondary-cyan)',
+          lime: 'var(--color-secondary-lime)',
+          teal: 'var(--color-secondary-teal)',
+        },
+        accent: {
+          mint: 'var(--color-accent-mint)',
+          orange: 'var(--color-accent-orange)',
+          gold: 'var(--color-accent-gold)',
+          sky: 'var(--color-accent-sky)',
+          lavender: 'var(--color-accent-lavender)',
+          brown: 'var(--color-accent-brown)',
+          paper: 'var(--color-accent-paper)',
+        },
         ink: { DEFAULT: 'var(--color-ink)', light: 'var(--color-ink-light)' },
       },
       boxShadow: {
