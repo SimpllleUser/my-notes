@@ -8,7 +8,6 @@ import { useLocalStorage } from '@vueuse/core'
 import { UiButton, UiIconButton, UIInputField, UiPopover } from '@/shared/ui'
 import { ButtonVariant } from '@/shared/model/enums.ts'
 import { Save } from '@lucide/vue'
-import type { Folder } from '@/entities/folder'
 
 defineOptions({
   name: 'FolderPage',
