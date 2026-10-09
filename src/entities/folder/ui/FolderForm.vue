@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { Folder } from '@/entities/folder'
 import { ref, watch } from 'vue'
-import { UiButton, UIInputField } from '@/shared/ui'
+import { UiButton, UiIconButton, UIInputField } from '@/shared/ui'
 import { IconPicker } from '@/features/icon-picker'
 import { ColorPicker } from '@/features/color-picker'
 import type { FolderPayload } from '@/entities/folder/model/types.ts'
 import type { Nullable } from '@/shared/model/types.ts'
+import { Save, RotateCcw } from '@lucide/vue'
 
 defineOptions({
   name: 'FolderForm',
@@ -72,8 +73,12 @@ const reset = () => {
         </UiButton>
       </template>
     </IconPicker>
-    <UiButton @click="submit"> {{ folder ? 'Save' : 'Create' }} </UiButton>
-    <UiButton @click="reset"> Reset </UiButton>
+    <UiIconButton variant="yellow" label="save" @click="submit">
+      <Save />
+    </UiIconButton>
+    <UiIconButton variant="primary" label="Reset" @click="reset">
+      <RotateCcw />
+    </UiIconButton>
   </div>
 </template>
 
