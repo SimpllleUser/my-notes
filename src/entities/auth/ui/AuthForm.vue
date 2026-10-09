@@ -35,7 +35,7 @@ const submit = async (payload: SingInPayload) => {
 
 <template>
   <UiCard class="w-100">
-    <UiPopover :open="isInvalid" align="top">
+    <UiPopover :model-value="isInvalid" location="top">
       <div class="w-80 text-primary">Some problem with auth</div>
     </UiPopover>
     <h2 class="text-xl font-black sm:text-2xl pb-2">Auth</h2>

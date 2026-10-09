@@ -11,7 +11,7 @@ const props = defineProps<{
   actions?: boolean
 }>()
 
-defineEmits<{ edit: [FolderTileData]; delete: [FolderTileData] }>()
+defineEmits<{click: []; edit: [FolderTileData]; delete: [FolderTileData] }>()
 
 const iconComponent = shallowRef<Component | null>(null)
 const editIcon = shallowRef<Component | null>(null)
@@ -37,7 +37,7 @@ watch(
 </script>
 
 <template>
-  <div class="group relative">
+  <button class="group relative" @click="$emit('click')">
     <div
       class="flex aspect-square w-full flex-col justify-between rounded-brutal border-2 border-ink min-w-0 p-3 text-left transition duration-150 hover:-translate-y-1 hover:shadow-brutal-sm active:translate-y-0 active:shadow-none"
       :class="active ? 'bg-ink text-accent-paper shadow-brutal-sm' : 'bg-bg'"
@@ -78,5 +78,5 @@ watch(
         </UiIconButton>
       </div>
     </div>
-  </div>
+  </button>
 </template>

@@ -15,15 +15,35 @@ withDefaults(
 
 const open = defineModel<boolean>('open', { default: false })
 
+function show() {
+  open.value = true
+}
 function hide() {
   open.value = false
+}
+function toggle() {
+  open.value = !open.value
 }
 </script>
 
 <template>
-  <UiPopover v-if="popover" v-model:open="open" :panel-class="panelClass">
-    <template #trigger="triggerProps">
-      <slot name="trigger" v-bind="triggerProps" />
+  <UiPopover
+    v-if="popover"
+    v-model="open"
+    :content-class="panelClass"
+    :open-on-hover="false"
+    :interactive="true"
+    :eager="false"
+  >
+    <template #activator="activatorScope">
+      <slot
+        name="trigger"
+        v-bind="activatorScope"
+        :open="open"
+        :toggle="toggle"
+        :show="show"
+        :hide="hide"
+      />
     </template>
     <slot :hide="hide" />
   </UiPopover>
