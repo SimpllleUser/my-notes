@@ -1,6 +1,7 @@
 import type { Content } from '@tiptap/vue-3'
 import { computed, ref } from 'vue'
 import type { Note } from '@/entities/note'
+import { FolderColor } from '@/shared/model/enums.ts'
 
 type UIKitFolder = {
   id: number
@@ -12,10 +13,10 @@ type UIKitFolder = {
 
 export function useUIKit() {
   const folders = ref<UIKitFolder[]>([
-    { id: 1, name: 'Особисте', color: 'bg-primary', count: 12, icon: 'User' },
-    { id: 2, name: 'Робота', color: 'bg-secondary-blue', count: 8, icon: 'Briefcase' },
-    { id: 3, name: 'Навчання', color: 'bg-primary-yellow', count: 5, icon: 'BookOpen' },
-    { id: 4, name: 'Ідеї', color: 'bg-secondary-green', count: 9, icon: 'Lightbulb' },
+    { id: 1, name: 'Особисте', color: FolderColor.Primary, count: 12, icon: 'User' },
+    { id: 2, name: 'Робота', color: FolderColor.Blue, count: 8, icon: 'Briefcase' },
+    { id: 3, name: 'Навчання', color: FolderColor.Yellow, count: 5, icon: 'BookOpen' },
+    { id: 4, name: 'Ідеї', color: FolderColor.Green, count: 9, icon: 'Lightbulb' },
   ])
 
   const notes = ref<Note[]>([

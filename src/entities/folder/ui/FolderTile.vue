@@ -2,6 +2,7 @@
 import { shallowRef, watch, type Component } from 'vue'
 import { resolveLucideIcon } from '@/shared/lib/lucide'
 import { UiIconButton } from '@/shared/ui'
+import { ButtonVariant } from '@/shared/model/enums.ts'
 import type { FolderTileData } from '@/entities/folder'
 
 const props = defineProps<{
@@ -61,7 +62,7 @@ watch(
       >
         <UiIconButton
           label="Редагувати папку"
-          variant="yellow"
+          :variant="ButtonVariant.Yellow"
           size="sm"
           @click.stop="$emit('edit', folder)"
         >
@@ -69,7 +70,7 @@ watch(
         </UiIconButton>
         <UiIconButton
           label="Видалити папку"
-          variant="primary"
+          :variant="ButtonVariant.Primary"
           size="sm"
           @click.stop="$emit('delete', folder)"
         >

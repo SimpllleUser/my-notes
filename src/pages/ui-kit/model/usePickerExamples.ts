@@ -1,4 +1,5 @@
 import { ref } from 'vue'
+import { FolderColor } from '@/shared/model/enums.ts'
 
 const snippets = {
   popover: ['<ColorPicker v-model="color" />', '<IconPicker v-model="icon" />'].join('\n'),
@@ -18,9 +19,9 @@ const snippets = {
 }
 
 export function usePickerExamples() {
-  const color = ref<string | undefined>('bg-primary')
+  const color = ref<string | undefined>(FolderColor.Primary)
   const icon = ref<string | undefined>('Lightbulb')
-  const inlineColor = ref<string | undefined>('bg-secondary-blue')
+  const inlineColor = ref<string | undefined>(FolderColor.Blue)
   const inlineIcon = ref<string | undefined>('BookOpen')
   const customColor = ref<string | undefined>()
   const customIcon = ref<string | undefined>()

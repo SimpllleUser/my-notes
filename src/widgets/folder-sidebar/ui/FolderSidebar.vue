@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { UiCard, UiIconButton } from '@/shared/ui'
 import { FolderTile, type FolderTileData } from '@/entities/folder'
+import { ButtonVariant } from '@/shared/model/enums.ts'
 import { IconPicker } from '@/features/icon-picker'
 import { ColorPicker } from '@/features/color-picker'
 
@@ -37,7 +38,11 @@ function handleColorPicked(color: string) {
         <ColorPicker v-if="pendingIcon" label="Колір папки" auto-open @select="handleColorPicked" />
         <IconPicker label="Додати папку" @select="handleIconPicked">
           <template #trigger="{ toggle }">
-            <UiIconButton label="Додати папку" variant="yellow" size="sm" @click="toggle"
+            <UiIconButton
+              label="Додати папку"
+              :variant="ButtonVariant.Yellow"
+              size="sm"
+              @click="toggle"
               >+</UiIconButton
             >
           </template>
