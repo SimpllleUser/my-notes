@@ -8,6 +8,7 @@ import { useLocalStorage } from '@vueuse/core'
 import { UiButton, UiIconButton, UIInputField, UiPopover } from '@/shared/ui'
 import { ButtonVariant } from '@/shared/model/enums.ts'
 import { Save } from '@lucide/vue'
+import type { Folder } from '@/entities/folder'
 
 defineOptions({
   name: 'FolderPage',
@@ -15,15 +16,17 @@ defineOptions({
 
 const route = useRoute()
 
-const folderId = computed(() => (route.params?.id as string) || '')
+const currentFolder = computed(
+  () => (route.params as { name: string; id: string }) || { name: '', id: '' },
+)
 const notesStore = useNotesStore()
 
 const searchingName = ref('')
-const activeId = useLocalStorage(`node-${folderId.value}}`, '')
+const activeId = useLocalStorage(`node-${currentFolder.value.id}}`, '')
 const popOverState = ref(false)
 
 onBeforeMount(async () => {
-  await notesStore.getAll(folderId.value)
+  await notesStore.getAll(currentFolder.value.id)
   if (!activeId.value) activeId.value = notesStore.getNotes()[0]?.$id || ''
 })
 
@@ -44,11 +47,11 @@ const hidePopOver = () => {
 const createNote = async () => {
   await notesStore.create({
     name: noteName.value,
-    folder: folderId.value,
+    folder: currentFolder.value.id,
   })
 
   hidePopOver()
-  await notesStore.getAll(folderId.value)
+  await notesStore.getAll(currentFolder.value.id)
 }
 </script>
 
@@ -58,7 +61,7 @@ const createNote = async () => {
       v-model:search="searchingName"
       @create="create"
       @select="selectNote"
-      :folder-name="folderId"
+      :folder-name="currentFolder.name"
       :notes="notesStore.getNotes(searchingName)"
       :active-note-id="activeId"
     >

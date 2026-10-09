@@ -11,7 +11,7 @@ const router = createRouter({
       meta: { requiresAuth: true, layout: 'DefaultLayout' },
     },
     {
-      path: '/folder/:id',
+      path: '/folder/:name/:id',
       name: 'folder',
       component: () => import('@/pages/folder').then((m) => m.FolderPage),
       meta: { requiresAuth: true, layout: 'DefaultLayout' },

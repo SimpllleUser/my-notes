@@ -27,8 +27,8 @@ const onSubmit = async (payload: Folder | FolderPayload) => {
 
 const folder = ref<Nullable<Folder>>(null)
 
-const selectFolder = (folderId: string) => {
-  router.push({ name: 'folder', params: { id: folderId } })
+const selectFolder = (folder: Folder) => {
+  router.push({ name: 'folder', params: { name: folder.name, id: folder.$id } })
 }
 
 const edit = (payload: Folder) => {

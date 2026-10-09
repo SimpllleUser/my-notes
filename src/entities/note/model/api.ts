@@ -19,7 +19,8 @@ export class NoteAPI {
       const { rows }: Models.RowList<Note> = await this.tablesDB.listRows({
         databaseId: this.databaseId,
         tableId: this.tableId,
-        queries: [Query.equal('folder', folderId)],
+        queries: [
+          Query.equal('folder', folderId)],
       })
 
       return {

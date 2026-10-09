@@ -12,7 +12,7 @@ const foldersStore = useFoldersStore()
 const folders = computed(() => foldersStore.getFolders)
 
 defineEmits<{
-  click: [payload: string];
+  click: [payload: Folder];
   edit: [payload: Folder];
   delete: [payload: Folder];
 }>()
@@ -31,7 +31,7 @@ onBeforeMount(() => {
           v-for="folder in folders"
           :key="folder.$id"
           :folder="folder"
-          @click="$emit('click', folder.$id)"
+          @click="$emit('click', folder)"
           @delete="$emit('delete', folder)"
           @edit="$emit('edit', folder)"
           actions
