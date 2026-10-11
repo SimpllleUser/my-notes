@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref } from 'vue'
-import { useNotesStore } from '@/entities/note/model/store.ts'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { NoteListPanel } from '@/widgets/note-list-panel'
-import type { Note } from '@/entities/note'
 import { useLocalStorage } from '@vueuse/core'
-import { UiButton, UiIconButton, UIInputField, UiPopover } from '@/shared/ui'
-import { ButtonVariant } from '@/shared/model/enums.ts'
-import { Save } from '@lucide/vue'
+import { PanelLeftClose, PanelLeftOpen } from '@lucide/vue'
+import NoteSidebar from '../ui/NoteSidebar.vue'
+import { TextEditor } from '@/features/rich-text-editor'
+import { UiIconButton } from '@/shared/ui'
 
 defineOptions({
   name: 'FolderPage',
@@ -15,76 +13,57 @@ defineOptions({
 
 const route = useRoute()
 
-const currentFolder = computed(
+const folder = computed(
   () => (route.params as { name: string; id: string }) || { name: '', id: '' },
 )
-const notesStore = useNotesStore()
 
-const searchingName = ref('')
-const activeId = useLocalStorage(`node-${currentFolder.value.id}}`, '')
-const popOverState = ref(false)
+/** Стан мінімізації sidebar: зберігається між сесіями. */
+const sidebarCollapsed = useLocalStorage('folder-page-sidebar-collapsed', false)
 
-onBeforeMount(async () => {
-  await notesStore.getAll(currentFolder.value.id)
-  if (!activeId.value) activeId.value = notesStore.getNotes()[0]?.$id || ''
-})
-
-const selectNote = (note: Note) => {
-  activeId.value = note.$id
-}
-
-const create = () => {
-  popOverState.value = false
-}
-
-const noteName = ref('')
-const hidePopOver = () => {
-  noteName.value = ''
-  popOverState.value = false
-}
-
-const createNote = async () => {
-  await notesStore.create({
-    name: noteName.value,
-    folder: currentFolder.value.id,
-  })
-
-  hidePopOver()
-  await notesStore.getAll(currentFolder.value.id)
+const toggleSidebar = () => {
+  sidebarCollapsed.value = !sidebarCollapsed.value
 }
 </script>
 
 <template>
-  <main>
-    <NoteListPanel
-      v-model:search="searchingName"
-      @create="create"
-      @select="selectNote"
-      :folder-name="currentFolder.name"
-      :notes="notesStore.getNotes(searchingName)"
-      :active-note-id="activeId"
+  <main class="mx-auto flex w-full min-w-0 max-w-[1440px] flex-col gap-4">
+    <header class="flex items-center gap-3">
+      <UiIconButton
+        :label="sidebarCollapsed ? 'Показати список нотаток' : 'Мінімізувати список нотаток'"
+        :aria-expanded="sidebarCollapsed ? 'false' : 'true'"
+        aria-controls="notes-sidebar"
+        @click="toggleSidebar"
+      >
+        <PanelLeftClose v-if="!sidebarCollapsed" :size="18" />
+        <PanelLeftOpen v-else :size="18" />
+      </UiIconButton>
+      <div v-if="sidebarCollapsed" class="min-w-0">
+        <p class="text-xs font-bold uppercase tracking-wider text-ink-light">Папка</p>
+        <h1 class="truncate text-lg font-black sm:text-xl">{{ folder.name }}</h1>
+      </div>
+    </header>
+    <div
+      class="grid min-w-0 grid-cols-1 gap-4 transition-[grid-template-columns,gap] duration-300"
+      :class="
+        sidebarCollapsed
+          ? 'md:grid-cols-[0px_minmax(0,1fr)] md:gap-0'
+          : 'md:grid-cols-[264px_minmax(0,1fr)] lg:grid-cols-[324px_minmax(0,1fr)]'
+      "
     >
-      <template #header-right>
-        <UiPopover v-model="popOverState" :openOnHover="false" @click:outside="hidePopOver">
-          <template #activator="{ props }">
-            <UiIconButton
-              v-bind="props"
-              label="Створити нотатку"
-              :variant="ButtonVariant.Primary"
-              @click="popOverState = !popOverState"
-              >+</UiIconButton
-            >
-          </template>
-          <template #default>
-            <div class="flex">
-              <UIInputField v-model="noteName" placeholder="Name" class="w-100" />
-              <UiButton @click="createNote" class="ml-2" :variant="ButtonVariant.Yellow">
-                <Save />
-              </UiButton>
-            </div>
-          </template>
-        </UiPopover>
-      </template>
-    </NoteListPanel>
+      <aside
+        id="notes-sidebar"
+        aria-label="Список нотаток"
+        class="min-w-0 overflow-hidden transition-[visibility] duration-300"
+        :class="sidebarCollapsed ? 'hidden md:block md:invisible' : ''"
+      >
+        <div class="w-full pr-1 pb-1 md:w-66 lg:w-81">
+          <NoteSidebar :folder="folder" />
+        </div>
+      </aside>
+
+      <div class="min-w-0">
+        <TextEditor />
+      </div>
+    </div>
   </main>
 </template>
