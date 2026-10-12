@@ -48,35 +48,38 @@ const createNote = async () => {
 </script>
 
 <template>
-    <NoteListPanel
-      v-model:search="searchingName"
-      @create="create"
-      @select="selectNote"
-      :folder-name="folder.name"
-      :notes="notesStore.getNotes(searchingName)"
-      :active-note-id="activeId"
-    >
-      <template #header-right>
-        <UiPopover v-model="popOverState" :openOnHover="false" @click:outside="hidePopOver">
-          <template #activator="{ props }">
-            <UiIconButton
-              v-bind="props"
-              label="Створити нотатку"
-              :variant="ButtonVariant.Primary"
-              @click="popOverState = !popOverState"
-              >+</UiIconButton
-            >
-          </template>
-          <template #default>
-            <div class="flex">
-              <UIInputField v-model="noteName" placeholder="Name" class="w-100" />
-              <UiButton @click="createNote" class="ml-2" :variant="ButtonVariant.Yellow">
-                <Save />
-              </UiButton>
-            </div>
-          </template>
-        </UiPopover>
-      </template>
-    </NoteListPanel>
+  <NoteListPanel
+    v-model:search="searchingName"
+    @create="create"
+    @select="selectNote"
+    :folder-name="folder.name"
+    :notes="notesStore.getNotes(searchingName)"
+    :active-note-id="activeId"
+  >
+    <template #header-right>
+      <UiPopover
+        v-model="popOverState"
+        :openOnHover="false"
+        @click:outside="hidePopOver"
+      >
+        <template #activator="{ props }">
+          <UiIconButton
+            v-bind="props"
+            label="Створити нотатку"
+            :variant="ButtonVariant.Primary"
+            @click="popOverState = !popOverState"
+            >+</UiIconButton
+          >
+        </template>
+        <template #default>
+          <div class="flex">
+            <UIInputField v-model="noteName" placeholder="Name" class="max-w-50 w-100" />
+            <UiButton @click="createNote" class="ml-2" :variant="ButtonVariant.Yellow">
+              <Save />
+            </UiButton>
+          </div>
+        </template>
+      </UiPopover>
+    </template>
+  </NoteListPanel>
 </template>
-
