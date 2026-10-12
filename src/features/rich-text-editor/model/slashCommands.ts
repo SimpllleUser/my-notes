@@ -14,6 +14,13 @@ export function createSlashCommands(
 ): SlashCommand[] {
   return [
     {
+      name: 'Звичайний текст',
+      description: 'Простий текстовий блок',
+      icon: 'T',
+      keywords: 'text paragraph plain',
+      run: actions.setText,
+    },
+    {
       name: 'Заголовок 1',
       description: 'Великий заголовок',
       icon: 'H1',
@@ -26,6 +33,13 @@ export function createSlashCommands(
       icon: 'H2',
       keywords: 'heading title h2',
       run: () => actions.setHeading(2),
+    },
+    {
+      name: 'Заголовок 3',
+      description: 'Малий заголовок',
+      icon: 'H3',
+      keywords: 'heading title h3',
+      run: () => actions.setHeading(3),
     },
     {
       name: 'Список задач',
@@ -56,11 +70,11 @@ export function createSlashCommands(
       run: actions.toggleBlockquote,
     },
     {
-      name: 'Код',
-      description: 'Блок коду',
-      icon: '</>',
-      keywords: 'code block',
-      run: actions.toggleCodeBlock,
+      name: 'Toggle',
+      description: 'Згортаний блок',
+      icon: '▸',
+      keywords: 'toggle collapse details',
+      run: actions.insertToggle,
     },
     {
       name: 'Callout',
@@ -70,18 +84,18 @@ export function createSlashCommands(
       run: actions.insertCallout,
     },
     {
-      name: 'Toggle',
-      description: 'Згортаний блок',
-      icon: '▸',
-      keywords: 'toggle collapse details',
-      run: actions.insertToggle,
+      name: 'Код',
+      description: 'Блок коду',
+      icon: '</>',
+      keywords: 'code block',
+      run: actions.toggleCodeBlock,
     },
     {
-      name: 'Зображення',
-      description: 'Вставити зображення за URL',
-      icon: '▧',
-      keywords: 'image picture photo',
-      run: openImagePopover,
+      name: 'Роздільник',
+      description: 'Горизонтальна лінія',
+      icon: '—',
+      keywords: 'divider separator horizontal rule hr',
+      run: actions.insertDivider,
     },
     {
       name: 'Таблиця',
@@ -91,11 +105,11 @@ export function createSlashCommands(
       run: actions.insertTable,
     },
     {
-      name: 'Роздільник',
-      description: 'Горизонтальна лінія',
-      icon: '—',
-      keywords: 'divider separator horizontal rule hr',
-      run: actions.insertDivider,
+      name: 'Зображення',
+      description: 'Вставити зображення за URL',
+      icon: '▧',
+      keywords: 'image picture photo',
+      run: openImagePopover,
     },
   ]
 }

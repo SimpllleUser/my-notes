@@ -17,7 +17,7 @@ export function createExtensions(getPlaceholder: () => string) {
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
       codeBlock: { HTMLAttributes: { class: 'notion-code-block' } },
-      dropcursor: { color: '#f3c400', width: 3 },
+      dropcursor: { color: '#2383e2', width: 3 },
     }),
     UniqueID.configure({ types: ['heading', 'paragraph'] }),
     Highlight.configure({ multicolor: true }),
