@@ -286,7 +286,7 @@ function handlePaste(event: ClipboardEvent) {
     <div
       ref="bodyRef"
       class="text-editor__body"
-      @keydown="handleKeydown"
+      @keydown.capture="handleKeydown"
       @paste.capture="handlePaste"
       @mousemove="onMousemove"
       @mouseleave="onMouseleave"
