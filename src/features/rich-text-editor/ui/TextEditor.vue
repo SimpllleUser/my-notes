@@ -229,7 +229,7 @@ const blockMenuStyle = computed(() => {
 
 const gutterStyle = computed(() => ({
   top: (blockGutter.value?.top ?? 0) + 'px',
-  left: (blockGutter.value?.left ?? 0) + 'px',
+  left: (blockGutter.value?.left ?? 0) - 20 + 'px',
 }))
 
 const dropLineStyle = computed(() => {
