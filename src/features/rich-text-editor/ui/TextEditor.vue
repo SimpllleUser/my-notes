@@ -54,13 +54,10 @@ const editor = useEditor({
   content: props.content,
   extensions: createExtensions(() => props.placeholder),
   onUpdate({ editor: instance }) {
+    // `order` тепер є реальним атрибутом top-level блоків і підтримується
+    // розширенням BlockOrder (див. model/extensions/blockOrder.ts) усередині документа,
+    // тому перенумеровувати блоки вручну тут не потрібно — навіть після drag & drop.
     const json = instance.getJSON()
-    json.content.forEach((item, index) => {
-      item.attrs = {
-        ...item.attrs,
-        order: index,
-      }
-    })
 
     emit('update:content', json)
     emit('update', json)
