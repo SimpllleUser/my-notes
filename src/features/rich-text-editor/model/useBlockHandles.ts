@@ -169,6 +169,8 @@ export function useBlockHandles(
     if (!instance || !block) return
     const json = block.node.toJSON()
     stripIds(json)
+    // Дублікат отримує `order = null`, щоб плагін призначив йому нове значення за місцем.
+    if (json.attrs) json.attrs.order = null
     instance
       .chain()
       .focus()
@@ -220,6 +222,8 @@ export function useBlockHandles(
     if (insertPos > startPos) insertPos -= size
 
     const json = doc.child(from).toJSON()
+    // Скидаємо `order`, щоб плагін BlockOrder призначив дробове значення за новим місцем.
+    if (json.attrs) json.attrs.order = null
     instance
       .chain()
       .focus()
