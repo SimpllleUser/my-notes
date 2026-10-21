@@ -56,6 +56,7 @@ const createNote = async () => {
     :notes="notesStore.getNotes(searchingName)"
     :active-note-id="activeId"
   >
+    <template #header-left><slot name="header-left"/></template>
     <template #header-right>
       <UiPopover
         v-model="popOverState"

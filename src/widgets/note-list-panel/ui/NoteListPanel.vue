@@ -11,13 +11,12 @@ const emit = defineEmits<{ select: [note: Note]; create: [] }>()
 <template>
   <UiCard compact>
     <div class="mb-4 flex items-center justify-between gap-3">
+      <slot name="header-left" />
       <div class="min-w-0">
         <p class="text-xs font-bold uppercase tracking-wider text-ink-light">Вибрана папка</p>
         <h2 class="wrap-break-word text-xl font-black sm:text-2xl">{{ folderName }}</h2>
       </div>
-      <slot name="header-right">
-
-      </slot>
+      <slot name="header-right" />
     </div>
     <UiSearchInput v-model="search" class="mb-4" placeholder="Пошук нотаток..." />
     <div class="space-y-3">
