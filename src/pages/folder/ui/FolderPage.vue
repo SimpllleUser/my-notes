@@ -2,10 +2,9 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLocalStorage } from '@vueuse/core'
-import { PanelLeftClose, PanelLeftOpen } from '@lucide/vue'
 import NoteSidebar from '../ui/NoteSidebar.vue'
 import { TextEditor } from '@/features/rich-text-editor'
-import { UiIconButton } from '@/shared/ui'
+import ToggleSidebarButton from '@/pages/folder/ui/ToggleSidebarButton.vue'
 
 defineOptions({
   name: 'FolderPage',
@@ -17,7 +16,6 @@ const folder = computed(
   () => (route.params as { name: string; id: string }) || { name: '', id: '' },
 )
 
-/** Стан мінімізації sidebar: зберігається між сесіями. */
 const sidebarCollapsed = useLocalStorage('folder-page-sidebar-collapsed', false)
 
 const toggleSidebar = () => {
@@ -27,23 +25,13 @@ const toggleSidebar = () => {
 
 <template>
   <main class="mx-auto flex w-full min-w-0 max-w-[1440px] flex-col gap-4">
-    <!--    FolderHeader-->
     <header class="flex items-center gap-3 fixed" v-if="sidebarCollapsed">
-      <UiIconButton
-        :label="sidebarCollapsed ? 'Показати список нотаток' : 'Мінімізувати список нотаток'"
-        :aria-expanded="sidebarCollapsed ? 'false' : 'true'"
-        aria-controls="notes-sidebar"
-        @click="toggleSidebar"
-      >
-        <PanelLeftClose v-if="!sidebarCollapsed" :size="18" />
-        <PanelLeftOpen v-else :size="18" />
-      </UiIconButton>
+      <ToggleSidebarButton :collapsed="sidebarCollapsed"  @click="toggleSidebar()" />
       <div class="min-w-0">
         <p class="text-xs font-bold uppercase tracking-wider text-ink-light">Папка</p>
         <h1 class="truncate text-lg font-black sm:text-xl">{{ folder.name }}</h1>
       </div>
     </header>
-    <!-- ////    FolderHeader-->
 
     <div
       class="grid min-w-0 grid-cols-1 items-start gap-4 transition-[grid-template-columns,gap] duration-300"
@@ -64,17 +52,7 @@ const toggleSidebar = () => {
         >
           <NoteSidebar :folder="folder">
             <template #header-left>
-              <UiIconButton
-                :label="
-                  sidebarCollapsed ? 'Показати список нотаток' : 'Мінімізувати список нотаток'
-                "
-                :aria-expanded="sidebarCollapsed ? 'false' : 'true'"
-                aria-controls="notes-sidebar"
-                @click="toggleSidebar"
-              >
-                <PanelLeftClose v-if="!sidebarCollapsed" :size="18" />
-                <PanelLeftOpen v-else :size="18" />
-              </UiIconButton>
+              <ToggleSidebarButton :collapsed="sidebarCollapsed" @click="toggleSidebar()" />
             </template>
           </NoteSidebar>
         </div>
