@@ -7,6 +7,7 @@ import { createExtensions } from '../model/extensions'
 import { pasteMarkdown } from '../model/markdown'
 import { createSlashCommands } from '../model/slashCommands'
 import { useBlockHandles } from '../model/useBlockHandles'
+import { useClickToAppend } from '../model/useClickToAppend'
 import { useEditorActions } from '../model/useEditorActions'
 import { useImagePopover } from '../model/useImagePopover'
 import { useOverlayPosition } from '../model/useOverlayPosition'
@@ -25,8 +26,20 @@ const props = withDefaults(defineProps<{ content?: Content; placeholder?: string
 })
 const emit = defineEmits<{ 'update:content': [value: JSONContent]; update: [value: JSONContent] }>()
 
+// Кількість рядків, які займає редактор. Можна задати ззовні (`v-model:rows`)
+// або змінити мишкою за нижній край редактора.
+const rows = defineModel<number>('rows', { default: 24 })
+
+const LINE_HEIGHT = 24
+const MIN_ROWS = 3
+const MAX_ROWS = 200
+
 const bodyRef = ref<HTMLElement | null>(null)
 const slashMenuRef = ref<HTMLElement | null>(null)
+
+const editorStyle = computed(() => ({
+  '--editor-rows': String(rows.value),
+}))
 
 const editor = useEditor({
   content: props.content,
@@ -55,6 +68,7 @@ const actions = useEditorActions(editor, slashMenu.close)
 const imagePopover = useImagePopover(editor, slashMenu.close)
 const slashCommands = createSlashCommands(actions, imagePopover.open)
 const overlay = useOverlayPosition(editor)
+const clickToAppend = useClickToAppend(editor)
 
 const {
   gutter: blockGutter,
@@ -166,21 +180,48 @@ watch(slashMenu.activeIndex, () =>
 function handlePaste(event: ClipboardEvent) {
   pasteMarkdown(editor.value, event)
 }
+
+// ——— Ресайз висоти редактора (кількість рядків) ———
+const resizing = ref(false)
+let resizeStart: { clientY: number; rows: number } | null = null
+
+function onResizeStart(event: PointerEvent) {
+  resizing.value = true
+  resizeStart = { clientY: event.clientY, rows: rows.value }
+  ;(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId)
+  event.preventDefault()
+}
+
+function onResizeMove(event: PointerEvent) {
+  if (!resizing.value || !resizeStart) return
+  const deltaRows = (event.clientY - resizeStart.clientY) / LINE_HEIGHT
+  rows.value = Math.min(MAX_ROWS, Math.max(MIN_ROWS, Math.round(resizeStart.rows + deltaRows)))
+}
+
+function onResizeEnd(event: PointerEvent) {
+  if (!resizing.value) return
+  resizing.value = false
+  resizeStart = null
+  ;(event.currentTarget as HTMLElement).releasePointerCapture?.(event.pointerId)
+}
 </script>
 
 <template>
-  <div class="text-editor">
+  <div class="text-editor" :class="{ 'is-resizing': resizing }" :style="editorStyle">
     <div
       ref="bodyRef"
       class="text-editor__body"
       @keydown.capture="handleKeydown"
       @paste.capture="handlePaste"
+      @mousedown.capture="clickToAppend.handleMouseDown"
       @mousemove="onMousemove"
       @mouseleave="onMouseleave"
       @dragover="onDragover"
       @drop="onDrop"
     >
-      <EditorContent :editor="editor" />
+      <div class="text-editor__scroll">
+        <EditorContent :editor="editor" />
+      </div>
 
       <div v-if="blockGutter" ref="gutterEl" class="text-editor__gutter" :style="gutterStyle">
         <button class="gutter-btn" type="button" title="Додати блок нижче" @click="addBlock">
@@ -300,6 +341,18 @@ function handlePaste(event: ClipboardEvent) {
         </div>
       </div>
     </div>
+
+    <div
+      class="text-editor__resizer"
+      role="separator"
+      aria-orientation="horizontal"
+      aria-label="Змінити висоту редактора"
+      title="Тягніть, щоб змінити висоту редактора"
+      @pointerdown="onResizeStart"
+      @pointermove="onResizeMove"
+      @pointerup="onResizeEnd"
+      @pointercancel="onResizeEnd"
+    />
 
     <EditorBubbleToolbar
       v-if="bubbleBox"

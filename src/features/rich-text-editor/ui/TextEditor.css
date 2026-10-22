@@ -10,6 +10,12 @@
     0 0 0 1px color-mix(in srgb, var(--color-ink) 6%, transparent), 0 3px 6px rgba(15, 15, 15, 0.1),
     0 9px 24px rgba(15, 15, 15, 0.2);
 
+  /* Кількість рядків, яку займає редактор (керується через `v-model:rows`). */
+  --editor-rows: 18;
+  --editor-line-height: 24px;
+  --editor-pad-top: 40px;
+  --editor-pad-bottom: 80px;
+
   position: relative;
   overflow: hidden;
   border-radius: 12px;
@@ -28,14 +34,28 @@
     'Segoe UI Symbol';
 }
 
+/* Оболонка редактора має чітку висоту, щоб під нею залишалося вільне місце. */
 .text-editor__body {
   position: relative;
-  min-height: 460px;
-  padding: 40px clamp(16px, 6vw, 96px) 80px;
+  box-sizing: border-box;
+  height: calc(
+    var(--editor-rows) * var(--editor-line-height) + var(--editor-pad-top) + var(--editor-pad-bottom)
+  );
+  padding: var(--editor-pad-top) clamp(16px, 6vw, 96px) var(--editor-pad-bottom);
+  overflow: hidden;
+}
+
+/* Скрол зони контенту: все, що не вміщається у вибрану кількість рядків,
+   гортається всередині редактора, а не розтягує його. */
+.text-editor__scroll {
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .text-editor__body :deep(.ProseMirror) {
-  min-height: 380px;
+  min-height: 100%;
   outline: none;
   white-space: pre-wrap;
   font-size: 16px;
@@ -597,10 +617,43 @@
   cursor: not-allowed;
 }
 
+/* ——— Хендлер зміни висоти редактора ——— */
+.text-editor__resizer {
+  position: absolute;
+  right: 0;
+  bottom: -6px;
+  left: 0;
+  z-index: 20;
+  height: 12px;
+  cursor: row-resize;
+  touch-action: none;
+}
+.text-editor__resizer::after {
+  content: '';
+  position: absolute;
+  right: 50%;
+  bottom: 4px;
+  left: 50%;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--n-line-strong);
+  transform: translateX(50%);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.text-editor__resizer:hover::after,
+.text-editor.is-resizing .text-editor__resizer::after {
+  opacity: 1;
+}
+.text-editor.is-resizing {
+  cursor: row-resize;
+  user-select: none;
+}
+
 @media (max-width: 640px) {
-  .text-editor__body {
-    min-height: 360px;
-    padding: 24px 18px 56px;
+  .text-editor {
+    --editor-pad-top: 24px;
+    --editor-pad-bottom: 56px;
   }
   .text-editor__gutter {
     display: none;
