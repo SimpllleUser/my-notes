@@ -354,6 +354,13 @@
   pointer-events: none;
 }
 
+/* Ховаємо плейсхолдер, коли редактор не зосебований і у ньому є вміст */
+.text-editor:not(.is-focused).has-content .text-editor__body :deep(.ProseMirror p.is-editor-empty:first-child::before),
+.text-editor:not(.is-focused).has-content .text-editor__body :deep(.ProseMirror .is-empty::before) {
+  content: none;
+  display: none;
+}
+
 /* ——— Гуттер блоку: «+» та маркер перетягування ——— */
 .text-editor__gutter {
   position: absolute;

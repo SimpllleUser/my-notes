@@ -35,7 +35,7 @@ export function createExtensions(getPlaceholder: () => string) {
     TableKit.configure({ table: { resizable: true, lastColumnResizable: true } }),
     Placeholder.configure({
       placeholder: ({ node }) => (node.type.name === 'heading' ? 'Заголовок' : getPlaceholder()),
-      showOnlyCurrent: false,
+      showOnlyCurrent: true,
     }),
     CharacterCount,
   ]

@@ -59,6 +59,12 @@ const editor = useEditor({
     slashMenu.syncWithSelection()
     overlay.update()
   },
+  onFocus() {
+    isFocused.value = true
+  },
+  onBlur() {
+    isFocused.value = false
+  },
 })
 
 // The slash menu reads its commands lazily, which breaks the cycle
@@ -91,6 +97,9 @@ const {
 } = useBlockHandles(editor, bodyRef, () => slashMenu.openManual())
 
 const characterCount = computed(() => editor.value?.storage.characterCount?.characters() ?? 0)
+const hasContent = computed(() => characterCount.value > 0)
+
+const isFocused = ref(false)
 const linkHref = computed(
   () => (editor.value?.getAttributes('link').href as string | undefined) ?? '',
 )
@@ -207,7 +216,11 @@ function onResizeEnd(event: PointerEvent) {
 </script>
 
 <template>
-  <div class="text-editor" :class="{ 'is-resizing': resizing }" :style="editorStyle">
+  <div
+    class="text-editor"
+    :class="{ 'is-resizing': resizing, 'is-focused': isFocused, 'has-content': hasContent }"
+    :style="editorStyle"
+  >
     <div
       ref="bodyRef"
       class="text-editor__body"
