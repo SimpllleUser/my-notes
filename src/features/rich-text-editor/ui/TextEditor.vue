@@ -12,6 +12,7 @@ import { useEditorActions } from '../model/useEditorActions'
 import { useImagePopover } from '../model/useImagePopover'
 import { useOverlayPosition } from '../model/useOverlayPosition'
 import { useSlashMenu } from '../model/useSlashMenu'
+import { type BlockChange, useBlockSave } from '../model/useBlockSave'
 import {
   clampViewportPosition,
   createTurnIntoItems,
@@ -24,7 +25,11 @@ const props = withDefaults(defineProps<{ content?: Content; placeholder?: string
   content: '<h1>Нова нотатка</h1><p>Почніть писати тут...</p>',
   placeholder: 'Напишіть щось або натисніть «/», щоб додати блок…',
 })
-const emit = defineEmits<{ 'update:content': [value: JSONContent]; update: [value: JSONContent] }>()
+const emit = defineEmits<{
+  'update:content': [value: JSONContent]
+  update: [value: JSONContent]
+  changes: [value: BlockChange[]]
+}>()
 
 // Кількість рядків, які займає редактор. Можна задати ззовні (`v-model:rows`)
 // або змінити мишкою за нижній край редактора.
@@ -52,6 +57,7 @@ const editor = useEditor({
 
     emit('update:content', json)
     emit('update', json)
+    saveBlocks()
     slashMenu.syncWithSelection()
     overlay.update()
   },
@@ -66,6 +72,18 @@ const editor = useEditor({
     isFocused.value = false
   },
 })
+
+const { save: saveBlocks, init: initSave } = useBlockSave(
+  editor,
+  async (changes: BlockChange[]) => {
+    emit('changes', changes)
+  },
+  {
+    debounceMs: 500,
+  },
+)
+
+nextTick(() => initSave())
 
 // The slash menu reads its commands lazily, which breaks the cycle
 // slashMenu -> slashCommands -> actions -> slashMenu.close.
@@ -288,16 +306,6 @@ function onResizeEnd(event: PointerEvent) {
         role="menu"
       >
         <p class="notion-menu__label">Перетворити на</p>
-        <button
-          v-for="item in turnIntoItems"
-          :key="item.label"
-          class="notion-menu__item"
-          type="button"
-          @mousedown.prevent="applyTurnInto(item.run)"
-        >
-          <component :is="item.icon" :size="16" class="notion-menu__glyph" />
-          <span>{{ item.label }}</span>
-        </button>
         <span class="notion-menu__divider" />
         <button class="notion-menu__item" type="button" @mousedown.prevent="duplicateBlock">
           <Copy :size="16" class="notion-menu__glyph" />

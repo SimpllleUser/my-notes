@@ -11,19 +11,25 @@ import { Save } from '@lucide/vue'
 const props = defineProps<{
   folder: { name: string; id: string }
 }>()
+
+const emit = defineEmits<{
+  'set-note': [payload: Note]
+}>()
 const notesStore = useNotesStore()
 
 const searchingName = ref('')
-const activeId = useLocalStorage(`node-${props.folder.id}}`, '')
+const activeNote = useLocalStorage<Note>(`node-${props.folder.id}}`, {} as Note)
 const popOverState = ref(false)
 
 onBeforeMount(async () => {
   await notesStore.getAll(props.folder.id)
-  if (!activeId.value) activeId.value = notesStore.getNotes()[0]?.$id || ''
+  if (!activeNote.value?.$id) activeNote.value = notesStore.getNotes()[0]
+  emit('set-note', activeNote.value as Note)
 })
 
 const selectNote = (note: Note) => {
-  activeId.value = note.$id
+  activeNote.value = note
+  emit('set-note', note)
 }
 
 const create = () => {
@@ -54,15 +60,11 @@ const createNote = async () => {
     @select="selectNote"
     :folder-name="folder.name"
     :notes="notesStore.getNotes(searchingName)"
-    :active-note-id="activeId"
+    :active-note-id="activeNote.$id"
   >
-    <template #header-left><slot name="header-left"/></template>
+    <template #header-left><slot name="header-left" /></template>
     <template #header-right>
-      <UiPopover
-        v-model="popOverState"
-        :openOnHover="false"
-        @click:outside="hidePopOver"
-      >
+      <UiPopover v-model="popOverState" :openOnHover="false" @click:outside="hidePopOver">
         <template #activator="{ props }">
           <UiIconButton
             v-bind="props"

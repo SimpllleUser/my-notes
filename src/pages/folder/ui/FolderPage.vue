@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLocalStorage } from '@vueuse/core'
 import NoteSidebar from '../ui/NoteSidebar.vue'
 import { TextEditor } from '@/features/rich-text-editor'
 import ToggleSidebarButton from '@/pages/folder/ui/ToggleSidebarButton.vue'
+import type { BlockChange } from '@/features/rich-text-editor/model/useBlockSave.ts'
+import type { Note } from '@/entities/note'
+import type { Nullable } from '@/shared/model/types.ts'
 
 defineOptions({
   name: 'FolderPage',
 })
 
 const route = useRoute()
+const activeNote = ref<Nullable<Note>>(null)
 
 const folder = computed(
   () => (route.params as { name: string; id: string }) || { name: '', id: '' },
@@ -21,6 +25,24 @@ const sidebarCollapsed = useLocalStorage('folder-page-sidebar-collapsed', false)
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
+const updateTextEditor = (content: BlockChange[]) => {
+  /// Action only call actual trigger for backend
+  /// Make consistent value of text editor from backend
+  console.log(content)
+}
+
+const content = ref(``)
+const changeNote = (note: Note) => {
+  activeNote.value = note
+}
+
+watch(
+  () => activeNote.value?.$id,
+  (old, newVal) => {
+    if (old === newVal) return
+    // fetch nodes from note
+  },
+)
 </script>
 
 <template>
@@ -53,7 +75,7 @@ const toggleSidebar = () => {
             v-show="!sidebarCollapsed"
             class="fixed inset-x-5 bottom-5 z-10 max-h-[45dvh] overflow-y-auto overscroll-contain md:sticky md:top-5 md:inset-x-auto md:bottom-auto md:max-h-[calc(100dvh-2.5rem)] md:w-[264px] lg:w-[324px]"
           >
-            <NoteSidebar :folder="folder">
+            <NoteSidebar @set-note="changeNote" :folder="folder">
               <template #header-left>
                 <ToggleSidebarButton :collapsed="sidebarCollapsed" @click="toggleSidebar()" />
               </template>
@@ -68,7 +90,7 @@ const toggleSidebar = () => {
           'mt-15': sidebarCollapsed,
         }"
       >
-        <TextEditor />
+        <TextEditor :content="content" @changes="updateTextEditor" />
       </div>
     </div>
   </main>
