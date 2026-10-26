@@ -57,10 +57,6 @@ const updateTextEditor = (content: BlockChange[]) => {
   )
 }
 
-// const updateContent = (value) => {
-//   console.log('!', value)
-// }
-
 const content = ref<Content>(toEditorBody([]))
 const contentNoteId = ref<string | null>(null)
 const changeNote = (note: Note) => {
@@ -134,7 +130,6 @@ watch(
           'mt-15': sidebarCollapsed,
         }"
       >
-        {{ content }}
         <TextEditor
           v-if="activeNote && contentNoteId === activeNote.$id"
           :key="activeNote.$id"
