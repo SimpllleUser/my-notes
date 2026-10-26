@@ -51,12 +51,12 @@ export class NodeAPI {
       }
     }
   }
-  async update(payload: Node): APIResponse<Node> {
+  async update(rowId: string, payload: NodePayload): APIResponse<Node> {
     try {
       const result = await this.tablesDB.updateRow<Node>({
         databaseId: this.databaseId,
         tableId: this.tableId,
-        rowId: payload.$id,
+        rowId,
         data: payload,
       })
 

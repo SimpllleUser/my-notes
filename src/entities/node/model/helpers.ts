@@ -2,11 +2,12 @@ import type { BlockChange } from '@/features/rich-text-editor/model/useBlockSave
 import type { Node } from '@/entities/node'
 
 export const serialize = (node: BlockChange, note: string) => {
-  delete node.action
-return {
-    body: JSON.stringify(node),
-  note,
-}
+  const block = { ...node }
+  delete block.action
+  return {
+    body: JSON.stringify(block),
+    note,
+  }
 }
 
 export const deserialize = (node: Node) => {
@@ -15,7 +16,7 @@ export const deserialize = (node: Node) => {
     ...nodeBody,
     attrs: {
       ...nodeBody?.attrs,
-      $id: node.$id,
+      nodeId: node.$id,
     },
   }
 }

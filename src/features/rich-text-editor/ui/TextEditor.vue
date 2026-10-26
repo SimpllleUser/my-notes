@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { EditorContent, useEditor, type Content, type JSONContent } from '@tiptap/vue-3'
 import { Copy, GripVertical, Plus, Trash2 } from '@lucide/vue'
 import EditorBubbleToolbar from './EditorBubbleToolbar.vue'
@@ -77,6 +77,25 @@ const editor = useEditor({
   onBlur() {
     isFocused.value = false
   },
+})
+
+function syncContent(content: Content = props.content) {
+  const instance = editor.value
+  if (!instance) return
+
+  if (typeof content !== 'string' && JSON.stringify(instance.getJSON()) === JSON.stringify(content)) {
+    return
+  }
+
+  instance.commands.setContent(content, { emitUpdate: false })
+}
+
+// useEditor creates the Tiptap instance in its onMounted hook. Sync once after
+// that hook, then keep syncing replacements and deep JSON changes from parent.
+onMounted(() => syncContent())
+watch(() => props.content, (content) => syncContent(content), { deep: true })
+watch(editor, (instance) => {
+  if (instance) syncContent()
 })
 
 const { save: saveBlocks, init: initSave } = useBlockSave(

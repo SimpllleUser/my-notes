@@ -22,8 +22,8 @@ export const useNodesStore = defineStore('nodes', {
     async create(payload: NodePayload) {
       await nodeAPI.create(payload)
     },
-    async update(payload: Node) {
-      await nodeAPI.update(payload)
+    async update(rowId: string, payload: NodePayload) {
+      await nodeAPI.update(rowId, payload)
     },
     async delete(payload: string) {
       await nodeAPI.delete(payload)
