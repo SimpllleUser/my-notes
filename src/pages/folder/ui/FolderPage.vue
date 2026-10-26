@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLocalStorage } from '@vueuse/core'
 import NoteSidebar from '../ui/NoteSidebar.vue'
 import { TextEditor } from '@/features/rich-text-editor'
 import ToggleSidebarButton from '@/pages/folder/ui/ToggleSidebarButton.vue'
-import type { BlockChange } from '@/features/rich-text-editor/model/useBlockSave.ts'
+import { BlockAction, type BlockChange } from '@/features/rich-text-editor/model/useBlockSave.ts'
 import type { Note } from '@/entities/note'
 import type { Nullable } from '@/shared/model/types.ts'
+import type { JSONContent } from '@tiptap/vue-3'
+import { useNodesStore } from '@/entities/node/model/store.ts'
+import { deserialize, serialize } from '@/entities/node/model/helpers.ts'
 
 defineOptions({
   name: 'FolderPage',
@@ -15,6 +18,7 @@ defineOptions({
 
 const route = useRoute()
 const activeNote = ref<Nullable<Note>>(null)
+const nodeStore = useNodesStore()
 
 const folder = computed(
   () => (route.params as { name: string; id: string }) || { name: '', id: '' },
@@ -22,26 +26,53 @@ const folder = computed(
 
 const sidebarCollapsed = useLocalStorage('folder-page-sidebar-collapsed', false)
 
+const toEditorBody = (content: JSONContent[]) => ({
+  type: 'doc',
+  content,
+})
+
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
+
 const updateTextEditor = (content: BlockChange[]) => {
-  /// Action only call actual trigger for backend
-  /// Make consistent value of text editor from backend
-  console.log(content)
+  // content.forEach((item) => {
+  //   if (item.action !== BlockAction.Create) return
+  //   nodeStore.create(serialize(item, activeNote.value.$id))
+  // })
+  // console.log(content)
 }
+
+// const updateContent = (value) => {
+//   console.log('!', value)
+// }
 
 const content = ref(``)
 const changeNote = (note: Note) => {
   activeNote.value = note
 }
 
+const editorKey = ref('')
+
+const isInitialNoteLoad = ref(true)
+
 watch(
   () => activeNote.value?.$id,
-  (old, newVal) => {
-    if (old === newVal) return
+  async (noteId, oldNoteId) => {
+    if (isInitialNoteLoad.value) {
+      isInitialNoteLoad.value = false
+      return
+    }
+    if (noteId === oldNoteId) return
+    if (!noteId) return
+    const data = await nodeStore.getAll(noteId)
+    content.value = toEditorBody(data?.map(deserialize))
+    nextTick(() => {
+      editorKey.value = Date.now().toString()
+    })
     // fetch nodes from note
   },
+  { immediate: true },
 )
 </script>
 
@@ -90,7 +121,16 @@ watch(
           'mt-15': sidebarCollapsed,
         }"
       >
-        <TextEditor :content="content" @changes="updateTextEditor" />
+        <!--        @update:content="updateContent"-->
+        {{ content }}
+        <hr />
+        {{ editorKey }}
+        <TextEditor
+          v-if="activeNote"
+          :key="editorKey"
+          :content="content"
+          @changes="updateTextEditor"
+        />
       </div>
     </div>
   </main>

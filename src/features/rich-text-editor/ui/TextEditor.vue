@@ -46,6 +46,8 @@ const editorStyle = computed(() => ({
   '--editor-rows': String(rows.value),
 }))
 
+let isFirstUpdate = true
+
 const editor = useEditor({
   content: props.content,
   extensions: createExtensions(() => props.placeholder),
@@ -54,10 +56,14 @@ const editor = useEditor({
     // розширенням BlockOrder (див. model/extensions/blockOrder.ts) усередині документа,
     // тому перенумеровувати блоки вручну тут не потрібно — навіть після drag & drop.
     const json = instance.getJSON()
-
     emit('update:content', json)
     emit('update', json)
-    saveBlocks()
+    // Пропускаємо перший оновлення при ініціалізації редактора, щоб не відправляти
+    // дефолтний вміст як зміни (useBlockSave ще не ініціалізовано через nextTick).
+    if (!isFirstUpdate) {
+      saveBlocks()
+    }
+    isFirstUpdate = false
     slashMenu.syncWithSelection()
     overlay.update()
   },

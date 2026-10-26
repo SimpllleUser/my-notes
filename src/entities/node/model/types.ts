@@ -1,16 +1,9 @@
-export interface Node {
-  body: string
-  $id: string
-  $sequence: string
-  $createdAt: string
-  $updatedAt: string
-  $permissions: string[]
-  note: string
-  $databaseId: string
-  $tableId: string
-}
+import type { BaseEntity } from '@/shared/model/types.ts'
+
+export type Node = BaseEntity<NodePayload>
+
 
 export interface NodePayload {
-  name: string
-  folder: string
+  body: string
+  note: string
 }

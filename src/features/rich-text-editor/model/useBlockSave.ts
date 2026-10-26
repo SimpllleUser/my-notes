@@ -2,9 +2,15 @@ import { ref } from 'vue'
 import type { EditorRef } from './types'
 import type { JSONContent } from '@tiptap/vue-3'
 
+export enum BlockAction {
+  Create = 'create',
+  Update = 'update',
+  Delete = 'delete',
+}
+
 export interface BlockChange {
   id: string
-  action: 'create' | 'update' | 'delete'
+  action: BlockAction
   type?: string
   attrs?: Record<string, unknown>
   content?: unknown[]
@@ -62,15 +68,14 @@ export function useBlockSave(
     lastError.value = null
 
     try {
-      // TODO: Реальний API-запит на збереження блоків
-      // await onSave(changes)
+      await onSave(changes)
       // Приклад:
       // await fetch('/api/blocks', {
       //   method: 'PATCH',
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify({ changes }),
       // })
-      console.log('Block changes to save:', changes)
+      //console.log('Block changes to save:', changes)
     } catch (err) {
       lastError.value = err instanceof Error ? err : new Error(String(err))
     } finally {
@@ -107,7 +112,7 @@ export function useBlockSave(
       if (!currById.has(id)) {
         changes.push({
           id,
-          action: 'delete',
+          action: BlockAction.Delete,
           type: node.type,
           attrs: node.attrs as Record<string, unknown>,
           content: node.content,
@@ -124,7 +129,7 @@ export function useBlockSave(
       if (!prevNode) {
         changes.push({
           id,
-          action: 'create',
+          action: BlockAction.Create,
           type: node.type,
           attrs: node.attrs as Record<string, unknown>,
           content: node.content,
@@ -137,7 +142,7 @@ export function useBlockSave(
       ) {
         changes.push({
           id,
-          action: 'update',
+          action: BlockAction.Update,
           type: node.type,
           attrs: node.attrs as Record<string, unknown>,
           content: node.content,
