@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+} from 'vue'
 import { EditorContent, useEditor, type Content, type JSONContent } from '@tiptap/vue-3'
 import { Copy, GripVertical, Plus, Trash2 } from '@lucide/vue'
 import EditorBubbleToolbar from './EditorBubbleToolbar.vue'
@@ -98,7 +106,13 @@ watch(editor, (instance) => {
   if (instance) syncContent()
 })
 
-const { save: saveBlocks, init: initSave } = useBlockSave(
+const {
+  save: saveBlocks,
+  init: initSave,
+  flush: flushBlocks,
+  isSaving: blockIsSaving,
+  destroy: destroySave,
+} = useBlockSave(
   editor,
   async (changes: BlockChange[]) => {
     emit('changes', changes)
@@ -109,6 +123,40 @@ const { save: saveBlocks, init: initSave } = useBlockSave(
 )
 
 nextTick(() => initSave())
+
+// Експонуємо для батьківського компонента, щоб той міг негайно відправити
+// накопичені зміни перед закриттям вкладки або переходом між сторінками.
+defineExpose({
+  flush: flushBlocks,
+  isSaving: blockIsSaving,
+})
+
+const handlePageHide = () => void flushBlocks()
+const handleVisibilityChange = () => {
+  if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+    void flushBlocks()
+  }
+}
+
+onMounted(() => {
+  if (typeof window !== 'undefined') {
+    window.addEventListener('pagehide', handlePageHide)
+    window.addEventListener('visibilitychange', handleVisibilityChange)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('pagehide', handlePageHide)
+    window.removeEventListener('visibilitychange', handleVisibilityChange)
+  }
+  // Надсилаємо залишок змін перед розmontуванням (перехід між сторінками в SPA)
+  void flushBlocks()
+})
+
+onUnmounted(() => {
+  void destroySave()
+})
 
 // The slash menu reads its commands lazily, which breaks the cycle
 // slashMenu -> slashCommands -> actions -> slashMenu.close.

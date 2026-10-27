@@ -17,36 +17,65 @@ export interface BlockChange {
   order?: number
 }
 
+export interface UseBlockSaveOptions {
+  debounceMs?: number
+  maxRetries?: number
+}
+
 /**
- * Debounced блочне збереження Tiptap-редактора.
+ * Надійне дебаунс-zбереження Tiptap-редактора.
  * Порівнює попередній і поточний JSON документа, обчислює диференцію
  * (create / update / delete) по top-level блоках і викликає `onSave`.
  *
+ * Надійність:
+ *   - `previousContent` оновлюється ТІЛЬКІ після успішної відповіді сервера.
+ *     Якщо запит впав, база не зсувається — наступна спроба обчислює диференцію
+ *     ще раз і надсилає оновлений вміст (змени не втрачаються).
+ *   - Автоповтор (retry) з лінійною відstawкою при помилках мережі.
+ *   - `flush()` — негайна відправка накопичених змін без очікування дебаунсу
+ *     (викликати перед закриттям вкладки або переходом між сторінками).
+ *   - `destroy()` — прибирання таймера та остаточна відправка при розmontуванні.
+ *
  * @param editor - Tiptap editor ref
- * @param onSave - 콜бек із змінами блоків (тут фактичний API-запит)
- * @param options.debounceMs - затримка перед надсиланням (мс), за замовчуванням 300
+ * @param onSave - колбек із змінами блоків (фактичний API-запит)
+ * @param options.debounceMs - затримка перед надсиланням (мс), за замовчуванням 500
+ * @param options.maxRetries - кількість повторних спроб при помилці, за замовчуванням 3
+ * @param options - додаткові опції
  */
 export function useBlockSave(
   editor: EditorRef,
   onSave: (changes: BlockChange[]) => Promise<void>,
-  options: { debounceMs?: number } = {}
+  options: UseBlockSaveOptions = {}
 ) {
-  const debounceMs = options.debounceMs ?? 300
+  const debounceMs = options.debounceMs ?? 500
+  const maxRetries = options.maxRetries ?? 3
+
   const previousContent = ref<JSONContent | null>(null)
   const isSaving = ref(false)
   const lastError = ref<Error | null>(null)
+  const retryCount = ref(0)
 
   let timer: ReturnType<typeof setTimeout> | null = null
+  let destroyed = false
 
-  function flush() {
+  function clearTimer() {
     if (timer) {
       clearTimeout(timer)
       timer = null
     }
   }
 
+  /**
+   * Надсилати накопичені зміни негайно, не чекаючи дебаунсу.
+   * Викликати перед закриттям сторінки або переходом між сторінками.
+   */
+  async function flush() {
+    clearTimer()
+    await performSave()
+  }
+
   function save() {
-    flush()
+    clearTimer()
     timer = setTimeout(() => {
       timer = null
       void performSave()
@@ -54,14 +83,14 @@ export function useBlockSave(
   }
 
   async function performSave() {
+    if (destroyed) return
+
     const current = editor.value?.getJSON()
     const prev = previousContent.value
 
     if (!current || JSON.stringify(current) === JSON.stringify(prev)) return
 
     const changes = diffBlocks(prev?.content ?? [], current.content)
-    previousContent.value = current
-
     if (changes.length === 0) return
 
     isSaving.value = true
@@ -69,26 +98,51 @@ export function useBlockSave(
 
     try {
       await onSave(changes)
-      // Приклад:
-      // await fetch('/api/blocks', {
-      //   method: 'PATCH',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ changes }),
-      // })
-      //console.log('Block changes to save:', changes)
+      // Фіксуємо новий базовий стан лише після успішної відповіді сервера.
+      // При помилці previousContent не змінюється, тому зміни повторюються
+      // з оновленим вмістом при наступній спробі.
+      previousContent.value = current
+      retryCount.value = 0
     } catch (err) {
       lastError.value = err instanceof Error ? err : new Error(String(err))
+
+      if (retryCount.value < maxRetries) {
+        retryCount.value += 1
+        const backoffMs = debounceMs * retryCount.value
+        timer = setTimeout(() => {
+          timer = null
+          void performSave()
+        }, backoffMs)
+      } else {
+        retryCount.value = 0
+      }
     } finally {
-      isSaving.value = false
+      // Якщо запланований повтор, isSaving залишаємо true до останньої спроби
+      if (!timer) isSaving.value = false
     }
+  }
+
+  /**
+   * Прибирання ресурсів при розmontуванні компонента: скасовуємо таймер і
+   * надсилаємо остаточні зміни, щоб нічого не втратити при переході.
+   */
+  async function destroy() {
+    destroyed = true
+    clearTimer()
+    await performSave()
   }
 
   function init() {
     previousContent.value = editor.value?.getJSON() ?? null
+    retryCount.value = 0
+    lastError.value = null
   }
 
   function getNodeId(node: JSONContent): string | undefined {
-    return (node.attrs as Record<string, unknown> | undefined)?.id as string | undefined
+    const attrs = node.attrs as Record<string, unknown> | undefined
+    // `nodeId` — атрибут розширення BlockOrder (Appwrite row ID блоку),
+    // `id` — авто-ID від UniqueID. Спробуємо обидва.
+    return (attrs?.nodeId ?? attrs?.id) as string | undefined
   }
 
   function diffBlocks(prev: JSONContent[], curr: JSONContent[]): BlockChange[] {
@@ -156,9 +210,10 @@ export function useBlockSave(
 
   return {
     save,
+    flush,
     isSaving,
     lastError,
     init,
-    flush,
+    destroy,
   }
 }

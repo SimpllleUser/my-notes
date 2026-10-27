@@ -1,5 +1,8 @@
+import type { JSONContent } from '@tiptap/vue-3'
+
 export interface Note {
   name: string
+  content: JSONContent
   $id: string
   $sequence: string
   $createdAt: string
@@ -13,4 +16,5 @@ export interface Note {
 export interface NotePayload {
   name: string
   folder: string
+  content: JSONContent
 }

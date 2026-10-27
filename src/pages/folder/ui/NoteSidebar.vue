@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { JSONContent } from '@tiptap/vue-3'
 import type { Note } from '@/entities/note'
 import { useNotesStore } from '@/entities/note/model/store.ts'
 import { onBeforeMount, ref } from 'vue'
@@ -16,6 +17,12 @@ const emit = defineEmits<{
   'set-note': [payload: Note]
 }>()
 const notesStore = useNotesStore()
+
+// Порожній початковий документ Tiptap для нової нотатки
+const EMPTY_CONTENT: JSONContent = {
+  type: 'doc',
+  content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }],
+}
 
 const searchingName = ref('')
 const activeNote = useLocalStorage<Note>(`node-${props.folder.id}}`, {} as Note)
@@ -46,6 +53,7 @@ const createNote = async () => {
   await notesStore.create({
     name: noteName.value,
     folder: props.folder.id,
+    content: EMPTY_CONTENT,
   })
 
   hidePopOver()

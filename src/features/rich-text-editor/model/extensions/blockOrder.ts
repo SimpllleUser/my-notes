@@ -6,7 +6,7 @@ import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
  * Top-level блоки, які підтримують атрибут `order` (фракційний ключ сортування блоку).
  * Якщо додаєте новий top-level блок — додайте його тип сюди.
  */
-const TOP_LEVEL_BLOCK_TYPES = [
+export const TOP_LEVEL_BLOCK_TYPES = [
   'paragraph',
   'heading',
   'blockquote',
