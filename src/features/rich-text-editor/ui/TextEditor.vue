@@ -1,11 +1,5 @@
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onMounted,
-  ref,
-  watch,
-} from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { EditorContent, useEditor, type Content, type JSONContent } from '@tiptap/vue-3'
 import { Copy, GripVertical, Plus, Trash2 } from '@lucide/vue'
 import EditorBubbleToolbar from './EditorBubbleToolbar.vue'
@@ -125,6 +119,7 @@ const {
   onDragover,
   onDrop,
   onDragend,
+  onDragleave,
 } = useBlockHandles(editor, bodyRef, () => slashMenu.openManual())
 
 const characterCount = computed(() => editor.value?.storage.characterCount?.characters() ?? 0)
@@ -196,7 +191,7 @@ const blockMenuStyle = computed(() => {
 
 const gutterStyle = computed(() => ({
   top: (blockGutter.value?.top ?? 0) + 'px',
-  left: (blockGutter.value?.left ?? 0) - 20 + 'px',
+  left: (blockGutter.value?.left ?? 0) + 'px',
 }))
 
 const dropLineStyle = computed(() => {
@@ -260,8 +255,9 @@ function onResizeEnd(event: PointerEvent) {
       @mousedown.capture="clickToAppend.handleMouseDown"
       @mousemove="onMousemove"
       @mouseleave="onMouseleave"
-      @dragover="onDragover"
-      @drop="onDrop"
+      @dragover.capture="onDragover"
+      @dragleave="onDragleave"
+      @drop.capture="onDrop"
     >
       <div class="text-editor__scroll">
         <EditorContent :editor="editor" />
@@ -274,7 +270,7 @@ function onResizeEnd(event: PointerEvent) {
         <button
           class="gutter-btn"
           type="button"
-          title="Меню блоку"
+          aria-label="Меню блоку"
           draggable="true"
           @click="openBlockMenu"
           @dragstart="onDragstart"

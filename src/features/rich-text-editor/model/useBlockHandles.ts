@@ -2,6 +2,7 @@ import { onBeforeUnmount, ref, watch, type Ref } from 'vue'
 import type { JSONContent } from '@tiptap/vue-3'
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model'
 import type { EditorRef } from './types'
+import { Selection } from '@tiptap/pm/state'
 
 export type BlockGutter = { top: number; left: number }
 export type BlockMenuPosition = { top: number; left: number }
@@ -12,7 +13,11 @@ type BlockDom = { el: HTMLElement; index: number }
 const MENU_WIDTH = 240
 const MENU_HEIGHT = 430
 const HIDE_DELAY_MS = 300
-
+const SCROLL_EDGE_PX = 48
+const SCROLL_STEP_PX = 14
+const DRAG_MIME = 'application/x-editor-block'
+const GUTTER_WIDTH = 52 // «+» (24) + gap (2) + «⋮⋮» (24) + запас
+const GUTTER_GAP = 6
 /** Позиція початку top-level блока doc (перший блок починається з 0). */
 function childPos(doc: ProseMirrorNode, index: number) {
   let pos = 0
@@ -46,7 +51,7 @@ export function useBlockHandles(
   let hovered: BlockDom | null = null
   let menuIndex = -1
   let dragIndex = -1
-  let dropTarget: { index: number; after: boolean } | null = null
+  let dropSlot: number | null = null // позиція вставки 0..n
   let hideTimer: ReturnType<typeof setTimeout> | null = null
 
   function resolveBlock(target: EventTarget | null): BlockDom | null {
@@ -67,7 +72,7 @@ export function useBlockHandles(
     const blockRect = block.el.getBoundingClientRect()
     gutter.value = {
       top: Math.max(0, blockRect.top - bodyRect.top),
-      left: Math.max(2, blockRect.left - bodyRect.left - 30),
+      left: Math.max(0, blockRect.left - bodyRect.left - GUTTER_WIDTH - GUTTER_GAP),
     }
   }
 
@@ -199,77 +204,128 @@ export function useBlockHandles(
       .run()
   }
 
+  function blockElements(): HTMLElement[] {
+    const pm = editor.value?.view.dom
+    return pm ? (Array.from(pm.children) as HTMLElement[]) : []
+  }
+
+  function slotAtY(y: number) {
+    const index = blockElements().findIndex((el) => {
+      const rect = el.getBoundingClientRect()
+      return y < rect.top + rect.height / 2
+    })
+    return index === -1 ? blockElements().length : index
+  }
+
+  function showDropLine(slot: number) {
+    const body = bodyRef.value
+    const pm = editor.value?.view.dom
+    const items = blockElements()
+    if (!body || !pm || items.length === 0) {
+      dropLine.value = null
+      return
+    }
+    const prev = items[slot - 1]?.getBoundingClientRect()
+    const next = items[slot]?.getBoundingClientRect()
+    const y = prev && next ? (prev.bottom + next.top) / 2 : (next?.top ?? prev!.bottom)
+    const bodyRect = body.getBoundingClientRect()
+    const pmRect = pm.getBoundingClientRect()
+    dropLine.value = {
+      top: y - bodyRect.top,
+      left: pmRect.left - bodyRect.left,
+      width: pmRect.width,
+    }
+  }
+
+  function autoScroll(clientY: number) {
+    const scroller = editor.value?.view.dom.closest<HTMLElement>('.text-editor__scroll')
+    if (!scroller) return
+    const rect = scroller.getBoundingClientRect()
+    if (clientY < rect.top + SCROLL_EDGE_PX) scroller.scrollTop -= SCROLL_STEP_PX
+    else if (clientY > rect.bottom - SCROLL_EDGE_PX) scroller.scrollTop += SCROLL_STEP_PX
+  }
+
   function resetDrag() {
     dragging.value = false
     dragIndex = -1
-    dropTarget = null
+    dropSlot = null
     dropLine.value = null
   }
 
   function moveDragged() {
     const instance = editor.value
-    const target = dropTarget
     const from = dragIndex
+    const slot = dropSlot
     resetDrag()
-    if (!instance || !target || from < 0) return
-    const doc = instance.state.doc
-    if (from >= doc.childCount || target.index >= doc.childCount || from === target.index) return
+    if (!instance || slot === null || from < 0) return
 
-    const startPos = childPos(doc, from)
-    const size = doc.child(from).nodeSize
-    let insertPos =
-      childPos(doc, target.index) + (target.after ? doc.child(target.index).nodeSize : 0)
-    if (insertPos > startPos) insertPos -= size
+    const { state, view } = instance
+    const doc = state.doc
+    if (from >= doc.childCount) return
 
-    const json = doc.child(from).toJSON()
-    // Скидаємо `order`, щоб плагін BlockOrder призначив дробове значення за новим місцем.
-    if (json.attrs) json.attrs.order = null
-    instance
-      .chain()
-      .focus()
-      .deleteRange({ from: startPos, to: startPos + size })
-      .insertContentAt(insertPos, json)
-      .run()
+    const node = doc.child(from)
+    const fromPos = childPos(doc, from)
+    const toPos = childPos(doc, slot)
+    const insertPos = toPos > fromPos ? toPos - node.nodeSize : toPos
+
+    // `order = null` → BlockOrder призначить дробове значення за новим місцем.
+    // `id` лишається, тому на сервері це update, а не delete + create.
+    const moved = node.type.create({ ...node.attrs, order: null }, node.content, node.marks)
+
+    const tr = state.tr.delete(fromPos, fromPos + node.nodeSize).insert(insertPos, moved)
+    tr.setSelection(Selection.near(tr.doc.resolve(insertPos + 1), 1))
+    view.dispatch(tr.scrollIntoView())
+    view.focus()
+
     hovered = null
     gutter.value = null
   }
-
   function onDragstart(event: DragEvent) {
+    const pm = editor.value?.view.dom
     const block = hovered
-    if (!block || !event.dataTransfer) {
+    const transfer = event.dataTransfer
+    if (!pm || !block || !transfer) {
       event.preventDefault()
       return
     }
+
     closeMenu()
-    dragIndex = block.index
+    // Індекс перераховуємо зараз, а не беремо зі значення при наведенні.
+    dragIndex = Array.prototype.indexOf.call(pm.children, block.el)
     dragging.value = true
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData('text/plain', String(block.index))
-  }
 
+    transfer.effectAllowed = 'move'
+    // Власний MIME: ProseMirror не вставить нічого текстом, якщо подія все ж до нього дійде.
+    transfer.setData(DRAG_MIME, String(dragIndex))
+    transfer.setDragImage(block.el, 0, 0)
+  }
   function onDragover(event: DragEvent) {
-    if (!dragging.value) return
-    const block = resolveBlock(event.target)
-    const body = bodyRef.value
-    if (!block || !body) {
-      dropLine.value = null
-      return
-    }
+    if (!dragging.value) return // чужі drag (файли, текст) обробляє сам ProseMirror
+    // Забороняємо ProseMirror/Dropcursor реагувати на наш drag.
     event.preventDefault()
+    event.stopPropagation()
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
-    const rect = block.el.getBoundingClientRect()
-    const bodyRect = body.getBoundingClientRect()
-    const after = event.clientY > rect.top + rect.height / 2
-    dropTarget = { index: block.index, after }
-    dropLine.value = {
-      top: (after ? rect.bottom : rect.top) - bodyRect.top,
-      left: rect.left - bodyRect.left,
-      width: rect.width,
-    }
+
+    autoScroll(event.clientY)
+
+    const slot = slotAtY(event.clientY)
+    const isSamePlace = slot === dragIndex || slot === dragIndex + 1
+    dropSlot = isSamePlace ? null : slot
+    if (dropSlot === null) dropLine.value = null
+    else showDropLine(dropSlot)
   }
 
+  function onDragleave(event: DragEvent) {
+    if (!dragging.value) return
+    const related = event.relatedTarget
+    if (related instanceof globalThis.Node && bodyRef.value?.contains(related)) return
+    dropSlot = null
+    dropLine.value = null
+  }
   function onDrop(event: DragEvent) {
+    if (!dragging.value) return
     event.preventDefault()
+    event.stopPropagation()
     moveDragged()
   }
 
@@ -310,6 +366,7 @@ export function useBlockHandles(
     deleteBlock,
     onDragstart,
     onDragover,
+    onDragleave,
     onDrop,
     onDragend,
   }

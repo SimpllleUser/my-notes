@@ -39,7 +39,7 @@
   position: relative;
   box-sizing: border-box;
   height: calc(100vh - 3rem);
-  padding: 1rem 1.5rem;
+  padding: 1rem 1.5rem 1rem 4rem;
   overflow: hidden;
 }
 
@@ -378,6 +378,14 @@
   padding: 0;
   cursor: pointer;
 }
+
+.gutter-btn[draggable='true'] {
+  cursor: grab;
+}
+.gutter-btn[draggable='true']:active {
+  cursor: grabbing;
+}
+
 .gutter-btn:hover {
   background: var(--n-hover);
   color: var(--color-ink);
@@ -656,6 +664,10 @@
 }
 
 @media (max-width: 640px) {
+  .text-editor__body {
+    padding: 1rem 1.5rem;
+  }
+
   .text-editor {
     --editor-pad-top: 24px;
     --editor-pad-bottom: 56px;

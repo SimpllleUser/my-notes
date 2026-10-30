@@ -53,15 +53,16 @@ export function useClickToAppend(editor: EditorRef) {
     return last.getBoundingClientRect().bottom
   }
 
-  /** Чи клікнув користувач у «порожню» зону (поза блоками контенту). */
+  const EMPTY_ZONE_SELECTOR = '.text-editor__scroll, .text-editor__body'
+
+  /** Чи клікнув користувач у «порожню» зону (а не по контенту чи плаваючому UI). */
   function isEmptyZone(target: EventTarget | null): boolean {
     const pm = editor.value?.view.dom
-    if (!pm) return false
-    if (!(target instanceof Node)) return true
+    if (!pm || !(target instanceof Element)) return false
     // Корінь ProseMirror розтягнуто на всю висоту зони, тому клік нижче
     // останнього блоку влучає саме в нього.
     if (target === pm) return true
-    return !pm.contains(target)
+    return target.matches(EMPTY_ZONE_SELECTOR)
   }
 
   /** Прибирає додані нами порожні абзаци, які так і залишились порожніми. */
@@ -108,7 +109,7 @@ export function useClickToAppend(editor: EditorRef) {
     if (!isEmptyZone(event.target)) return
 
     const bottom = lastBlockBottom()
-    if (bottom === null) return
+    if (bottom === null || event.clientY <= bottom) return
 
     // Скільки рядків нижче останнього блоку було натиснуто.
     const step = lineBoxHeight()
