@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLocalStorage } from '@vueuse/core'
 import NoteSidebar from '../ui/NoteSidebar.vue'
@@ -8,10 +8,8 @@ import ToggleSidebarButton from '@/pages/folder/ui/ToggleSidebarButton.vue'
 import type { BlockChange } from '@/features/rich-text-editor/model/useBlockSave.ts'
 import type { Note } from '@/entities/note'
 import type { Nullable } from '@/shared/model/types.ts'
-import type { Content, JSONContent } from '@tiptap/vue-3'
 import { useNodeSync } from '@/entities/node/model/useNodeSync.ts'
-import { useNodesStore } from '@/entities/node/model/store.ts'
-import type { Node } from '@/entities/node'
+import { useNodeBlocks } from '@/entities/node/model/useNodeBlocks.ts'
 
 defineOptions({
   name: 'FolderPage',
@@ -26,65 +24,30 @@ const folder = computed(
 
 const sidebarCollapsed = useLocalStorage('folder-page-sidebar-collapsed', false)
 
-const toEditorBody = (content: JSONContent[]): JSONContent => ({
-  type: 'doc',
-  content,
-})
-
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
 
-const content = ref<Content>(toEditorBody([]))
-const contentNoteId = ref<string | null>(null)
+const nodeSync = useNodeSync()
+const { lastError, isSaving } = nodeSync
+const noteId = computed(() => activeNote.value?.$id ?? null)
+
+const { content, contentNoteId } = useNodeBlocks(noteId)
+
 const changeNote = (note: Note) => {
   activeNote.value = note
 }
 
-const nodeSync = useNodeSync()
-const { lastError, isSaving } = nodeSync
-
 const applyBlockChanges = async (changes: BlockChange[]) => {
-  const noteId = activeNote.value?.$id
-  if (!noteId) return
+  const id = activeNote.value?.$id
+  if (!id) return
 
   try {
-    await nodeSync.applyChanges(noteId, changes)
+    await nodeSync.applyChanges(id, changes)
   } catch {
     // Помилка вже записана в nodeSync.lastError і відображається в інтерфейсі
   }
 }
-
-watch(
-  () => activeNote.value?.$id,
-  async (noteId) => {
-    if (!noteId) return
-    contentNoteId.value = null
-
-    const nodeStore = useNodesStore()
-    const data = await nodeStore.getAll(noteId)
-
-    if (activeNote.value?.$id !== noteId) return
-
-    const blocks = (data ?? []).map((node: Node) => {
-      const nodeBody = JSON.parse(node.body)
-      return {
-        ...nodeBody,
-        attrs: {
-          ...nodeBody?.attrs,
-          nodeId: node.$id,
-        },
-      }
-    }).sort((left: { attrs?: { order?: number } }, right: { attrs?: { order?: number } }) => {
-      const leftOrder = Number(left?.attrs?.order ?? 0)
-      const rightOrder = Number(right?.attrs?.order ?? 0)
-      return leftOrder - rightOrder
-    })
-
-    content.value = toEditorBody(blocks)
-    contentNoteId.value = noteId
-  },
-)
 </script>
 
 <template>
