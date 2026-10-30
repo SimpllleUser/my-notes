@@ -38,10 +38,8 @@
 .text-editor__body {
   position: relative;
   box-sizing: border-box;
-  height: calc(
-    var(--editor-rows) * var(--editor-line-height) + var(--editor-pad-top) + var(--editor-pad-bottom)
-  );
-  padding: var(--editor-pad-top) clamp(16px, 6vw, 96px) var(--editor-pad-bottom);
+  height: calc(100vh - 3rem);
+  padding: 1rem 1.5rem;
   overflow: hidden;
 }
 

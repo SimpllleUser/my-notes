@@ -5,7 +5,7 @@ defineOptions({
 </script>
 
 <template>
-  <main class="p-5">
+  <main>
     <slot/>
   </main>
 </template>

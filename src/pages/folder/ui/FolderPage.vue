@@ -52,7 +52,7 @@ const applyBlockChanges = async (changes: BlockChange[]) => {
 </script>
 
 <template>
-  <main class="mx-auto flex w-full min-w-0 max-w-[1440px] flex-col gap-4">
+  <main class="mx-auto flex w-full min-w-0 max-w-[1440px] flex-col gap-4 px-8 pt-4">
     <Transition name="folder-header">
       <header v-show="sidebarCollapsed" class="fixed flex items-center gap-3">
         <ToggleSidebarButton :collapsed="sidebarCollapsed" @click="toggleSidebar()" />
