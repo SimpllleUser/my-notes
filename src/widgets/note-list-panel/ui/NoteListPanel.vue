@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { UiCard, UiIconButton, UiSearchInput } from '@/shared/ui'
-import { ButtonVariant } from '@/shared/model/enums.ts'
+import { UiCard, UiSearchInput } from '@/shared/ui'
 import { NoteListItem, type Note } from '@/entities/note'
 
 defineProps<{ folderName?: string; notes: Note[]; activeNoteId: string }>()
 const search = defineModel<string>('search', { default: '' })
 const emit = defineEmits<{ select: [note: Note]; create: [] }>()
+
+const getNoteDate = (date: string) => new Date(date).toLocaleDateString()
 </script>
 
 <template>
   <UiCard compact>
     <div class="mb-4 flex items-center justify-between gap-3">
+      <slot name="header-left" />
       <div class="min-w-0">
         <p class="text-xs font-bold uppercase tracking-wider text-ink-light">Вибрана папка</p>
         <h2 class="wrap-break-word text-xl font-black sm:text-2xl">{{ folderName }}</h2>
       </div>
-      <slot name="header-right">
-
-      </slot>
+      <slot name="header-right" />
     </div>
     <UiSearchInput v-model="search" class="mb-4" placeholder="Пошук нотаток..." />
     <div class="space-y-3">
@@ -26,7 +26,7 @@ const emit = defineEmits<{ select: [note: Note]; create: [] }>()
         :key="note.$id"
         :title="note.name"
         :preview="note?.preview ?? ''"
-        :updated="note.$updatedAt"
+        :updated="getNoteDate(note.$updatedAt)"
         :active="activeNoteId === note.$id"
         @click="emit('select', note)"
       />

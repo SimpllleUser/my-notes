@@ -45,7 +45,26 @@ export function useEditorActions(editor: EditorRef, beforeBlockCommand: () => vo
     undo: () => run((chain) => chain.undo()),
     redo: () => run((chain) => chain.redo()),
     setLink,
+    unsetLink: () => run((chain) => chain.unsetLink()),
     setAlignment,
+
+    /** Перетворює поточний блок у звичайний текст (зі зніманням форматування списків). */
+    setText: () => {
+      if (!editor.value) return
+      if (editor.value.isActive('bulletList')) return runBlock((chain) => chain.toggleBulletList())
+      if (editor.value.isActive('orderedList'))
+        return runBlock((chain) => chain.toggleOrderedList())
+      if (editor.value.isActive('taskList')) return runBlock((chain) => chain.toggleTaskList())
+      if (editor.value.isActive('blockquote')) return runBlock((chain) => chain.toggleBlockquote())
+      if (editor.value.isActive('codeBlock')) return runBlock((chain) => chain.toggleCodeBlock())
+      return runBlock((chain) => chain.setParagraph())
+    },
+    /** Задає колір підсвітки виділення або знімає його (`null`). */
+    setHighlightColor: (color: string | null) =>
+      run((chain) =>
+        color ? chain.setMark('highlight', { color }) : chain.unsetMark('highlight'),
+      ),
+    clearFormatting: () => run((chain) => chain.setParagraph().unsetAllMarks()),
 
     setHeading: (level: 1 | 2 | 3) => runBlock((chain) => chain.toggleHeading({ level })),
     toggleBulletList: () => runBlock((chain) => chain.toggleBulletList()),

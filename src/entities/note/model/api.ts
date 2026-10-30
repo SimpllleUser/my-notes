@@ -1,6 +1,5 @@
 import { tablesDB } from '@/shared/api/appwrite.ts'
 import { ID, type Models, Query, type TablesDB } from 'appwrite'
-import type { FolderPayload } from '@/entities/folder/model/types.ts'
 import type { APIResponse } from '@/shared/model/types.ts'
 import type { Note } from '@/entities/note'
 import type { NotePayload } from '@/entities/note/model/types.ts'
@@ -19,8 +18,7 @@ export class NoteAPI {
       const { rows }: Models.RowList<Note> = await this.tablesDB.listRows({
         databaseId: this.databaseId,
         tableId: this.tableId,
-        queries: [
-          Query.equal('folder', folderId)],
+        queries: [Query.equal('folder', folderId)],
       })
 
       return {
@@ -46,13 +44,13 @@ export class NoteAPI {
 
       return { data: result, error: null }
     } catch (error) {
-      console.log(error)
       return {
         data: null,
         error,
       }
     }
   }
+
   async update(payload: Note): APIResponse<Note> {
     try {
       const result = await this.tablesDB.updateRow<Note>({

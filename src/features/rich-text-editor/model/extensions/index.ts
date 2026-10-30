@@ -9,6 +9,7 @@ import { Markdown } from '@tiptap/markdown'
 import { CharacterCount, Placeholder } from '@tiptap/extensions'
 import { TaskItem, TaskList } from '@tiptap/extension-list'
 import { TableKit } from '@tiptap/extension-table'
+import { BlockOrder, TOP_LEVEL_BLOCK_TYPES } from './blockOrder'
 import { Callout } from './callout'
 import { Toggle } from './toggle'
 
@@ -17,9 +18,10 @@ export function createExtensions(getPlaceholder: () => string) {
     StarterKit.configure({
       heading: { levels: [1, 2, 3] },
       codeBlock: { HTMLAttributes: { class: 'notion-code-block' } },
-      dropcursor: { color: '#f3c400', width: 3 },
+      dropcursor: { color: '#2383e2', width: 3 },
     }),
-    UniqueID.configure({ types: ['heading', 'paragraph'] }),
+    UniqueID.configure({ types: TOP_LEVEL_BLOCK_TYPES }),
+    BlockOrder,
     Highlight.configure({ multicolor: true }),
     TextAlign.configure({ types: ['heading', 'paragraph'] }),
     Callout,
@@ -33,7 +35,7 @@ export function createExtensions(getPlaceholder: () => string) {
     TableKit.configure({ table: { resizable: true, lastColumnResizable: true } }),
     Placeholder.configure({
       placeholder: ({ node }) => (node.type.name === 'heading' ? 'Заголовок' : getPlaceholder()),
-      showOnlyCurrent: false,
+      showOnlyCurrent: true,
     }),
     CharacterCount,
   ]

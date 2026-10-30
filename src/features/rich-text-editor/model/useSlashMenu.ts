@@ -10,6 +10,7 @@ export function useSlashMenu(editor: EditorRef, getCommands: () => SlashCommand[
   const query = ref('')
   const range = ref<{ from: number; to: number } | null>(null)
   const activeIndex = ref(0)
+  const manualAnchor = ref<number | null>(null)
 
   const isOpen = computed(() => range.value !== null)
   const visibleCommands = computed(() => {
@@ -28,12 +29,30 @@ export function useSlashMenu(editor: EditorRef, getCommands: () => SlashCommand[
     range.value = null
     query.value = ''
     activeIndex.value = 0
+    manualAnchor.value = null
+  }
+
+  /**
+   * Відкриває меню без текстового тригера — як кнопка «+» у Notion.
+   * Закривається при будь-якій зміні позиції каретки (введення тексту, клік).
+   */
+  function openManual() {
+    const instance = editor.value
+    if (!instance) return
+    manualAnchor.value = instance.state.selection.from
+    range.value = { from: manualAnchor.value, to: manualAnchor.value }
+    query.value = ''
+    activeIndex.value = 0
   }
 
   function syncWithSelection() {
     const instance = editor.value
     if (!instance) return
     const { from } = instance.state.selection
+    if (manualAnchor.value !== null) {
+      if (from !== manualAnchor.value) close()
+      return
+    }
     const textBefore = instance.state.doc.textBetween(
       Math.max(0, from - LOOKBEHIND_CHARS),
       from,
@@ -76,5 +95,14 @@ export function useSlashMenu(editor: EditorRef, getCommands: () => SlashCommand[
     }
   }
 
-  return { activeIndex, visibleCommands, isShown, close, syncWithSelection, select, handleKeydown }
+  return {
+    activeIndex,
+    visibleCommands,
+    isShown,
+    close,
+    openManual,
+    syncWithSelection,
+    select,
+    handleKeydown,
+  }
 }
