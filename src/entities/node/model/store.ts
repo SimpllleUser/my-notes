@@ -10,23 +10,22 @@ export const useNodesStore = defineStore('nodes', {
     }) as {
       nodes: Nullable<Node[]>
     },
-  getters: {
-
-  },
+  getters: {},
   actions: {
     async getAll(noteId: string): Promise<Node[] | null> {
-      const { data } = await nodeAPI.getAll(noteId)
+      const { data, error } = await nodeAPI.getAll(noteId)
+      if (error) throw error
       this.nodes = data
       return data
     },
     async create(payload: NodePayload) {
-      await nodeAPI.create(payload)
+      return nodeAPI.create(payload)
     },
     async update(rowId: string, payload: NodePayload) {
-      await nodeAPI.update(rowId, payload)
+      return nodeAPI.update(rowId, payload)
     },
     async delete(payload: string) {
-      await nodeAPI.delete(payload)
+      return nodeAPI.delete(payload)
     },
   },
 })

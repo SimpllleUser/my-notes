@@ -40,7 +40,6 @@ export interface UseBlockSaveOptions {
  * @param onSave - колбек із змінами блоків (фактичний API-запит)
  * @param options.debounceMs - затримка перед надсиланням (мс), за замовчуванням 500
  * @param options.maxRetries - кількість повторних спроб при помилці, за замовчуванням 3
- * @param options - додаткові опції
  */
 export function useBlockSave(
   editor: EditorRef,
@@ -115,6 +114,7 @@ export function useBlockSave(
         }, backoffMs)
       } else {
         retryCount.value = 0
+        isSaving.value = false
       }
     } finally {
       // Якщо запланований повтор, isSaving залишаємо true до останньої спроби

@@ -44,13 +44,13 @@ export class NodeAPI {
 
       return { data: result, error: null }
     } catch (error) {
-      console.log(error)
       return {
         data: null,
         error,
       }
     }
   }
+
   async update(rowId: string, payload: NodePayload): APIResponse<Node> {
     try {
       const result = await this.tablesDB.updateRow<Node>({

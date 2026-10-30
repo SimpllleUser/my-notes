@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia'
 import type { Nullable } from '@/shared/model/types.ts'
-import type { FolderPayload } from '@/entities/folder/model/types.ts'
 import { noteAPI } from '@/entities/note/model/api.ts'
 import type { Note } from '@/entities/note'
 import type { NotePayload } from '@/entities/note/model/types.ts'

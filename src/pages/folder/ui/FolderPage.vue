@@ -5,12 +5,13 @@ import { useLocalStorage } from '@vueuse/core'
 import NoteSidebar from '../ui/NoteSidebar.vue'
 import { TextEditor } from '@/features/rich-text-editor'
 import ToggleSidebarButton from '@/pages/folder/ui/ToggleSidebarButton.vue'
-import { BlockAction, type BlockChange } from '@/features/rich-text-editor/model/useBlockSave.ts'
+import type { BlockChange } from '@/features/rich-text-editor/model/useBlockSave.ts'
 import type { Note } from '@/entities/note'
 import type { Nullable } from '@/shared/model/types.ts'
 import type { Content, JSONContent } from '@tiptap/vue-3'
+import { useNodeSync } from '@/entities/node/model/useNodeSync.ts'
 import { useNodesStore } from '@/entities/node/model/store.ts'
-import { deserialize, serialize } from '@/entities/node/model/helpers.ts'
+import type { Node } from '@/entities/node'
 
 defineOptions({
   name: 'FolderPage',
@@ -18,7 +19,6 @@ defineOptions({
 
 const route = useRoute()
 const activeNote = ref<Nullable<Note>>(null)
-const nodeStore = useNodesStore()
 
 const folder = computed(
   () => (route.params as { name: string; id: string }) || { name: '', id: '' },
@@ -35,32 +35,24 @@ const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
 
-const updateTextEditor = (content: BlockChange[]) => {
-  const noteId = activeNote.value?.$id
-  if (!noteId) return
-
-  return Promise.all(
-    content.map((change) => {
-      const rowId = change.attrs?.nodeId
-
-      switch (change.action) {
-        case BlockAction.Create:
-          return nodeStore.create(serialize(change, noteId))
-        case BlockAction.Update:
-          return typeof rowId === 'string'
-            ? nodeStore.update(rowId, serialize(change, noteId))
-            : undefined
-        case BlockAction.Delete:
-          return typeof rowId === 'string' ? nodeStore.delete(rowId) : undefined
-      }
-    }),
-  )
-}
-
 const content = ref<Content>(toEditorBody([]))
 const contentNoteId = ref<string | null>(null)
 const changeNote = (note: Note) => {
   activeNote.value = note
+}
+
+const nodeSync = useNodeSync()
+const { lastError, isSaving } = nodeSync
+
+const applyBlockChanges = async (changes: BlockChange[]) => {
+  const noteId = activeNote.value?.$id
+  if (!noteId) return
+
+  try {
+    await nodeSync.applyChanges(noteId, changes)
+  } catch {
+    // Помилка вже записана в nodeSync.lastError і відображається в інтерфейсі
+  }
 }
 
 watch(
@@ -69,13 +61,23 @@ watch(
     if (!noteId) return
     contentNoteId.value = null
 
+    const nodeStore = useNodesStore()
     const data = await nodeStore.getAll(noteId)
 
     if (activeNote.value?.$id !== noteId) return
 
-    const blocks = (data ?? []).map(deserialize).sort((left, right) => {
-      const leftOrder = Number(left.attrs?.order ?? left.order ?? 0)
-      const rightOrder = Number(right.attrs?.order ?? right.order ?? 0)
+    const blocks = (data ?? []).map((node: Node) => {
+      const nodeBody = JSON.parse(node.body)
+      return {
+        ...nodeBody,
+        attrs: {
+          ...nodeBody?.attrs,
+          nodeId: node.$id,
+        },
+      }
+    }).sort((left: { attrs?: { order?: number } }, right: { attrs?: { order?: number } }) => {
+      const leftOrder = Number(left?.attrs?.order ?? 0)
+      const rightOrder = Number(right?.attrs?.order ?? 0)
       return leftOrder - rightOrder
     })
 
@@ -93,6 +95,8 @@ watch(
         <div class="min-w-0">
           <p class="text-xs font-bold uppercase tracking-wider text-ink-light">Папка</p>
           <h1 class="truncate text-lg font-black sm:text-xl">{{ folder.name }}</h1>
+          <span v-if="lastError" class="text-xs text-ink-dark">{{ lastError.message }}</span>
+          <span v-else-if="isSaving" class="text-xs text-ink-light">Збереження блоків…</span>
         </div>
       </header>
     </Transition>
@@ -134,7 +138,7 @@ watch(
           v-if="activeNote && contentNoteId === activeNote.$id"
           :key="activeNote.$id"
           :content="content"
-          @changes="updateTextEditor"
+          @changes="applyBlockChanges"
         />
       </div>
     </div>
