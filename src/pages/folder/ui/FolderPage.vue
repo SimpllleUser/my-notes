@@ -8,6 +8,7 @@ import ToggleSidebarButton from '@/pages/folder/ui/ToggleSidebarButton.vue'
 import type { BlockChange } from '@/features/rich-text-editor/model/useBlockSave.ts'
 import type { Note } from '@/entities/note'
 import type { Nullable } from '@/shared/model/types.ts'
+import { UiStatus } from '@/shared/ui'
 import { useNodeSync } from '@/entities/node/model/useNodeSync.ts'
 import { useNodeBlocks } from '@/entities/node/model/useNodeBlocks.ts'
 
@@ -29,7 +30,7 @@ const toggleSidebar = () => {
 }
 
 const nodeSync = useNodeSync()
-const { lastError, isSaving } = nodeSync
+const { statusLabel, statusTone } = nodeSync
 const noteId = computed(() => activeNote.value?.$id ?? null)
 
 const { content, contentNoteId } = useNodeBlocks(noteId)
@@ -58,8 +59,7 @@ const applyBlockChanges = async (changes: BlockChange[]) => {
         <div class="min-w-0">
           <p class="text-xs font-bold uppercase tracking-wider text-ink-light">Папка</p>
           <h1 class="truncate text-lg font-black sm:text-xl">{{ folder.name }}</h1>
-          <span v-if="lastError" class="text-xs text-ink-dark">{{ lastError.message }}</span>
-          <span v-else-if="isSaving" class="text-xs text-ink-light">Збереження блоків…</span>
+          <UiStatus :label="statusLabel" :tone="statusTone" />
         </div>
       </header>
     </Transition>
@@ -97,6 +97,8 @@ const applyBlockChanges = async (changes: BlockChange[]) => {
           'mt-15': sidebarCollapsed,
         }"
       >
+        <UiStatus :label="statusLabel" :tone="statusTone" />
+
         <TextEditor
           v-if="activeNote && contentNoteId === activeNote.$id"
           :key="activeNote.$id"

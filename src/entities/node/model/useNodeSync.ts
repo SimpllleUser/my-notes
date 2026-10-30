@@ -1,7 +1,8 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { BlockAction, type BlockChange } from '@/features/rich-text-editor/model/useBlockSave.ts'
 import { useNodesStore } from '@/entities/node/model/store.ts'
 import { serialize } from '@/entities/node/model/helpers.ts'
+import { StatusTone } from '@/shared/model/enums.ts'
 
 /**
  * Бізнес-логіка синхронізації блоків нотатки з сервером (node-синк).
@@ -18,6 +19,25 @@ export function useNodeSync(onChange?: () => void) {
   // ——— Стан ———
   const isSaving = ref(false)
   const lastError = ref<Error | null>(null)
+  const saveStatus = ref<'idle' | 'saving' | 'saved' | 'error'>('idle')
+
+  // ——— Computed ———
+  const statusLabel = computed(() => {
+    switch (saveStatus.value) {
+      case 'saving':
+        return 'Збереження блоків…'
+      case 'saved':
+        return 'Збережено'
+      case 'error':
+        return 'Помилка збереження'
+      default:
+        return 'Збережено'
+    }
+  })
+
+  const statusTone = computed(() =>
+    saveStatus.value === 'error' ? StatusTone.Muted : StatusTone.Success,
+  )
 
   // Черга запитів, щоб збереження не накладалися один на один
   let saveFinished = Promise.resolve()
@@ -34,6 +54,7 @@ export function useNodeSync(onChange?: () => void) {
 
     isSaving.value = true
     lastError.value = null
+    saveStatus.value = 'saving'
 
     const commit = async () => {
       await Promise.all(
@@ -69,12 +90,14 @@ export function useNodeSync(onChange?: () => void) {
 
     saveFinished = saveFinished.then(commit).catch((err) => {
       lastError.value = err instanceof Error ? err : new Error(String(err))
+      saveStatus.value = 'error'
     })
 
     try {
       await saveFinished
     } finally {
       isSaving.value = false
+      if (!lastError.value) saveStatus.value = 'saved'
       onChange?.()
     }
 
@@ -91,6 +114,9 @@ export function useNodeSync(onChange?: () => void) {
   return {
     isSaving,
     lastError,
+    saveStatus,
+    statusLabel,
+    statusTone,
     applyChanges,
     flushPending,
   }
