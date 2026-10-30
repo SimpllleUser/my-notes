@@ -4,6 +4,8 @@ import type { APIResponse } from '@/shared/model/types.ts'
 import type { Node } from '@/entities/node'
 import type { NodePayload } from '@/entities/node/model/types.ts'
 
+const PAGE_SIZE = 100
+
 export class NodeAPI {
   tablesDB: TablesDB
   databaseId: string = import.meta.env.VITE_APPWRITE_DATABASE_ID
@@ -12,24 +14,30 @@ export class NodeAPI {
   constructor(databases: TablesDB) {
     this.tablesDB = databases
   }
-
   async getAll(noteId: string): APIResponse<Node[]> {
     try {
-      const { rows }: Models.RowList<Node> = await this.tablesDB.listRows({
-        databaseId: this.databaseId,
-        tableId: this.tableId,
-        queries: [Query.equal('note', noteId)],
-      })
+      const all: Node[] = []
+      let cursor: string | undefined
 
-      return {
-        data: rows,
-        error: null,
+      while (true) {
+        const { rows }: Models.RowList<Node> = await this.tablesDB.listRows({
+          databaseId: this.databaseId,
+          tableId: this.tableId,
+          queries: [
+            Query.equal('note', noteId),
+            Query.orderAsc('$createdAt'),
+            Query.limit(PAGE_SIZE),
+            ...(cursor ? [Query.cursorAfter(cursor)] : []),
+          ],
+        })
+        all.push(...rows)
+        if (rows.length < PAGE_SIZE) break
+        cursor = rows[rows.length - 1]!.$id
       }
+
+      return { data: all, error: null }
     } catch (error) {
-      return {
-        data: null,
-        error,
-      }
+      return { data: null, error }
     }
   }
 

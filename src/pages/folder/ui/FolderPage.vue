@@ -3,52 +3,26 @@ import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLocalStorage } from '@vueuse/core'
 import NoteSidebar from '../ui/NoteSidebar.vue'
-import { TextEditor } from '@/features/rich-text-editor'
 import ToggleSidebarButton from '@/pages/folder/ui/ToggleSidebarButton.vue'
-import type { BlockChange } from '@/features/rich-text-editor/model/useBlockSave.ts'
+import { NoteBlocksEditor } from '@/widgets/note-blocks-editor'
+import { getSyncStatusView, type SyncStatus } from '@/entities/node'
 import type { Note } from '@/entities/note'
 import type { Nullable } from '@/shared/model/types.ts'
 import { UiStatus } from '@/shared/ui'
-import { useNodeSync } from '@/entities/node/model/useNodeSync.ts'
-import { useNodeBlocks } from '@/entities/node/model/useNodeBlocks.ts'
 
-defineOptions({
-  name: 'FolderPage',
-})
+defineOptions({ name: 'FolderPage' })
 
 const route = useRoute()
-const activeNote = ref<Nullable<Note>>(null)
-
-const folder = computed(
-  () => (route.params as { name: string; id: string }) || { name: '', id: '' },
-)
+const folder = computed(() => route.params as { name: string; id: string })
 
 const sidebarCollapsed = useLocalStorage('folder-page-sidebar-collapsed', false)
+const toggleSidebar = () => (sidebarCollapsed.value = !sidebarCollapsed.value)
 
-const toggleSidebar = () => {
-  sidebarCollapsed.value = !sidebarCollapsed.value
-}
+const activeNote = ref<Nullable<Note>>(null)
+const changeNote = (note: Note) => (activeNote.value = note)
 
-const nodeSync = useNodeSync()
-const { statusLabel, statusTone } = nodeSync
-const noteId = computed(() => activeNote.value?.$id ?? null)
-
-const { content, contentNoteId } = useNodeBlocks(noteId)
-
-const changeNote = (note: Note) => {
-  activeNote.value = note
-}
-
-const applyBlockChanges = async (changes: BlockChange[]) => {
-  const id = activeNote.value?.$id
-  if (!id) return
-
-  try {
-    await nodeSync.applyChanges(id, changes)
-  } catch {
-    // Помилка вже записана в nodeSync.lastError і відображається в інтерфейсі
-  }
-}
+const syncStatus = ref<SyncStatus>('saved')
+const statusView = computed(() => getSyncStatusView(syncStatus.value))
 </script>
 
 <template>
@@ -59,7 +33,6 @@ const applyBlockChanges = async (changes: BlockChange[]) => {
         <div class="min-w-0">
           <p class="text-xs font-bold uppercase tracking-wider text-ink-light">Папка</p>
           <h1 class="truncate text-lg font-black sm:text-xl">{{ folder.name }}</h1>
-          <UiStatus :label="statusLabel" :tone="statusTone" />
         </div>
       </header>
     </Transition>
@@ -97,13 +70,13 @@ const applyBlockChanges = async (changes: BlockChange[]) => {
           'mt-15': sidebarCollapsed,
         }"
       >
-        <UiStatus :label="statusLabel" :tone="statusTone" />
+        <UiStatus :label="statusView.label" :tone="statusView.tone" />
 
-        <TextEditor
-          v-if="activeNote && contentNoteId === activeNote.$id"
+        <NoteBlocksEditor
+          v-if="activeNote"
           :key="activeNote.$id"
-          :content="content"
-          @changes="applyBlockChanges"
+          v-model:status="syncStatus"
+          :note-id="activeNote.$id"
         />
       </div>
     </div>

@@ -5,6 +5,7 @@ import { UiCard, UiStatus } from '@/shared/ui'
 import { TextEditor } from '@/features/rich-text-editor'
 import { useNoteSync } from '@/entities/note/model/useNoteSync.ts'
 import type { Note } from '@/entities/note'
+import { useDebounceFn } from '@vueuse/core'
 
 interface TextEditorInstance {
   flush: () => Promise<void>
@@ -19,8 +20,6 @@ const props = defineProps<{
 const emit = defineEmits<{
   update: [value: Note]
 }>()
-
-const editorRef = ref<TextEditorInstance | null>(null)
 
 // Поточний вміст редактора (джерало істини для useNoteSync)
 const EMPTY_CONTENT: JSONContent = { type: 'doc', content: [] }
@@ -40,7 +39,7 @@ const unbindPageVisibility = bindPageVisibilityHandlers()
 
 onBeforeUnmount(() => {
   unbindPageVisibility?.()
-  void flushPending(editorRef.value?.flush)
+  void flushPending()
 })
 
 // Синхронізувати локальний вміст при зміні нотатки ззовні
@@ -52,9 +51,7 @@ watch(
   { deep: true },
 )
 
-function onChanges() {
-  requestSave()
-}
+const onChanges = useDebounceFn(requestSave, 600)
 </script>
 
 <template>
@@ -74,11 +71,6 @@ function onChanges() {
         <span v-if="lastError" class="text-xs text-ink-dark">{{ lastError.message }}</span>
       </div>
     </div>
-    <TextEditor
-      ref="editorRef"
-      v-model:content="contentRef"
-      @changes="onChanges"
-      class="m-3 flex-1 sm:m-6"
-    />
+    <TextEditor v-model:content="contentRef" @update="onChanges" class="m-3 flex-1 sm:m-6" />
   </UiCard>
 </template>

@@ -71,11 +71,6 @@ export const BlockOrder = Extension.create({
       {
         types: TOP_LEVEL_BLOCK_TYPES,
         attributes: {
-          // Appwrite row ID used to update or delete the persisted block.
-          nodeId: {
-            default: null,
-            rendered: false,
-          },
           order: {
             // `null` = «потребує призначення»; плагін нижче проставить дробове значення.
             default: null,

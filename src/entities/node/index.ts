@@ -1,2 +1,3 @@
 export type { Node } from './model/types'
-export { useNodeSync } from './model/useNodeSync'
+export { useNoteBlocks } from './model/useNoteBlocks'
+export { getSyncStatusView, type SyncStatus } from './model/syncStatus'

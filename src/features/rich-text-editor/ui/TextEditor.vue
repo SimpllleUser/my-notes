@@ -2,9 +2,7 @@
 import {
   computed,
   nextTick,
-  onBeforeUnmount,
   onMounted,
-  onUnmounted,
   ref,
   watch,
 } from 'vue'
@@ -20,7 +18,6 @@ import { useEditorActions } from '../model/useEditorActions'
 import { useImagePopover } from '../model/useImagePopover'
 import { useOverlayPosition } from '../model/useOverlayPosition'
 import { useSlashMenu } from '../model/useSlashMenu'
-import { type BlockChange, useBlockSave } from '../model/useBlockSave'
 import {
   clampViewportPosition,
   createTurnIntoItems,
@@ -36,7 +33,6 @@ const props = withDefaults(defineProps<{ content?: Content; placeholder?: string
 const emit = defineEmits<{
   'update:content': [value: JSONContent]
   update: [value: JSONContent]
-  changes: [value: BlockChange[]]
 }>()
 
 // Кількість рядків, які займає редактор. Можна задати ззовні (`v-model:rows`)
@@ -54,24 +50,13 @@ const editorStyle = computed(() => ({
   '--editor-rows': String(rows.value),
 }))
 
-let isFirstUpdate = true
-
 const editor = useEditor({
   content: props.content,
   extensions: createExtensions(() => props.placeholder),
   onUpdate({ editor: instance }) {
-    // `order` тепер є реальним атрибутом top-level блоків і підтримується
-    // розширенням BlockOrder (див. model/extensions/blockOrder.ts) усередині документа,
-    // тому перенумеровувати блоки вручну тут не потрібно — навіть після drag & drop.
     const json = instance.getJSON()
     emit('update:content', json)
     emit('update', json)
-    // Пропускаємо перший оновлення при ініціалізації редактора, щоб не відправляти
-    // дефолтний вміст як зміни (useBlockSave ще не ініціалізовано через nextTick).
-    if (!isFirstUpdate) {
-      saveBlocks()
-    }
-    isFirstUpdate = false
     slashMenu.syncWithSelection()
     overlay.update()
   },
@@ -91,7 +76,10 @@ function syncContent(content: Content = props.content) {
   const instance = editor.value
   if (!instance) return
 
-  if (typeof content !== 'string' && JSON.stringify(instance.getJSON()) === JSON.stringify(content)) {
+  if (
+    typeof content !== 'string' &&
+    JSON.stringify(instance.getJSON()) === JSON.stringify(content)
+  ) {
     return
   }
 
@@ -101,61 +89,13 @@ function syncContent(content: Content = props.content) {
 // useEditor creates the Tiptap instance in its onMounted hook. Sync once after
 // that hook, then keep syncing replacements and deep JSON changes from parent.
 onMounted(() => syncContent())
-watch(() => props.content, (content) => syncContent(content), { deep: true })
+watch(
+  () => props.content,
+  (content) => syncContent(content),
+  { deep: true },
+)
 watch(editor, (instance) => {
   if (instance) syncContent()
-})
-
-const {
-  save: saveBlocks,
-  init: initSave,
-  flush: flushBlocks,
-  isSaving: blockIsSaving,
-  destroy: destroySave,
-} = useBlockSave(
-  editor,
-  async (changes: BlockChange[]) => {
-    emit('changes', changes)
-  },
-  {
-    debounceMs: 500,
-  },
-)
-
-nextTick(() => initSave())
-
-// Експонуємо для батьківського компонента, щоб той міг негайно відправити
-// накопичені зміни перед закриттям вкладки або переходом між сторінками.
-defineExpose({
-  flush: flushBlocks,
-  isSaving: blockIsSaving,
-})
-
-const handlePageHide = () => void flushBlocks()
-const handleVisibilityChange = () => {
-  if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
-    void flushBlocks()
-  }
-}
-
-onMounted(() => {
-  if (typeof window !== 'undefined') {
-    window.addEventListener('pagehide', handlePageHide)
-    window.addEventListener('visibilitychange', handleVisibilityChange)
-  }
-})
-
-onBeforeUnmount(() => {
-  if (typeof window !== 'undefined') {
-    window.removeEventListener('pagehide', handlePageHide)
-    window.removeEventListener('visibilitychange', handleVisibilityChange)
-  }
-  // Надсилаємо залишок змін перед розmontуванням (перехід між сторінками в SPA)
-  void flushBlocks()
-})
-
-onUnmounted(() => {
-  void destroySave()
 })
 
 // The slash menu reads its commands lazily, which breaks the cycle

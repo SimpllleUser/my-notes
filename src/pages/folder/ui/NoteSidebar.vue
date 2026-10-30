@@ -34,11 +34,6 @@ onBeforeMount(async () => {
   emit('set-note', activeNote.value as Note)
 })
 
-const selectNote = (note: Note) => {
-  activeNote.value = note
-  emit('set-note', note)
-}
-
 const create = () => {
   popOverState.value = false
 }
@@ -49,15 +44,29 @@ const hidePopOver = () => {
   popOverState.value = false
 }
 
+const activeNoteId = useLocalStorage<string>(`active-note:${props.folder.id}`, '')
+
+onBeforeMount(async () => {
+  await notesStore.getAll(props.folder.id)
+  const notes = notesStore.getNotes()
+  const note = notes.find((item) => item.$id === activeNoteId.value) ?? notes[0]
+  if (note) selectNote(note)
+})
+
+const selectNote = (note: Note) => {
+  activeNoteId.value = note.$id
+  emit('set-note', note)
+}
+
 const createNote = async () => {
-  await notesStore.create({
+  const { data } = await notesStore.create({
     name: noteName.value,
     folder: props.folder.id,
     content: EMPTY_CONTENT,
   })
-
   hidePopOver()
   await notesStore.getAll(props.folder.id)
+  if (data) selectNote(data)
 }
 </script>
 
@@ -68,7 +77,7 @@ const createNote = async () => {
     @select="selectNote"
     :folder-name="folder.name"
     :notes="notesStore.getNotes(searchingName)"
-    :active-note-id="activeNote.$id"
+    :active-note-id="activeNoteId"
   >
     <template #header-left><slot name="header-left" /></template>
     <template #header-right>
