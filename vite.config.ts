@@ -6,13 +6,12 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 import svgLoader from 'vite-svg-loader'
 
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    vue(),
-    svgLoader(),
-    vueDevTools(),
-  ],
+  plugins: [vue(), svgLoader(), vueDevTools(), cloudflare()],
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
