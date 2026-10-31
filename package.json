@@ -15,7 +15,9 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
+    "@floating-ui/dom": "^1.8.0",
     "@lucide/vue": "^1.52.0",
+    "@tiptap/core": "^3.32.2",
     "@tiptap/extension-highlight": "3.31.4",
     "@tiptap/extension-image": "3.31.4",
     "@tiptap/extension-link": "3.31.4",
@@ -26,9 +28,10 @@
     "@tiptap/extension-unique-id": "^3.31.4",
     "@tiptap/extensions": "3.31.4",
     "@tiptap/markdown": "3.31.4",
-    "@tiptap/pm": "^3.31.4",
+    "@tiptap/pm": "^3.32.2",
     "@tiptap/starter-kit": "^3.31.4",
     "@tiptap/vue-3": "^3.31.4",
+    "@vue/devtools-api": "^8.2.1",
     "@vueuse/core": "^15.0.0",
     "appwrite": "^28.1.0",
     "pinia": "^4.0.3",
