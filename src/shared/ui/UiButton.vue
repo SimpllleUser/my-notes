@@ -6,13 +6,15 @@ withDefaults(
     variant?: ButtonVariant
     size?: 'sm' | 'md'
     type?: 'button' | 'submit' | 'reset'
+    active?: boolean
   }>(),
-  { variant: ButtonVariant.Paper, size: 'md', type: 'button' },
+  { variant: ButtonVariant.Paper, size: 'md', type: 'button', active: false },
 )
 </script>
 
 <template>
   <button
+    :id="$attrs.id"
     :type="type"
     class="inline-flex items-center justify-center gap-2 rounded-brutal border-2 border-ink font-black transition duration-150 hover:-translate-y-0.5 hover:shadow-brutal active:translate-y-0.5 active:shadow-none disabled:pointer-events-none disabled:opacity-50"
     :class="[
@@ -22,7 +24,9 @@ withDefaults(
         'bg-primary shadow-brutal-sm': variant === ButtonVariant.Primary,
         'bg-primary-yellow shadow-brutal-sm': variant === ButtonVariant.Yellow,
         'bg-secondary-blue text-white shadow-brutal-sm': variant === ButtonVariant.Blue,
+        'shadow-brutal hover:active:shadow-none': active,
       },
+      active && 'shadow-brutal!',
     ]"
   >
     <slot />

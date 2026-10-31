@@ -9,6 +9,7 @@ import { getSyncStatusView, type SyncStatus } from '@/entities/node'
 import type { Note } from '@/entities/note'
 import type { Nullable } from '@/shared/model/types.ts'
 import { UiStatus } from '@/shared/ui'
+import FolderHeader from '@/pages/folder/ui/FolderHeader.vue'
 
 defineOptions({ name: 'FolderPage' })
 
@@ -26,18 +27,26 @@ const statusView = computed(() => getSyncStatusView(syncStatus.value))
 </script>
 
 <template>
-  <main class="mx-auto flex w-full min-w-0 max-w-[1440px] flex-col gap-4 px-8 pb-24 pt-4">
+  <div class="fixed z-11 min-w-0 w-full max-w-360 px-8">
+    <FolderHeader />
+  </div>
+  <main
+    class="mx-auto flex w-full min-w-0 max-w-360 flex-col gap-4 px-8 pb-24 pt-(--header-h) [--header-h:8rem]"
+  >
+    <!--    Minimizaed sidebar-->
     <Transition name="folder-header">
       <header
         v-show="sidebarCollapsed"
-        class="fixed left-8 top-4 z-30 flex items-center gap-3 rounded-brutal bg-bg/90 py-1 pr-3 backdrop-blur"
+        class="fixed inset-x-8 top-30 py-2 px-2 z-11 mx-auto flex max-w-[calc(90rem-4rem)] min-w-0 items-center justify-between gap-3 rounded-brutal bg-bg/90 backdrop-blur"
       >
-        <ToggleSidebarButton :collapsed="sidebarCollapsed" @click="toggleSidebar()" />
-        <div class="min-w-0">
-          <p class="text-xs font-bold uppercase tracking-wider text-ink-light">Папка</p>
-          <h1 class="truncate text-lg font-black sm:text-xl">{{ folder.name }}</h1>
-          <UiStatus :label="statusView.label" :tone="statusView.tone" />
+        <div class="flex items-center">
+          <ToggleSidebarButton :collapsed="sidebarCollapsed" @click="toggleSidebar()" />
+          <div class="min-w-0 ml-5">
+            <p class="text-xs font-bold uppercase tracking-wider text-ink-light">Папка</p>
+            <h1 class="truncate text-lg font-black sm:text-xl">{{ folder.name }}</h1>
+          </div>
         </div>
+        <UiStatus :label="statusView.label" :tone="statusView.tone" />
       </header>
     </Transition>
 
@@ -57,9 +66,9 @@ const statusView = computed(() => getSyncStatusView(syncStatus.value))
         <Transition name="folder-sidebar">
           <div
             v-show="!sidebarCollapsed"
-            class="fixed inset-x-5 bottom-5 z-10 max-h-[45dvh] overflow-y-auto overscroll-contain md:sticky md:top-5 md:inset-x-auto md:bottom-auto md:max-h-[calc(100dvh-2.5rem)] md:w-[264px] lg:w-[324px]"
+            class="fixed inset-x-5 bottom-5 z-10 max-h-[45dvh] overflow-y-auto overscroll-contain md:sticky md:inset-x-auto md:bottom-auto md:top-(--header-h) md:max-h-[calc(100dvh-var(--header-h)-1rem)] md:w-[264px] lg:w-[324px]"
           >
-            <NoteSidebar @set-note="changeNote" :folder="folder">
+            <NoteSidebar :key="`${folder.id}`" @set-note="changeNote" :folder="folder">
               <template #header-left>
                 <ToggleSidebarButton :collapsed="sidebarCollapsed" @click="toggleSidebar()" />
               </template>
@@ -70,15 +79,13 @@ const statusView = computed(() => getSyncStatusView(syncStatus.value))
 
       <div
         class="min-w-0 transition-[margin] duration-300 ease-out motion-reduce:transition-none"
-        :class="{
-          'mt-15': sidebarCollapsed,
-        }"
+        :class="{ 'mt-10': sidebarCollapsed }"
       >
-        <UiStatus :label="statusView.label" :tone="statusView.tone" />
+        <UiStatus v-if="!sidebarCollapsed" :label="statusView.label" :tone="statusView.tone" />
 
         <NoteBlocksEditor
           v-if="activeNote"
-          :key="activeNote.$id"
+          :key="`${activeNote.$id}-${folder.id}`"
           v-model:status="syncStatus"
           :note-id="activeNote.$id"
         />

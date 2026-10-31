@@ -12,7 +12,9 @@ export const useFoldersStore = defineStore('folders', {
       folders: Nullable<Folder[]>
     },
   getters: {
-    getFolders: (state) => state.folders || []
+    getFolders: (state) => state.folders || [],
+    getFolder: (state) => (id: string) => state.folders
+      ?.find((folder) => folder.$id === id) || null
   },
   actions: {
     async getAll() {
