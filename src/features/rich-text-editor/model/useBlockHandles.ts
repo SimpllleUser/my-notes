@@ -238,11 +238,8 @@ export function useBlockHandles(
   }
 
   function autoScroll(clientY: number) {
-    const scroller = editor.value?.view.dom.closest<HTMLElement>('.text-editor__scroll')
-    if (!scroller) return
-    const rect = scroller.getBoundingClientRect()
-    if (clientY < rect.top + SCROLL_EDGE_PX) scroller.scrollTop -= SCROLL_STEP_PX
-    else if (clientY > rect.bottom - SCROLL_EDGE_PX) scroller.scrollTop += SCROLL_STEP_PX
+    if (clientY < SCROLL_EDGE_PX) window.scrollBy(0, -SCROLL_STEP_PX)
+    else if (clientY > window.innerHeight - SCROLL_EDGE_PX) window.scrollBy(0, SCROLL_STEP_PX)
   }
 
   function resetDrag() {

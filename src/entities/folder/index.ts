@@ -1,3 +1,6 @@
 export { default as FolderTile } from './ui/FolderTile.vue'
 export { default as FolderForm } from './ui/FolderForm.vue'
+export { default as FolderSelectPicker } from './ui/FolderSelectPicker.vue'
+export { default as FolderSelectSlider } from './ui/FolderSelectSlider.vue'
 export type { Folder, FolderTileData } from './model/types'
+export { useFolderSelect } from './model/useFolderSelect.ts'
