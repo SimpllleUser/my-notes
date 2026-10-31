@@ -26,13 +26,17 @@ const statusView = computed(() => getSyncStatusView(syncStatus.value))
 </script>
 
 <template>
-  <main class="mx-auto flex w-full min-w-0 max-w-[1440px] flex-col gap-4 px-8 pt-4">
+  <main class="mx-auto flex w-full min-w-0 max-w-[1440px] flex-col gap-4 px-8 pb-24 pt-4">
     <Transition name="folder-header">
-      <header v-show="sidebarCollapsed" class="fixed flex items-center gap-3">
+      <header
+        v-show="sidebarCollapsed"
+        class="fixed left-8 top-4 z-30 flex items-center gap-3 rounded-brutal bg-bg/90 py-1 pr-3 backdrop-blur"
+      >
         <ToggleSidebarButton :collapsed="sidebarCollapsed" @click="toggleSidebar()" />
         <div class="min-w-0">
           <p class="text-xs font-bold uppercase tracking-wider text-ink-light">Папка</p>
           <h1 class="truncate text-lg font-black sm:text-xl">{{ folder.name }}</h1>
+          <UiStatus :label="statusView.label" :tone="statusView.tone" />
         </div>
       </header>
     </Transition>
