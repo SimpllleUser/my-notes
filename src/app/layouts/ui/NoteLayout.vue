@@ -30,7 +30,9 @@ const goToHome = () => router.push({ name: 'home' })
           <span>
             <Slash :size="12" />
           </span>
-          <span class="text-lg font-black sm:text-xl cursor-default">{{ folderName }}</span>
+          <span v-if="folderName" class="text-lg font-black sm:text-xl cursor-default">{{
+            folderName
+          }}</span>
         </div>
       </UiCard>
     </header>
