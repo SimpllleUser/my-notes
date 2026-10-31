@@ -69,11 +69,11 @@ const { color, icon, inlineColor, inlineIcon, customColor, customIcon, snippets 
           @create="createNote"
         />
 
-        <NoteEditorPanel
-          v-model:content="editorContent"
-          class="md:col-span-2 lg:col-span-1"
-          :title="activeNote?.title"
-        />
+<!--        <NoteEditorPanel-->
+<!--          v-model:content="editorContent"-->
+<!--          class="md:col-span-2 lg:col-span-1"-->
+<!--          :title="activeNote?.title"-->
+<!--        />-->
       </section>
 
       <hr class="mt-5 sm:mt-8" />
