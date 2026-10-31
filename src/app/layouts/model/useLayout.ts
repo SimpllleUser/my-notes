@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 export function useLayout() {
   const layouts = {
     DefaultLayout: defineAsyncComponent(() => import('../ui/DefaultLayout.vue')),
+    NoteLayout: defineAsyncComponent(() => import('../ui/NoteLayout.vue')),
     EmptyLayout: defineAsyncComponent(() => import('../ui/EmptyLayout.vue')),
   }
 
