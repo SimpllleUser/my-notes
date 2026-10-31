@@ -1212,15 +1212,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tiptap/core@npm:^3.32.2":
-  version: 3.32.2
-  resolution: "@tiptap/core@npm:3.32.2"
-  peerDependencies:
-    "@tiptap/pm": 3.32.2
-  checksum: 10c0/b6e31e44369f36652fb39283c4ea6a26a632c90d958fb9430c8d1a0068f78ab8558c8f4ceba81f6f030b534d966231707339666e5d634ca345e601594737fc10
-  languageName: node
-  linkType: hard
-
 "@tiptap/extension-blockquote@npm:3.31.4":
   version: 3.31.4
   resolution: "@tiptap/extension-blockquote@npm:3.31.4"
@@ -1529,27 +1520,6 @@ __metadata:
     prosemirror-transform: "npm:^1.12.0"
     prosemirror-view: "npm:^1.42.3"
   checksum: 10c0/096604cc53143741f99801c8e14e574cdd457eae18679ca54c9f4e5298c640257c18af8218619b52ef5b0dc04eb0d88ccfa1537936dd7db5a734e6c740ec8d23
-  languageName: node
-  linkType: hard
-
-"@tiptap/pm@npm:^3.32.2":
-  version: 3.32.2
-  resolution: "@tiptap/pm@npm:3.32.2"
-  dependencies:
-    prosemirror-changeset: "npm:^2.4.4"
-    prosemirror-commands: "npm:^1.7.2"
-    prosemirror-dropcursor: "npm:^1.8.4"
-    prosemirror-gapcursor: "npm:^1.4.1"
-    prosemirror-history: "npm:^1.5.1"
-    prosemirror-inputrules: "npm:^1.5.1"
-    prosemirror-keymap: "npm:^1.2.3"
-    prosemirror-model: "npm:^1.25.12"
-    prosemirror-schema-list: "npm:^1.5.1"
-    prosemirror-state: "npm:^1.4.4"
-    prosemirror-tables: "npm:^1.8.5"
-    prosemirror-transform: "npm:^1.12.2"
-    prosemirror-view: "npm:^1.42.6"
-  checksum: 10c0/99be5a909f36cd3bfed351aafe59f58d000892e5e6a5379625bfc4cdbf188231cc76d068795a298723edad657153549f691ab7e76d46986f4065767179a48ef1
   languageName: node
   linkType: hard
 
@@ -3572,7 +3542,7 @@ __metadata:
     "@floating-ui/dom": "npm:^1.8.0"
     "@lucide/vue": "npm:^1.52.0"
     "@tailwindcss/postcss": "npm:^4.3.3"
-    "@tiptap/core": "npm:^3.32.2"
+    "@tiptap/core": "npm:3.31.4"
     "@tiptap/extension-highlight": "npm:3.31.4"
     "@tiptap/extension-image": "npm:3.31.4"
     "@tiptap/extension-link": "npm:3.31.4"
@@ -3583,7 +3553,7 @@ __metadata:
     "@tiptap/extension-unique-id": "npm:^3.31.4"
     "@tiptap/extensions": "npm:3.31.4"
     "@tiptap/markdown": "npm:3.31.4"
-    "@tiptap/pm": "npm:^3.32.2"
+    "@tiptap/pm": "npm:3.31.4"
     "@tiptap/starter-kit": "npm:^3.31.4"
     "@tiptap/vue-3": "npm:^3.31.4"
     "@tsconfig/node24": "npm:^24.0.5"
@@ -4040,16 +4010,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prosemirror-changeset@npm:^2.4.4":
-  version: 2.4.5
-  resolution: "prosemirror-changeset@npm:2.4.5"
-  dependencies:
-    prosemirror-transform: "npm:^1.0.0"
-  checksum: 10c0/f62b70c151c5be5808fe487aa9a854e7db9fcfd0f75c62a0e62c4f694b9f68ae2fedadad4384274c261a09669d4f37dbe63ffdbf19cf5f3d99286387b7152b85
-  languageName: node
-  linkType: hard
-
-"prosemirror-commands@npm:^1.7.1, prosemirror-commands@npm:^1.7.2":
+"prosemirror-commands@npm:^1.7.1":
   version: 1.7.2
   resolution: "prosemirror-commands@npm:1.7.2"
   dependencies:
@@ -4060,7 +4021,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prosemirror-dropcursor@npm:^1.8.2, prosemirror-dropcursor@npm:^1.8.4":
+"prosemirror-dropcursor@npm:^1.8.2":
   version: 1.8.4
   resolution: "prosemirror-dropcursor@npm:1.8.4"
   dependencies:
@@ -4083,7 +4044,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prosemirror-history@npm:^1.5.0, prosemirror-history@npm:^1.5.1":
+"prosemirror-history@npm:^1.5.0":
   version: 1.5.1
   resolution: "prosemirror-history@npm:1.5.1"
   dependencies:
@@ -4168,15 +4129,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prosemirror-transform@npm:^1.12.2":
-  version: 1.12.4
-  resolution: "prosemirror-transform@npm:1.12.4"
-  dependencies:
-    prosemirror-model: "npm:^1.21.0"
-  checksum: 10c0/bdf5d37f8f202786474af27c7ffbe37eb8db9aaa022156378621a7af54a2d576f3ac5aa03e8520ed224a2481e3a85d1e8b0929a07eafd0df1b0a1fbd4d8596cf
-  languageName: node
-  linkType: hard
-
 "prosemirror-view@npm:^1.0.0, prosemirror-view@npm:^1.1.0, prosemirror-view@npm:^1.27.0, prosemirror-view@npm:^1.31.0, prosemirror-view@npm:^1.41.4, prosemirror-view@npm:^1.42.3":
   version: 1.42.6
   resolution: "prosemirror-view@npm:1.42.6"
@@ -4185,17 +4137,6 @@ __metadata:
     prosemirror-state: "npm:^1.0.0"
     prosemirror-transform: "npm:^1.1.0"
   checksum: 10c0/2e3d2092bc0b7dd7fb34192c8f698e52205b7065a6513315520d7095154af76b6eb258d74587042e1f8a1c8d403c165ea6dbdd66c3eb9b90f327e009ced4e123
-  languageName: node
-  linkType: hard
-
-"prosemirror-view@npm:^1.42.6":
-  version: 1.42.9
-  resolution: "prosemirror-view@npm:1.42.9"
-  dependencies:
-    prosemirror-model: "npm:^1.25.12"
-    prosemirror-state: "npm:^1.0.0"
-    prosemirror-transform: "npm:^1.1.0"
-  checksum: 10c0/f01f7d9e410a912754ef9d871d9132a770da4dae5779c56693712ae598c2d9795c553c960665b2e38835a664d578adf9850739a6b456e046bb059721a244f12b
   languageName: node
   linkType: hard
 
