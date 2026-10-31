@@ -2,7 +2,7 @@
   <!-- Black offset shadow -->
   <rect x="12" y="12" width="108" height="108" rx="24" fill="#000"/>
   <!-- Pink tile with black border -->
-  <rect id="logo-bg" x="7" y="7" width="108" height="108" rx="24" fill="#F0476B" stroke="#000" stroke-width="6"/>
+  <rect id="logo-bg" x="7" y="7" width="108" height="108" rx="24" fill="#ff3366" stroke="#000" stroke-width="6"/>
   <!-- Four-pointed sparkle -->
   <path d="M61 31 C63 48 73 58 90 61 C73 64 63 74 61 91 C59 74 49 64 32 61 C49 58 59 48 61 31 Z" fill="#000"/>
 </svg>

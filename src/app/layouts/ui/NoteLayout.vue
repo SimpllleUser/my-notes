@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
-import { UiButton, UiCard } from '@/shared/ui'
+import { UiCard } from '@/shared/ui'
 import { Slash } from '@lucide/vue'
-import { ButtonVariant } from '@/shared/model/enums.ts'
+import Logo from '../../../../public/logo.svg?url'
 
 defineOptions({
   name: 'NoteLayout',
@@ -22,10 +22,10 @@ const goToHome = () => router.push({ name: 'home' })
       <UiCard compact>
         <div class="flex items-center gap-4">
           <div
-            class="app-logo cursor-pointer grid h-11 w-11 place-items-center rounded-brutal border-3 border-ink bg-paper text-xl"
+            class="app-logo cursor-pointer grid h-11 w-11 place-items-center rounded-brutal text-xl"
             @click="goToHome"
           >
-            ✦
+            <img :src="Logo" alt="logo" width="44" height="44" />
           </div>
           <span>
             <Slash :size="12" />
