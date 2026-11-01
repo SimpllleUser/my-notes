@@ -12,6 +12,7 @@ export const useNotesStore = defineStore('notes', {
       notes: Nullable<Note[]>
     },
   getters: {
+    noteList: (state) => state.notes || [],
     getNotes:
       (state) =>
       (search = '') => {
