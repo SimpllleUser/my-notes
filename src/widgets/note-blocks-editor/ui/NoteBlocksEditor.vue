@@ -9,8 +9,6 @@ defineOptions({ name: 'NoteBlocksEditor' })
 const props = defineProps<{ noteId: string }>()
 const status = defineModel<SyncStatus>('status', { default: 'saved' })
 
-// noteId навмисно не реактивний: батько ставить :key="noteId",
-// тому кожна нотатка отримує власну сесію синку.
 const {
   content,
   isLoading,
