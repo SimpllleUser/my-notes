@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { BlokEditor } from '@bloklabs/vue'
-import { defaultTools, defaultInlineTools } from '@bloklabs/core/full'
 import type { OutputData } from '@bloklabs/core'
 import { useTheme } from '@/shared/lib/theme.ts'
+import { inlineTools, tools } from '@/features/rich-text-editor/model/tools.ts'
 
 defineOptions({ name: 'TextEditor' })
 
@@ -26,11 +26,11 @@ const tokens = {
 <template>
   <div class="note-editor">
     <BlokEditor
-      :tools="defaultTools"
+      :tools="tools"
+      :inline-tools="inlineTools"
       :data="content"
       :tokens="tokens"
       :theme="theme"
-      :inline-tools="defaultInlineTools"
       @save="emit('update', $event)"
     />
   </div>
