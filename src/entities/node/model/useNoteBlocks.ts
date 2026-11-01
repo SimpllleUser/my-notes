@@ -1,10 +1,10 @@
 import { onScopeDispose, ref, shallowRef } from 'vue'
 import { useEventListener } from '@vueuse/core'
-import type { JSONContent } from '@tiptap/vue-3'
+import type { OutputBlockData, OutputData } from '@bloklabs/core'
 import { unwrap } from '@/shared/api/unwrap.ts'
 import { nodeAPI } from './api'
-import { getBlockId } from './blocks'
-import { diffBlocks, type BlockChange } from './diffBlocks'
+import { diffBlocks, type BlockChange, type BlockEntry } from './diffBlocks'
+import { assignOrders } from './order'
 import { blockToPayload, rowsToBlocks } from './serialization'
 import type { SyncStatus } from './syncStatus'
 
@@ -16,22 +16,29 @@ const BATCH_SIZE = 5
 /** Незавершені збереження закритих сесій: повторне відкриття нотатки чекає на них. */
 const closingSessions = new Map<string, Promise<void>>()
 
+/** Редактор не вміє рендерити порожній масив блоків, тому завжди віддаємо хоча б один абзац. */
+const toOutputData = (blocks: OutputBlockData[]): OutputData => ({
+  blocks: blocks.length
+    ? blocks
+    : [{ id: crypto.randomUUID(), type: 'paragraph', data: { text: '' } }],
+})
+
 /**
  * Сесія роботи з блоками ОДНІЄЇ нотатки: завантаження + збереження змін.
  * `noteId` фіксується при створенні, тому зміни ніколи не потраплять в іншу нотатку.
  * Викликати в setup компонента, який має `:key="noteId"`.
  */
 export function useNoteBlocks(noteId: string) {
-  const content = shallowRef<JSONContent | null>(null)
+  const content = shallowRef<OutputData | null>(null)
   const isLoading = ref(true)
   const loadError = ref<unknown>(null)
   const status = ref<SyncStatus>('saved')
 
-  /** Що вже гарантовано збережено на сервері (blockId → block / rowId). */
-  const committed = new Map<string, JSONContent>()
+  /** Що вже гарантовано збережено на сервері (blockId → блок + order / rowId). */
+  const committed = new Map<string, BlockEntry>()
   const rowIds = new Map<string, string>()
 
-  let latest: JSONContent[] | null = null
+  let latest: OutputBlockData[] | null = null
   let queue: Promise<void> = Promise.resolve()
   let debounceTimer: ReturnType<typeof setTimeout> | undefined
   let retryTimer: ReturnType<typeof setTimeout> | undefined
@@ -47,16 +54,12 @@ export function useNoteBlocks(noteId: string) {
 
       committed.clear()
       rowIds.clear()
-      for (const { rowId, block } of loaded) {
-        const id = getBlockId(block)!
-        committed.set(id, block)
-        rowIds.set(id, rowId)
+      for (const { rowId, block, order } of loaded) {
+        committed.set(block.id!, { block, order })
+        rowIds.set(block.id!, rowId)
       }
 
-      content.value = {
-        type: 'doc',
-        content: loaded.length ? loaded.map(({ block }) => block) : [{ type: 'paragraph' }],
-      }
+      content.value = toOutputData(loaded.map(({ block }) => block))
     } catch (error) {
       loadError.value = error
     } finally {
@@ -65,20 +68,19 @@ export function useNoteBlocks(noteId: string) {
   }
 
   // ——— Запис: окремі операції ———
-  async function createRow(block: JSONContent) {
-    const row = await unwrap(nodeAPI.create(blockToPayload(block, noteId)))
-    const id = getBlockId(block)!
-    rowIds.set(id, row.$id)
-    committed.set(id, block)
+  async function createRow(entry: BlockEntry) {
+    const row = await unwrap(nodeAPI.create(blockToPayload(entry, noteId)))
+    rowIds.set(entry.block.id!, row.$id)
+    committed.set(entry.block.id!, entry)
   }
 
-  async function updateRow(block: JSONContent) {
-    const id = getBlockId(block)!
+  async function updateRow(entry: BlockEntry) {
+    const id = entry.block.id!
     const rowId = rowIds.get(id)
-    if (!rowId) return createRow(block)
+    if (!rowId) return createRow(entry)
 
-    await unwrap(nodeAPI.update(rowId, blockToPayload(block, noteId)))
-    committed.set(id, block)
+    await unwrap(nodeAPI.update(rowId, blockToPayload(entry, noteId)))
+    committed.set(id, entry)
   }
 
   async function deleteRow(blockId: string) {
@@ -91,9 +93,9 @@ export function useNoteBlocks(noteId: string) {
   function applyChange(change: BlockChange) {
     switch (change.action) {
       case 'create':
-        return createRow(change.block)
+        return createRow(change.entry)
       case 'update':
-        return updateRow(change.block)
+        return updateRow(change.entry)
       case 'delete':
         return deleteRow(change.blockId)
     }
@@ -110,13 +112,21 @@ export function useNoteBlocks(noteId: string) {
     return failed
   }
 
+  /** Блоки з id + дробовий order: незмінені блоки зберігають свій order, переміщені отримують новий. */
+  function toEntries(blocks: OutputBlockData[]): BlockEntry[] {
+    const identified = blocks.filter((block) => Boolean(block.id))
+    const savedOrders = new Map([...committed].map(([id, entry]) => [id, entry.order]))
+    const orders = assignOrders(identified as { id: string }[], savedOrders)
+    return identified.map((block) => ({ block, order: orders.get(block.id!)! }))
+  }
+
   // ——— Запис: черга ———
   async function persist() {
     if (!latest) return
     const target = latest
     latest = null
 
-    const failed = await applyAll(diffBlocks(committed, target))
+    const failed = await applyAll(diffBlocks(committed, toEntries(target)))
 
     if (failed === 0) {
       retries = 0
@@ -141,8 +151,8 @@ export function useNoteBlocks(noteId: string) {
   }
 
   /** Викликається редактором на кожну зміну; сам збереже після паузи. */
-  function schedule(doc: JSONContent) {
-    latest = doc.content ?? []
+  function schedule(data: OutputData) {
+    latest = data.blocks
     retries = 0
     status.value = 'saving'
     clearTimeout(debounceTimer)

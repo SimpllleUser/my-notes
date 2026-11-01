@@ -1,31 +1,62 @@
-import type { JSONContent } from '@tiptap/vue-3'
+import type { OutputBlockData } from '@bloklabs/core'
+import type { BlockEntry } from './diffBlocks'
 import type { Node, NodePayload } from './types'
 
-export interface LoadedBlock {
+export interface LoadedBlock extends BlockEntry {
   rowId: string
-  block: JSONContent
 }
 
-export function blockToPayload(block: JSONContent, noteId: string): NodePayload {
-  return { note: noteId, body: JSON.stringify(block) }
+/** Рядок для Appwrite: блок Blok + `order` (позиція зберігається разом із блоком). */
+export const blockToPayload = (entry: BlockEntry, noteId: string): NodePayload => ({
+  note: noteId,
+  body: JSON.stringify({ ...entry.block, order: entry.order }),
+})
+
+// ——— Читання ———
+
+const isBlock = (value: any): value is OutputBlockData =>
+  !!value && typeof value.type === 'string' && typeof value.data === 'object' && value.data !== null
+
+const textOf = (node: any): string => node?.text ?? (node?.content ?? []).map(textOf).join('')
+
+/**
+ * Рядки, збережені ще Tiptap-ом: переносимо лише текст абзаців і заголовків.
+ * Складні блоки (callout, toggle, таблиці) спрощуються до абзацу.
+ */
+function fromLegacy(raw: any): OutputBlockData {
+  const id = raw?.attrs?.id ?? crypto.randomUUID()
+  const text = textOf(raw)
+
+  if (raw?.type === 'heading') {
+    return { id, type: 'header', data: { text, level: raw.attrs?.level ?? 2 } }
+  }
+  return { id, type: 'paragraph', data: { text } }
 }
 
-function rowToBlock(row: Node): JSONContent {
-  const { type, attrs, content } = JSON.parse(row.body) as JSONContent
-  // `nodeId` — застарілий атрибут: id рядка тепер зберігається в сесії синку.
-  const { nodeId: _legacy, ...rest } = attrs ?? {}
-  return {
-    type,
-    attrs: { ...rest, id: rest.id ?? crypto.randomUUID() },
-    ...(content ? { content } : {}),
+/** Розбирає один рядок. Пошкоджений рядок повертає `null` і не ламає решту нотатки. */
+function parseRow(row: Node, index: number): LoadedBlock | null {
+  try {
+    const raw = JSON.parse(row.body)
+    const order = Number(raw?.order ?? raw?.attrs?.order ?? index)
+
+    if (isBlock(raw)) {
+      const { order: _order, ...block } = raw as OutputBlockData & { order?: number }
+      return {
+        rowId: row.$id,
+        order,
+        block: { ...block, id: block.id ?? crypto.randomUUID() },
+      }
+    }
+
+    return { rowId: row.$id, order, block: fromLegacy(raw) }
+  } catch (error) {
+    console.warn('Пропущено пошкоджений блок', row.$id, error)
+    return null
   }
 }
 
-const orderOf = ({ block }: LoadedBlock) => Number(block.attrs?.order ?? 0)
-
-export function rowsToBlocks(rows: Node[]): LoadedBlock[] {
-  return rows
-    .map((row) => ({ rowId: row.$id, createdAt: row.$createdAt, block: rowToBlock(row) }))
-    .sort((a, b) => orderOf(a) - orderOf(b) || a.createdAt.localeCompare(b.createdAt))
-    .map(({ rowId, block }) => ({ rowId, block }))
-}
+export const rowsToBlocks = (rows: Node[]): LoadedBlock[] =>
+  rows
+    .map(parseRow)
+    .filter((item): item is LoadedBlock => item !== null)
+    .sort((a, b) => a.order - b.order)

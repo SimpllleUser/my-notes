@@ -22,12 +22,12 @@ const router = createRouter({
       component: () => import('@/pages/auth').then((m) => m.AuthPage),
       meta: { layout: 'DefaultLayout' },
     },
-    {
-      path: '/ui-kit',
-      name: 'ui-kit',
-      component: () => import('@/pages/ui-kit').then((m) => m.UIKit),
-      meta: { requiresAuth: true },
-    },
+    // {
+    //   path: '/ui-kit',
+    //   name: 'ui-kit',
+    //   component: () => import('@/pages/ui-kit').then((m) => m.UIKit),
+    //   meta: { requiresAuth: true },
+    // },
   ],
 })
 
