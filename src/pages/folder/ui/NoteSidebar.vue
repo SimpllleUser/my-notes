@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import type { JSONContent } from '@tiptap/vue-3'
-import type { Note } from '@/entities/note'
-import { useNotesStore } from '@/entities/note/model/store.ts'
+import { type Note, useNotesStore } from '@/entities/note'
 import { onBeforeMount, ref } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
 import { NoteListPanel } from '@/widgets/note-list-panel'
@@ -18,12 +16,6 @@ const emit = defineEmits<{
 }>()
 const notesStore = useNotesStore()
 
-// Порожній початковий документ Tiptap для нової нотатки
-const EMPTY_CONTENT: JSONContent = {
-  type: 'doc',
-  content: [{ type: 'paragraph', content: [{ type: 'text', text: '' }] }],
-}
-
 const searchingName = ref('')
 const activeNote = useLocalStorage<Note>(`node-${props.folder.id}}`, {} as Note)
 const popOverState = ref(false)
@@ -33,10 +25,6 @@ onBeforeMount(async () => {
   if (!activeNote.value?.$id) activeNote.value = notesStore.getNotes()[0]
   emit('set-note', activeNote.value as Note)
 })
-
-const create = () => {
-  popOverState.value = false
-}
 
 const noteName = ref('')
 const hidePopOver = () => {
@@ -62,7 +50,6 @@ const createNote = async () => {
   const { data } = await notesStore.create({
     name: noteName.value,
     folder: props.folder.id,
-    content: EMPTY_CONTENT,
   })
   hidePopOver()
   await notesStore.getAll(props.folder.id)
@@ -73,7 +60,7 @@ const createNote = async () => {
 <template>
   <NoteListPanel
     v-model:search="searchingName"
-    @create="create"
+    @create="createNote()"
     @select="selectNote"
     :folder-name="folder.name"
     :notes="notesStore.getNotes(searchingName)"
