@@ -25,7 +25,6 @@ const getNoteDate = (date: string) => new Date(date).toLocaleDateString()
         v-for="note in notes"
         :key="note.$id"
         :title="note.name"
-        :preview="note?.preview ?? ''"
         :updated="getNoteDate(note.$updatedAt)"
         :active="activeNoteId === note.$id"
         @click="emit('select', note)"

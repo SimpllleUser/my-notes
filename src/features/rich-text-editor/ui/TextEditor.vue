@@ -11,7 +11,6 @@ const emit = defineEmits<{ update: [data: OutputData] }>()
 
 const { theme } = useTheme()
 
-// var() підставляється браузером, тому токени самі слідують за світлою/темною темою.
 const tokens = {
   '--blok-text-primary': 'var(--color-ink)',
   '--blok-popover-bg': 'var(--color-accent-paper)',

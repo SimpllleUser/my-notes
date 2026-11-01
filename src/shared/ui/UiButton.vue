@@ -14,7 +14,6 @@ withDefaults(
 
 <template>
   <button
-    :id="$attrs.id"
     :type="type"
     class="inline-flex items-center justify-center gap-2 rounded-brutal border-2 border-ink font-black transition duration-150 hover:-translate-y-0.5 hover:shadow-brutal active:translate-y-0.5 active:shadow-none disabled:pointer-events-none disabled:opacity-50"
     :class="[
