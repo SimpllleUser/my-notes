@@ -3,7 +3,10 @@ import type { Nullable } from '@/shared/model/types.ts'
 import type { Note } from '@/entities/note'
 import { useNotesStore } from './store'
 
-export function useNoteSelect(folderId: ComputedRef<Nullable<string>>) {
+export function useNoteSelect(
+  folderId?: ComputedRef<Nullable<string>>,
+  folderIds?: ComputedRef<Nullable<string[]>>,
+) {
   const noteStore = useNotesStore()
 
   const activeNote = ref<Nullable<Note>>(null)
@@ -14,10 +17,17 @@ export function useNoteSelect(folderId: ComputedRef<Nullable<string>>) {
   }
 
   watch(
-    () => folderId.value,
+    () => folderId?.value,
     async (id) => {
       if (!id) return
       await noteStore.getAll(id)
+    },
+  )
+  watch(
+    () => folderIds?.value,
+    async (ids, oldsOids) => {
+      if ((!ids || ids?.length === oldsOids?.length)) return
+      await noteStore.getByFolder(ids)
     },
   )
 
@@ -25,5 +35,6 @@ export function useNoteSelect(folderId: ComputedRef<Nullable<string>>) {
     setNote,
     notes,
     activeNote,
+    getNoteByFolder: noteStore.getNoteByFolder
   }
 }

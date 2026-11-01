@@ -11,8 +11,8 @@ defineOptions({
 })
 
 const { activeFolder, setFolder, folders } = useFolderSelect()
-const folderId = computed(() => activeFolder.value?.$id || '')
-const { notes, setNote, activeNote } = useNoteSelect(folderId)
+const folderIds = computed(() => folders.value.map((folder) => folder.$id))
+const { setNote, activeNote, getNoteByFolder } = useNoteSelect(undefined, folderIds)
 
 const iconsList = ref<Record<string, Component | null>>({})
 const getIcon = (icon: string) => {
@@ -65,8 +65,8 @@ watch(
             </span>
           </div>
         </div>
-        <div v-if="folder.$id === activeFolder?.$id" class="pl-6">
-          <div v-for="note in notes" :key="note.$id" @click="setNote(note)">
+        <div class="pl-6">
+          <div v-for="note in getNoteByFolder(folder.$id)" :key="note.$id" @click="setNote(note)">
             <div class="flex items-center">
               <Circle
                 :size="12"
