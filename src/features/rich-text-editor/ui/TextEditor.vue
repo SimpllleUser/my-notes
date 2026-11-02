@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { BlokEditor } from '@bloklabs/vue'
 import type { OutputData } from '@bloklabs/core'
+import { computed } from 'vue'
 import { useTheme } from '@/shared/lib/theme.ts'
+import { ThemePalette } from '@/shared/model/enums.ts'
 import { inlineTools, tools } from '@/features/rich-text-editor/model/tools.ts'
 
 defineOptions({ name: 'TextEditor' })
@@ -10,6 +12,11 @@ defineProps<{ content: OutputData }>()
 const emit = defineEmits<{ update: [data: OutputData] }>()
 
 const { theme } = useTheme()
+const editorTheme = computed(() =>
+  [ThemePalette.Dark, ThemePalette.Dracula, ThemePalette.Night, ThemePalette.Dim].includes(theme.value)
+    ? 'dark'
+    : 'light',
+)
 
 const tokens = {
   '--blok-text-primary': 'var(--color-base-content)',
@@ -31,7 +38,7 @@ const tokens = {
         :inline-tools="inlineTools"
         :data="content"
         :tokens="tokens"
-        :theme="theme"
+        :theme="editorTheme"
         @save="emit('update', $event)"
       />
     </div>

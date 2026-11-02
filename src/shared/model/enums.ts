@@ -10,6 +10,17 @@ export enum DaisyColor {
   Error = 'error',
 }
 
+/** Built-in DaisyUI palettes enabled by the app. */
+export enum ThemePalette {
+  Light = 'light',
+  Dark = 'dark',
+  Pastel = 'pastel',
+  Fantasy = 'fantasy',
+  Dracula = 'dracula',
+  Night = 'night',
+  Dim = 'dim',
+}
+
 /** Common DaisyUI component sizes. */
 export enum ComponentSize {
   ExtraSmall = 'xs',
