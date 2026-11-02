@@ -4,7 +4,7 @@ import { onBeforeMount, ref } from 'vue'
 import { useLocalStorage } from '@vueuse/core'
 import { NoteListPanel } from '@/widgets/note-list-panel'
 import { UiButton, UiIconButton, UIInputField, UiPopover } from '@/shared/ui'
-import { ButtonVariant } from '@/shared/model/enums.ts'
+import { ButtonColor } from '@/shared/model/enums.ts'
 import { Save } from '@lucide/vue'
 
 const props = defineProps<{
@@ -68,20 +68,16 @@ const createNote = async () => {
   >
     <template #header-left><slot name="header-left" /></template>
     <template #header-right>
-      <UiPopover v-model="popOverState" :openOnHover="false" @click:outside="hidePopOver">
+      <UiPopover v-model="popOverState" :open-on-hover="false" @click:outside="hidePopOver">
         <template #activator="{ props }">
-          <UiIconButton
-            v-bind="props"
-            label="Створити нотатку"
-            :variant="ButtonVariant.Primary"
-            @click="popOverState = !popOverState"
+          <UiIconButton v-bind="props" label="Створити нотатку" :color="ButtonColor.Primary"
             >+</UiIconButton
           >
         </template>
         <template #default>
           <div class="flex">
             <UIInputField v-model="noteName" placeholder="Name" class="max-w-50 w-100" />
-            <UiButton @click="createNote" class="ml-2" :variant="ButtonVariant.Yellow">
+            <UiButton @click="createNote" class="ml-2" :color="ButtonColor.Warning">
               <Save />
             </UiButton>
           </div>

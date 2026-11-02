@@ -7,38 +7,33 @@ import { useFolderSelect } from '@/entities/folder'
 import { ref } from 'vue'
 import { usePickerOpen } from '@/shared/lib/usePickerOpen.ts'
 import { UiButton, UiPicker } from '@/shared/ui'
+import { ButtonVariant } from '@/shared/model/enums.ts'
 
 const { activeFolder, folders, setFolder, goToFolder } = useFolderSelect()
 const popover = ref(true)
 const { open, hide } = usePickerOpen(() => popover.value)
+
+async function selectFolder(folder: (typeof folders.value)[number]) {
+  setFolder(folder)
+  await goToFolder()
+  hide()
+}
 </script>
 
 <template>
   <UiPicker v-model:open="open" :popover="popover">
     <template #trigger="{ toggle }">
-      <span @click="toggle">
+      <UiButton :variant="ButtonVariant.Outlined" @click="toggle">
         {{ activeFolder ? activeFolder.name : 'Project' }}
-      </span>
-    </template>
-    <div
-      v-for="(folder, index) in folders"
-      :key="folder.$id"
-      class="flex items-center gap-2 justify-center"
-      :class="{ 'mt-2': index }"
-    >
-      <UiButton
-        class="w-full"
-        @click="
-          () => {
-            setFolder(folder)
-            goToFolder()
-            hide()
-          }
-        "
-      >
-        {{ folder.name }}
       </UiButton>
-    </div>
+    </template>
+    <template #default>
+      <ul class="menu w-52 p-0">
+        <li v-for="folder in folders" :key="folder.$id">
+          <button @click="selectFolder(folder)">{{ folder.name }}</button>
+        </li>
+      </ul>
+    </template>
   </UiPicker>
 </template>
 

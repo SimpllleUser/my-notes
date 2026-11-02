@@ -2,7 +2,8 @@
 import { onMounted, shallowRef, watch, type Component } from 'vue'
 import { resolveLucideIcon } from '@/shared/lib/lucide'
 import { usePickerOpen } from '@/shared/lib/usePickerOpen'
-import { UiPicker } from '@/shared/ui'
+import { UiIconButton, UiPicker } from '@/shared/ui'
+import { ButtonColor, ButtonVariant } from '@/shared/model/enums.ts'
 import { useIconPicker } from '../model/useIconPicker'
 import IconPickerContent from './IconPickerContent.vue'
 
@@ -60,15 +61,16 @@ defineExpose({ show, hide, toggle })
   <UiPicker v-model:open="open" :popover="popover" panel-class="w-72">
     <template #trigger="triggerProps">
       <slot name="trigger" v-bind="triggerProps" :icon="selectedIcon">
-        <button
-          type="button"
-          :aria-label="label"
-          :title="label"
-          class="grid h-10 w-10 place-items-center rounded-brutal border-2 border-ink bg-bg transition duration-150 hover:-translate-y-0.5 hover:shadow-brutal-sm active:translate-y-0 active:shadow-none"
+        <UiIconButton
+          :label="label"
+          :variant="ButtonVariant.Outlined"
+          :color="ButtonColor.Neutral"
           @click="triggerProps.toggle"
         >
-          <component :is="selectedIcon" v-if="selectedIcon" :size="20" />
-        </button>
+          <template #icon>
+            <component :is="selectedIcon" v-if="selectedIcon" :size="20" />
+          </template>
+        </UiIconButton>
       </slot>
     </template>
 

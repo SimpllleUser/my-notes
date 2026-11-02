@@ -32,6 +32,7 @@ function toggle() {
     v-model="open"
     :content-class="panelClass"
     :open-on-hover="false"
+    :open-on-click="false"
     :interactive="true"
     :eager="false"
   >
@@ -43,11 +44,24 @@ function toggle() {
         :toggle="toggle"
         :show="show"
         :hide="hide"
-      />
+      >
+        <slot
+          name="activator"
+          v-bind="activatorScope"
+          :open="open"
+          :toggle="toggle"
+          :show="show"
+          :hide="hide"
+        />
+      </slot>
     </template>
-    <slot :hide="hide" />
+    <slot :hide="hide">
+      <slot name="content" :hide="hide" />
+    </slot>
   </UiPopover>
   <div v-else>
-    <slot />
+    <slot>
+      <slot name="content" :hide="hide" />
+    </slot>
   </div>
 </template>

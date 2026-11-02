@@ -1,13 +1,131 @@
 export enum ButtonVariant {
-  Paper = 'paper',
+  Flat = 'flat',
+  Outlined = 'outlined',
+  Dash = 'dash',
+  Ghost = 'ghost',
+  Soft = 'soft',
+  Link = 'link',
+}
+
+export enum ButtonColor {
+  Neutral = 'neutral',
   Primary = 'primary',
-  Yellow = 'yellow',
-  Blue = 'blue',
+  Secondary = 'secondary',
+  Accent = 'accent',
+  Info = 'info',
+  Success = 'success',
+  Warning = 'warning',
+  Error = 'error',
+  Muted = 'muted',
+}
+
+export enum ButtonSize {
+  ExtraSmall = 'xs',
+  Small = 'sm',
+  Medium = 'md',
+  Large = 'lg',
+  ExtraLarge = 'xl',
+}
+
+export enum CardSize {
+  ExtraSmall = 'xs',
+  Small = 'sm',
+  Medium = 'md',
+  Large = 'lg',
+  ExtraLarge = 'xl',
+}
+
+export enum CardFigurePosition {
+  Top = 'top',
+  Bottom = 'bottom',
+}
+
+export enum CardActionsAlign {
+  Start = 'start',
+  Center = 'center',
+  End = 'end',
+}
+
+export enum InputSize {
+  ExtraSmall = 'xs',
+  Small = 'sm',
+  Medium = 'md',
+  Large = 'lg',
+  ExtraLarge = 'xl',
+}
+
+export enum ButtonType {
+  Button = 'button',
+  Submit = 'submit',
+  Reset = 'reset',
+}
+
+export enum CardElement {
+  Div = 'div',
+  Section = 'section',
+  Aside = 'aside',
+}
+
+export enum InputType {
+  Text = 'text',
+  Password = 'password',
+  Email = 'email',
+  Number = 'number',
+  Search = 'search',
+  Tel = 'tel',
+  Url = 'url',
+  Date = 'date',
+  Month = 'month',
+  Week = 'week',
+  Time = 'time',
+  DateTimeLocal = 'datetime-local',
+}
+
+export enum PopoverLocation {
+  Top = 'top',
+  Bottom = 'bottom',
+  Left = 'left',
+  Right = 'right',
+  Start = 'start',
+  End = 'end',
+  Center = 'center',
+  TopStart = 'top start',
+  TopCenter = 'top center',
+  TopEnd = 'top end',
+  BottomStart = 'bottom start',
+  BottomCenter = 'bottom center',
+  BottomEnd = 'bottom end',
+  LeftStart = 'left start',
+  LeftCenter = 'left center',
+  LeftEnd = 'left end',
+  RightStart = 'right start',
+  RightCenter = 'right center',
+  RightEnd = 'right end',
+}
+
+export enum PopoverSide {
+  Top = 'top',
+  Bottom = 'bottom',
+  Left = 'left',
+  Right = 'right',
+  Center = 'center',
+}
+
+export enum PopoverAlign {
+  Start = 'start',
+  Center = 'center',
+  End = 'end',
 }
 
 export enum StatusTone {
+  Neutral = 'neutral',
+  Primary = 'primary',
+  Secondary = 'secondary',
+  Accent = 'accent',
+  Info = 'info',
   Success = 'success',
-  Muted = 'muted',
+  Warning = 'warning',
+  Error = 'error',
 }
 
 export enum FolderColor {

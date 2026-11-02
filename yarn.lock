@@ -1780,6 +1780,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@tailwindcss/vite@npm:^4.3.3":
+  version: 4.3.3
+  resolution: "@tailwindcss/vite@npm:4.3.3"
+  dependencies:
+    "@tailwindcss/node": "npm:4.3.3"
+    "@tailwindcss/oxide": "npm:4.3.3"
+    tailwindcss: "npm:4.3.3"
+  peerDependencies:
+    vite: ^5.2.0 || ^6 || ^7 || ^8
+  checksum: 10c0/bb1fe12f7a0bb8f6d6142f6bb2e96060ee853902314ef838e8d7f50cf30cc4b07adb7c2c86be2164e0d62eb581b8cc4df2d9aa13b4449f597a67f73c5772d549
+  languageName: node
+  linkType: hard
+
 "@tsconfig/node24@npm:^24.0.5":
   version: 24.0.5
   resolution: "@tsconfig/node24@npm:24.0.5"
@@ -2637,6 +2650,13 @@ __metadata:
   version: 3.2.3
   resolution: "csstype@npm:3.2.3"
   checksum: 10c0/cd29c51e70fa822f1cecd8641a1445bed7063697469d35633b516e60fe8c1bde04b08f6c5b6022136bb669b64c63d4173af54864510fbb4ee23281801841a3ce
+  languageName: node
+  linkType: hard
+
+"daisyui@npm:^5.7.50":
+  version: 5.7.50
+  resolution: "daisyui@npm:5.7.50"
+  checksum: 10c0/5c8f0466c34c8850acdd9671e4b1721f2187ef869d5735aa3270ac3309414f22d5295b86fc8f23237af1b394a664768f661bf5cf4c899d8fc9a13c6763bef7b5
   languageName: node
   linkType: hard
 
@@ -3872,6 +3892,7 @@ __metadata:
     "@floating-ui/dom": "npm:^1.8.0"
     "@lucide/vue": "npm:^1.52.0"
     "@tailwindcss/postcss": "npm:^4.3.3"
+    "@tailwindcss/vite": "npm:^4.3.3"
     "@tsconfig/node24": "npm:^24.0.5"
     "@types/node": "npm:^24.13.4"
     "@vitejs/plugin-vue": "npm:^6.0.8"
@@ -3881,6 +3902,7 @@ __metadata:
     "@vueuse/core": "npm:^15.0.0"
     appwrite: "npm:^28.1.0"
     autoprefixer: "npm:^10.6.1"
+    daisyui: "npm:^5.7.50"
     eslint: "npm:^10.10.0"
     eslint-config-prettier: "npm:^10.1.8"
     eslint-plugin-oxlint: "npm:~1.82.0"

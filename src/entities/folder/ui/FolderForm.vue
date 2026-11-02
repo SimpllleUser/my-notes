@@ -2,7 +2,7 @@
 import type { Folder } from '@/entities/folder'
 import { ref, watch } from 'vue'
 import { UiButton, UiIconButton, UIInputField } from '@/shared/ui'
-import { ButtonVariant } from '@/shared/model/enums.ts'
+import { ButtonColor } from '@/shared/model/enums.ts'
 import { IconPicker } from '@/features/icon-picker'
 import { ColorPicker } from '@/features/color-picker'
 import type { FolderPayload } from '@/entities/folder/model/types.ts'
@@ -74,10 +74,10 @@ const reset = () => {
         </UiButton>
       </template>
     </IconPicker>
-    <UiIconButton :variant="ButtonVariant.Yellow" label="save" @click="submit">
+    <UiIconButton :color="ButtonColor.Warning" label="save" @click="submit">
       <Save />
     </UiIconButton>
-    <UiIconButton :variant="ButtonVariant.Primary" label="Reset" @click="reset">
+    <UiIconButton :color="ButtonColor.Primary" label="Reset" @click="reset">
       <RotateCcw />
     </UiIconButton>
   </div>
