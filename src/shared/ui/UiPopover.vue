@@ -1,38 +1,22 @@
 <script setup lang="ts">
-import { computed, mergeProps, onBeforeUnmount, ref, useId, watch, type CSSProperties } from 'vue'
+import {
+  computed,
+  mergeProps,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  useId,
+  watch,
+  type CSSProperties,
+} from 'vue'
+import { PopoverAlign, PopoverLocation, PopoverSide } from '@/shared/model/enums.ts'
 
 /**
  * Розташування панелі відносно активатора — як `location` у Vuetify `VTooltip`:
  * сторона + опційне вирівнювання (наприклад, `"bottom end"`).
  */
-type PopoverLocation =
-  | 'top'
-  | 'bottom'
-  | 'left'
-  | 'right'
-  | 'start'
-  | 'end'
-  | 'center'
-  | 'top start'
-  | 'top center'
-  | 'top end'
-  | 'bottom start'
-  | 'bottom center'
-  | 'bottom end'
-  | 'left start'
-  | 'left center'
-  | 'left end'
-  | 'right start'
-  | 'right center'
-  | 'right end'
-
-type Side = 'top' | 'bottom' | 'left' | 'right' | 'center'
-type Align = 'start' | 'center' | 'end'
-
 const props = withDefaults(
   defineProps<{
-    /** Керує видимістю панелі (`v-model`, аналог `modelValue` у VTooltip). */
-    modelValue?: boolean
     /** Текст контенту панелі, якщо не передано default-слот. */
     text?: string
     /** Id елемента контенту (використовується в `aria-describedby` активатора). */
@@ -65,7 +49,6 @@ const props = withDefaults(
     activatorProps?: Record<string, unknown>
   }>(),
   {
-    modelValue: false,
     text: undefined,
     id: undefined,
     interactive: false,
@@ -74,10 +57,10 @@ const props = withDefaults(
     persistent: false,
     // VTooltip за замовчуванням використовує `"end"`; для панелі-поповера
     // зберігаємо історичний вигляд — під активатором, по правому краю.
-    location: 'bottom end',
+    location: PopoverLocation.BottomEnd,
     offset: 10,
-    openOnHover: true,
-    openOnClick: false,
+    openOnHover: false,
+    openOnClick: true,
     openDelay: 0,
     closeDelay: 0,
     contentClass: '',
@@ -97,69 +80,73 @@ const uid = useId()
 const contentId = computed(() => props.id ?? `ui-popover-${uid}`)
 const rootRef = ref<HTMLElement | null>(null)
 
-const SIDES: Record<string, Side> = {
-  top: 'top',
-  bottom: 'bottom',
-  left: 'left',
-  right: 'right',
-  start: 'left',
-  end: 'right',
-  center: 'center',
+const SIDES: Record<string, PopoverSide> = {
+  top: PopoverSide.Top,
+  bottom: PopoverSide.Bottom,
+  left: PopoverSide.Left,
+  right: PopoverSide.Right,
+  start: PopoverSide.Left,
+  end: PopoverSide.Right,
+  center: PopoverSide.Center,
 }
 
-function parseLocation(location: string): { side: Side; align: Align } {
+function parseLocation(location: PopoverLocation): { side: PopoverSide; align: PopoverAlign } {
   const [rawSide = 'bottom', rawAlign = 'center'] = location.trim().split(/\s+/)
-  const side = SIDES[rawSide] ?? 'bottom'
-  const align: Align = rawAlign === 'start' || rawAlign === 'end' ? rawAlign : 'center'
+  const side = SIDES[rawSide] ?? PopoverSide.Bottom
+  const align =
+    rawAlign === PopoverAlign.Start || rawAlign === PopoverAlign.End
+      ? rawAlign
+      : PopoverAlign.Center
   return { side, align }
 }
 
 const panelStyle = computed<CSSProperties>(() => {
-  const { side, align } = parseLocation(props.location)
+  const { side } = parseLocation(props.location)
   const gap = `${props.offset}px`
   const style: CSSProperties = {}
 
   switch (side) {
-    case 'top':
-      style.bottom = '100%'
+    case PopoverSide.Top:
       style.marginBottom = gap
       break
-    case 'bottom':
-      style.top = '100%'
+    case PopoverSide.Bottom:
       style.marginTop = gap
       break
-    case 'left':
-      style.right = '100%'
+    case PopoverSide.Left:
       style.marginRight = gap
       break
-    case 'right':
-      style.left = '100%'
+    case PopoverSide.Right:
       style.marginLeft = gap
       break
-    case 'center':
-      style.left = '50%'
+    case PopoverSide.Center:
       style.top = '50%'
+      style.left = '50%'
       style.transform = 'translate(-50%, -50%)'
       return style
   }
 
-  if (side === 'top' || side === 'bottom') {
-    if (align === 'start') style.left = '0'
-    else if (align === 'end') style.right = '0'
-    else {
-      style.left = '50%'
-      style.transform = 'translateX(-50%)'
-    }
-  } else {
-    if (align === 'start') style.top = '0'
-    else if (align === 'end') style.bottom = '0'
-    else {
-      style.top = '50%'
-      style.transform = 'translateY(-50%)'
-    }
-  }
-
   return style
+})
+
+const locationClasses = computed(() => {
+  const { side, align } = parseLocation(props.location)
+  const sideClass = {
+    [PopoverSide.Top]: 'dropdown-top',
+    [PopoverSide.Bottom]: 'dropdown-bottom',
+    [PopoverSide.Left]: 'dropdown-left',
+    [PopoverSide.Right]: 'dropdown-right',
+    [PopoverSide.Center]: 'dropdown-center',
+  }[side]
+
+  if (side === PopoverSide.Center) return ''
+
+  const alignClass = {
+    [PopoverAlign.Start]: 'dropdown-start',
+    [PopoverAlign.Center]: 'dropdown-center',
+    [PopoverAlign.End]: 'dropdown-end',
+  }[align]
+
+  return `${sideClass} ${alignClass}`
 })
 
 let openTimer: ReturnType<typeof setTimeout> | undefined
@@ -202,7 +189,8 @@ function onActivatorEnter() {
 function onActivatorLeave() {
   if (!props.openOnHover || props.disabled) return
   clearTimers()
-  if (props.closeDelay > 0) closeTimer = setTimeout(hide, props.closeDelay)
+  const delay = props.closeDelay || (props.interactive ? 100 : 0)
+  if (delay > 0) closeTimer = setTimeout(hide, delay)
   else hide()
 }
 
@@ -228,6 +216,7 @@ const activatorSlotProps = computed(() =>
   mergeProps(
     {
       'aria-describedby': contentId.value,
+      'aria-controls': contentId.value,
       'aria-expanded': model.value,
     },
     props.openOnHover ? { onMouseenter: onActivatorEnter, onMouseleave: onActivatorLeave } : {},
@@ -243,9 +232,14 @@ function handleClickOutside(event: MouseEvent) {
   if (!props.persistent) hide()
 }
 
-watch(model, (isOpen) => {
-  if (isOpen) document.addEventListener('mousedown', handleClickOutside)
-  else document.removeEventListener('mousedown', handleClickOutside)
+function syncOutsideListener(isOpen: boolean) {
+  if (isOpen) document.addEventListener('pointerdown', handleClickOutside)
+  else document.removeEventListener('pointerdown', handleClickOutside)
+}
+
+onMounted(() => {
+  syncOutsideListener(model.value)
+  watch(model, syncOutsideListener)
 })
 
 watch(
@@ -253,32 +247,47 @@ watch(
   (disabled) => {
     if (disabled) hide()
   },
+  { immediate: true },
 )
 
 onBeforeUnmount(() => {
   clearTimers()
-  document.removeEventListener('mousedown', handleClickOutside)
+  document.removeEventListener('pointerdown', handleClickOutside)
 })
 
 defineExpose({ isActive: model, show, hide, toggle })
 </script>
 
 <template>
-  <div ref="rootRef" class="relative inline-block">
+  <div
+    ref="rootRef"
+    class="dropdown"
+    :class="[locationClasses, { 'dropdown-open': model, 'dropdown-close': !model }]"
+  >
     <slot name="activator" :is-active="model" :props="activatorSlotProps" />
 
     <div
       v-if="eager || model"
       v-show="model"
+      tabindex="0"
       :id="contentId"
       v-bind="contentProps"
-      class="absolute z-20 max-w-[calc(100vw-2rem)] rounded-brutal border-3 border-ink bg-accent-paper p-3 shadow-brutal"
+      class="dropdown-content z-20 max-w-[calc(100vw-2rem)] rounded-box bg-base-100 p-4 shadow-xl"
       :class="contentClass"
       :style="panelStyle"
       @mouseenter="onContentEnter"
       @mouseleave="onContentLeave"
     >
+      <div v-if="$slots.header" class="pb-2 font-semibold">
+        <slot name="header" :is-active="model" :hide="hide" />
+      </div>
+      <ul v-if="$slots.menu" class="menu w-full p-0">
+        <slot name="menu" :is-active="model" :hide="hide" />
+      </ul>
       <slot :is-active="model" :hide="hide">{{ text }}</slot>
+      <div v-if="$slots.actions" class="flex justify-end gap-2 pt-2">
+        <slot name="actions" :is-active="model" :hide="hide" />
+      </div>
     </div>
   </div>
 </template>

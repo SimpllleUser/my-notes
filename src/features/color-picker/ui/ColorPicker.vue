@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { usePickerOpen } from '@/shared/lib/usePickerOpen'
-import { UiPicker } from '@/shared/ui'
+import { UiIconButton, UiPicker } from '@/shared/ui'
+import { ButtonColor, ButtonVariant } from '@/shared/model/enums.ts'
 import { getRandomArrayItem } from '@/shared/utils/arrays.ts'
 import { useColorPicker } from '../model/useColorPicker'
 import ColorPickerContent from './ColorPickerContent.vue'
@@ -39,14 +40,14 @@ defineExpose({ show, hide, toggle })
   <UiPicker v-model:open="open" :popover="popover" panel-class="w-56">
     <template #trigger="triggerProps">
       <slot name="trigger" v-bind="triggerProps" :value="model">
-        <button
-          type="button"
-          :aria-label="label"
-          :title="label"
-          class="grid h-10 w-10 place-items-center rounded-brutal border-2 border-ink transition duration-150 hover:-translate-y-0.5 hover:shadow-brutal-sm active:translate-y-0 active:shadow-none"
-          :class="model ?? 'bg-bg'"
+        <UiIconButton
+          :label="label"
+          :variant="ButtonVariant.Outlined"
+          :color="ButtonColor.Neutral"
           @click="triggerProps.toggle"
-        />
+        >
+          <span class="size-6 rounded" :class="model ?? 'bg-base-200'" />
+        </UiIconButton>
       </slot>
     </template>
 

@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
+import { Search } from '@lucide/vue'
+import { InputType } from '@/shared/model/enums.ts'
+import { UIInputField } from '@/shared/ui'
 
 withDefaults(
   defineProps<{
@@ -20,38 +23,37 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <p class="mb-2 text-xs font-bold uppercase tracking-wider text-ink-light">{{ label }}</p>
-  <label
-    class="mb-2 flex items-center gap-2 rounded-brutal border-2 border-ink bg-bg px-3 py-2 shadow-brutal-sm transition duration-150 hover:shadow-brutal focus-within:bg-accent-paper focus-within:shadow-brutal"
+  <h3 class="mb-2 text-sm font-semibold">{{ label }}</h3>
+  <UIInputField
+    :model-value="query"
+    :type="InputType.Search"
+    :autofocus="autofocus"
+    placeholder="Пошук іконки..."
+    class="mb-2"
+    @update:model-value="emit('update:query', $event)"
   >
-    <span class="text-lg leading-none" aria-hidden="true">⌕</span>
-    <input
-      :value="query"
-      :autofocus="autofocus"
-      type="search"
-      placeholder="Пошук іконки..."
-      class="w-full bg-transparent text-base outline-none sm:text-sm placeholder:text-ink-light"
-      @input="emit('update:query', ($event.target as HTMLInputElement).value)"
-    />
-  </label>
+    <template #prefix><Search :size="16" class="opacity-70" aria-hidden="true" /></template>
+  </UIInputField>
 
   <div class="grid max-h-56 grid-cols-6 gap-1 overflow-y-auto">
-    <p v-if="loading" class="col-span-6 py-4 text-center text-sm text-ink-light">Завантаження…</p>
+    <div v-if="loading" class="col-span-6 flex justify-center py-4">
+      <span class="loading loading-spinner loading-md" aria-label="Завантаження" />
+    </div>
     <template v-else>
       <button
         v-for="item in results"
         :key="item.name"
         type="button"
         :title="item.name"
-        class="grid aspect-square place-items-center rounded-lg border-2 border-transparent transition duration-150 hover:border-ink hover:bg-primary-yellow active:scale-90"
-        :class="{ 'border-ink bg-primary-yellow': item.name === modelValue }"
+        class="btn btn-square btn-ghost btn-sm aspect-square"
+        :class="{ 'btn-primary': item.name === modelValue }"
         @click="emit('select', item.name, item.component)"
       >
         <component :is="item.component" :size="18" />
       </button>
-      <p v-if="results.length === 0" class="col-span-6 py-4 text-center text-sm text-ink-light">
+      <div v-if="results.length === 0" class="alert alert-info col-span-6 text-sm">
         Нічого не знайдено
-      </p>
+      </div>
     </template>
   </div>
 </template>
