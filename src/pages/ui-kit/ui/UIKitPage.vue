@@ -8,6 +8,7 @@ import {
   UIInputField,
   UiButton,
   UiCard,
+  UiFileTree,
   UiIconButton,
   UiPicker,
   UiPopover,
@@ -17,13 +18,17 @@ import {
 import {
   ButtonColor,
   ButtonVariant,
+  FileTreeNodeType,
   FolderColor,
   InputType,
   PopoverLocation,
   StatusTone,
 } from '@/shared/model/enums.ts'
+import type { FileTreeNode } from '@/shared/ui'
 
 const selectedView = ref('All notes')
+const selectedTreeNode = ref('ui-popover')
+const expandedTreeNodes = ref(['src', 'shared', 'ui'])
 const selectedColor = ref<string | undefined>(FolderColor.Primary)
 const selectedIcon = ref<string | undefined>('Star')
 const editorVisible = ref(false)
@@ -35,6 +40,42 @@ const editorContent = shallowRef<OutputData>({
     },
   ],
 })
+const fileTreeItems: FileTreeNode[] = [
+  {
+    id: 'src',
+    label: 'src',
+    type: FileTreeNodeType.Folder,
+    children: [
+      {
+        id: 'features',
+        label: 'features',
+        type: FileTreeNodeType.Folder,
+        children: [
+          { id: 'color-picker', label: 'color-picker', type: FileTreeNodeType.Folder },
+          { id: 'icon-picker', label: 'icon-picker', type: FileTreeNodeType.Folder },
+        ],
+      },
+      {
+        id: 'shared',
+        label: 'shared',
+        type: FileTreeNodeType.Folder,
+        children: [
+          {
+            id: 'ui',
+            label: 'ui',
+            type: FileTreeNodeType.Folder,
+            children: [
+              { id: 'ui-button', label: 'UiButton.vue', type: FileTreeNodeType.File },
+              { id: 'ui-popover', label: 'UiPopover.vue', type: FileTreeNodeType.File },
+              { id: 'ui-file-tree', label: 'UiFileTree.vue', type: FileTreeNodeType.File },
+            ],
+          },
+          { id: 'enums', label: 'enums.ts', type: FileTreeNodeType.File },
+        ],
+      },
+    ],
+  },
+]
 
 function selectView(view: string, hide: () => void) {
   selectedView.value = view
@@ -163,6 +204,23 @@ function toggleEditorVisibility(event: Event) {
           <UiButton :color="ButtonColor.Primary">Open</UiButton>
         </template>
       </UiCard>
+    </section>
+
+    <section class="space-y-4">
+      <div>
+        <h2 class="text-2xl font-semibold">Navigation</h2>
+        <p class="text-base-content/70">A nested file tree with selected and expanded nodes.</p>
+      </div>
+      <div class="max-w-sm space-y-3">
+        <UiFileTree
+          v-model="selectedTreeNode"
+          v-model:expanded="expandedTreeNodes"
+          :items="fileTreeItems"
+          label="Project files"
+          bordered
+        />
+        <p class="text-sm text-base-content/70">Selected node: {{ selectedTreeNode }}</p>
+      </div>
     </section>
 
     <section class="space-y-4">

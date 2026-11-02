@@ -54,6 +54,19 @@ export enum InputSize {
   ExtraLarge = 'xl',
 }
 
+export enum FileTreeSize {
+  ExtraSmall = 'xs',
+  Small = 'sm',
+  Medium = 'md',
+  Large = 'lg',
+  ExtraLarge = 'xl',
+}
+
+export enum FileTreeNodeType {
+  File = 'file',
+  Folder = 'folder',
+}
+
 export enum ButtonType {
   Button = 'button',
   Submit = 'submit',
