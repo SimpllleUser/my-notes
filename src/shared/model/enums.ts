@@ -29,13 +29,57 @@ export enum Alignment {
 // Domain-specific export names point to the same enums to keep component APIs readable.
 export {
   Alignment as CardActionsAlign,
+  Alignment as DividerPlacement,
   Alignment as PopoverAlign,
   ComponentSize as ButtonSize,
   ComponentSize as CardSize,
   ComponentSize as FileTreeSize,
   ComponentSize as InputSize,
+  ComponentSize as LoadingSize,
+  ComponentSize as MenuSize,
+  ComponentSize as TabsSize,
   DaisyColor as ButtonColor,
+  DaisyColor as DividerColor,
+  DaisyColor as LoadingColor,
   DaisyColor as StatusTone,
+  PopoverLocation as DropdownLocation,
+}
+
+export enum LoadingVariant {
+  Spinner = 'spinner',
+  Dots = 'dots',
+  Ring = 'ring',
+  Ball = 'ball',
+  Bars = 'bars',
+  Infinity = 'infinity',
+}
+
+export enum TabsVariant {
+  Box = 'box',
+  Border = 'border',
+  Lift = 'lift',
+}
+
+export enum TabsPlacement {
+  Top = 'top',
+  Bottom = 'bottom',
+}
+
+export enum MenuDirection {
+  Vertical = 'vertical',
+  Horizontal = 'horizontal',
+}
+
+export enum MenuVariant {
+  Box = 'box',
+  Bordered = 'bordered',
+  Plain = 'plain',
+}
+
+/** Arrangement of the content separated by a DaisyUI divider. */
+export enum DividerDirection {
+  Vertical = 'vertical',
+  Horizontal = 'horizontal',
 }
 
 export enum ButtonVariant {

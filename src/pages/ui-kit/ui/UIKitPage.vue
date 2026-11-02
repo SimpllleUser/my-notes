@@ -8,25 +8,45 @@ import {
   UIInputField,
   UiButton,
   UiCard,
+  UiDivider,
+  UiDropdown,
   UiFileTree,
   UiIconButton,
+  UiLoading,
+  UiMenu,
   UiPicker,
   UiPopover,
   UiSearchInput,
   UiStatus,
+  UiTabs,
 } from '@/shared/ui'
 import {
   ButtonColor,
   ButtonVariant,
+  DividerColor,
+  DividerDirection,
+  DividerPlacement,
+  DropdownLocation,
   FileTreeNodeType,
   FolderColor,
   InputType,
+  LoadingColor,
+  LoadingSize,
+  LoadingVariant,
+  MenuDirection,
+  MenuSize,
+  MenuVariant,
   PopoverLocation,
   StatusTone,
+  TabsPlacement,
+  TabsVariant,
 } from '@/shared/model/enums.ts'
-import type { FileTreeNode } from '@/shared/ui'
+import type { FileTreeNode, UiTabItem } from '@/shared/ui'
 
 const selectedView = ref('All notes')
+const selectedMenuItem = ref('overview')
+const selectedHorizontalMenuItem = ref('recent')
+const activeWorkspaceTab = ref('overview')
 const selectedTreeNode = ref('ui-popover')
 const expandedTreeNodes = ref(['src', 'shared', 'ui'])
 const selectedColor = ref<string | undefined>(FolderColor.Primary)
@@ -75,6 +95,11 @@ const fileTreeItems: FileTreeNode[] = [
       },
     ],
   },
+]
+const workspaceTabs: UiTabItem[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'activity', label: 'Activity' },
+  { id: 'settings', label: 'Settings' },
 ]
 
 function selectView(view: string, hide: () => void) {
@@ -168,6 +193,12 @@ function toggleEditorVisibility(event: Event) {
             <li><a>Settings</a></li>
           </template>
         </UiPopover>
+        <UiDropdown label="More actions" :location="DropdownLocation.BottomStart">
+          <template #default="{ hide }">
+            <li><button @click="selectView('Favorites', hide)">Add to favorites</button></li>
+            <li><button @click="selectView('Archived', hide)">Archive</button></li>
+          </template>
+        </UiDropdown>
         <UiPicker>
           <template #trigger="{ toggle }">
             <UiButton :variant="ButtonVariant.Outlined" @click="toggle">
@@ -182,6 +213,21 @@ function toggleEditorVisibility(event: Event) {
             </ul>
           </template>
         </UiPicker>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <div>
+        <h2 class="text-2xl font-semibold">Loading</h2>
+        <p class="text-base-content/70">DaisyUI loading styles, sizes, colors, and labels.</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-6">
+        <UiLoading label="Spinner" />
+        <UiLoading :variant="LoadingVariant.Dots" :size="LoadingSize.Large" label="Loading" />
+        <UiLoading :variant="LoadingVariant.Ring" :color="LoadingColor.Primary" />
+        <UiLoading :variant="LoadingVariant.Ball" :color="LoadingColor.Info" />
+        <UiLoading :variant="LoadingVariant.Bars" :color="LoadingColor.Success" />
+        <UiLoading :variant="LoadingVariant.Infinity" :color="LoadingColor.Accent" />
       </div>
     </section>
 
@@ -221,6 +267,122 @@ function toggleEditorVisibility(event: Event) {
         />
         <p class="text-sm text-base-content/70">Selected node: {{ selectedTreeNode }}</p>
       </div>
+    </section>
+
+    <section class="space-y-4">
+      <div>
+        <h2 class="text-2xl font-semibold">Layout</h2>
+        <p class="text-base-content/70">Dividers for stacked and side-by-side content.</p>
+      </div>
+      <div class="flex max-w-lg flex-col">
+        <div class="card grid h-16 place-items-center bg-base-200">First section</div>
+        <UiDivider :color="DividerColor.Primary" :placement="DividerPlacement.Start">
+          OR
+        </UiDivider>
+        <div class="card grid h-16 place-items-center bg-base-200">Second section</div>
+      </div>
+      <div class="flex h-36 max-w-lg items-stretch">
+        <div class="card grid grow place-items-center bg-base-200">Left</div>
+        <UiDivider :direction="DividerDirection.Horizontal">OR</UiDivider>
+        <div class="card grid grow place-items-center bg-base-200">Right</div>
+      </div>
+    </section>
+
+    <section class="space-y-4">
+      <div>
+        <h2 class="text-2xl font-semibold">Tabs</h2>
+        <p class="text-base-content/70">Switch between named panel slots with keyboard support.</p>
+      </div>
+      <UiTabs
+        v-model="activeWorkspaceTab"
+        :tabs="workspaceTabs"
+        :variant="TabsVariant.Lift"
+        :placement="TabsPlacement.Top"
+        label="Workspace sections"
+      >
+        <template #overview>
+          <h3 class="text-lg font-semibold">Workspace overview</h3>
+          <p class="mt-2 text-base-content/70">Summary content for the selected workspace.</p>
+        </template>
+        <template #activity>
+          <h3 class="text-lg font-semibold">Recent activity</h3>
+          <p class="mt-2 text-base-content/70">Recent changes and updates appear here.</p>
+        </template>
+        <template #settings>
+          <h3 class="text-lg font-semibold">Workspace settings</h3>
+          <p class="mt-2 text-base-content/70">Manage the workspace preferences.</p>
+        </template>
+      </UiTabs>
+    </section>
+
+    <section class="space-y-4">
+      <div>
+        <h2 class="text-2xl font-semibold">Menus</h2>
+        <p class="text-base-content/70">Nested navigation, active and disabled items.</p>
+      </div>
+      <UiMenu
+        v-model="selectedMenuItem"
+        title="Project"
+        :size="MenuSize.Small"
+        :variant="MenuVariant.Bordered"
+        class="max-w-xs"
+      >
+        <template #default="{ select, isActive }">
+          <li>
+            <button :class="{ 'menu-active': isActive('overview') }" @click="select('overview')">
+              Overview
+            </button>
+          </li>
+          <li>
+            <details open>
+              <summary>Features</summary>
+              <ul>
+                <li>
+                  <button
+                    :class="{ 'menu-active': isActive('color-picker') }"
+                    @click="select('color-picker')"
+                  >
+                    Color picker
+                  </button>
+                </li>
+                <li>
+                  <button
+                    :class="{ 'menu-active': isActive('icon-picker') }"
+                    @click="select('icon-picker')"
+                  >
+                    Icon picker
+                  </button>
+                </li>
+              </ul>
+            </details>
+          </li>
+          <li class="menu-disabled"><button disabled>Coming soon</button></li>
+        </template>
+      </UiMenu>
+      <UiMenu
+        v-model="selectedHorizontalMenuItem"
+        :direction="MenuDirection.Horizontal"
+        :size="MenuSize.Small"
+        :variant="MenuVariant.Box"
+      >
+        <template #default="{ select, isActive }">
+          <li>
+            <button :class="{ 'menu-active': isActive('recent') }" @click="select('recent')">
+              Recent
+            </button>
+          </li>
+          <li>
+            <button :class="{ 'menu-active': isActive('starred') }" @click="select('starred')">
+              Starred
+            </button>
+          </li>
+          <li>
+            <button :class="{ 'menu-active': isActive('archived') }" @click="select('archived')">
+              Archived
+            </button>
+          </li>
+        </template>
+      </UiMenu>
     </section>
 
     <section class="space-y-4">
