@@ -12,7 +12,7 @@ withDefaults(defineProps<{ label?: string; tone?: StatusTone }>(), {
       <span
         class="status"
         :class="{
-          'status-neutral': tone === StatusTone.Neutral || tone === StatusTone.Muted,
+          'status-neutral': tone === StatusTone.Neutral,
           'status-primary': tone === StatusTone.Primary,
           'status-secondary': tone === StatusTone.Secondary,
           'status-accent': tone === StatusTone.Accent,

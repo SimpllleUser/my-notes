@@ -123,7 +123,7 @@ function toggleEditorVisibility(event: Event) {
       <div class="flex flex-wrap items-center gap-2">
         <UiStatus label="Online" :tone="StatusTone.Success" />
         <UiStatus :tone="StatusTone.Warning">Needs attention</UiStatus>
-        <UiStatus label="Offline" :tone="StatusTone.Muted">
+        <UiStatus label="Offline" :tone="StatusTone.Neutral">
           <template #suffix><span class="badge badge-error badge-sm">3</span></template>
         </UiStatus>
       </div>

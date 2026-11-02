@@ -1,3 +1,43 @@
+/** DaisyUI semantic colors shared by buttons, badges, and status indicators. */
+export enum DaisyColor {
+  Neutral = 'neutral',
+  Primary = 'primary',
+  Secondary = 'secondary',
+  Accent = 'accent',
+  Info = 'info',
+  Success = 'success',
+  Warning = 'warning',
+  Error = 'error',
+}
+
+/** Common DaisyUI component sizes. */
+export enum ComponentSize {
+  ExtraSmall = 'xs',
+  Small = 'sm',
+  Medium = 'md',
+  Large = 'lg',
+  ExtraLarge = 'xl',
+}
+
+/** Shared start/center/end alignment values. */
+export enum Alignment {
+  Start = 'start',
+  Center = 'center',
+  End = 'end',
+}
+
+// Domain-specific export names point to the same enums to keep component APIs readable.
+export {
+  Alignment as CardActionsAlign,
+  Alignment as PopoverAlign,
+  ComponentSize as ButtonSize,
+  ComponentSize as CardSize,
+  ComponentSize as FileTreeSize,
+  ComponentSize as InputSize,
+  DaisyColor as ButtonColor,
+  DaisyColor as StatusTone,
+}
+
 export enum ButtonVariant {
   Flat = 'flat',
   Outlined = 'outlined',
@@ -7,70 +47,15 @@ export enum ButtonVariant {
   Link = 'link',
 }
 
-export enum ButtonColor {
-  Neutral = 'neutral',
-  Primary = 'primary',
-  Secondary = 'secondary',
-  Accent = 'accent',
-  Info = 'info',
-  Success = 'success',
-  Warning = 'warning',
-  Error = 'error',
-  Muted = 'muted',
-}
-
-export enum ButtonSize {
-  ExtraSmall = 'xs',
-  Small = 'sm',
-  Medium = 'md',
-  Large = 'lg',
-  ExtraLarge = 'xl',
-}
-
-export enum CardSize {
-  ExtraSmall = 'xs',
-  Small = 'sm',
-  Medium = 'md',
-  Large = 'lg',
-  ExtraLarge = 'xl',
+export enum ButtonType {
+  Button = 'button',
+  Submit = 'submit',
+  Reset = 'reset',
 }
 
 export enum CardFigurePosition {
   Top = 'top',
   Bottom = 'bottom',
-}
-
-export enum CardActionsAlign {
-  Start = 'start',
-  Center = 'center',
-  End = 'end',
-}
-
-export enum InputSize {
-  ExtraSmall = 'xs',
-  Small = 'sm',
-  Medium = 'md',
-  Large = 'lg',
-  ExtraLarge = 'xl',
-}
-
-export enum FileTreeSize {
-  ExtraSmall = 'xs',
-  Small = 'sm',
-  Medium = 'md',
-  Large = 'lg',
-  ExtraLarge = 'xl',
-}
-
-export enum FileTreeNodeType {
-  File = 'file',
-  Folder = 'folder',
-}
-
-export enum ButtonType {
-  Button = 'button',
-  Submit = 'submit',
-  Reset = 'reset',
 }
 
 export enum CardElement {
@@ -92,6 +77,11 @@ export enum InputType {
   Week = 'week',
   Time = 'time',
   DateTimeLocal = 'datetime-local',
+}
+
+export enum FileTreeNodeType {
+  File = 'file',
+  Folder = 'folder',
 }
 
 export enum PopoverLocation {
@@ -122,23 +112,6 @@ export enum PopoverSide {
   Left = 'left',
   Right = 'right',
   Center = 'center',
-}
-
-export enum PopoverAlign {
-  Start = 'start',
-  Center = 'center',
-  End = 'end',
-}
-
-export enum StatusTone {
-  Neutral = 'neutral',
-  Primary = 'primary',
-  Secondary = 'secondary',
-  Accent = 'accent',
-  Info = 'info',
-  Success = 'success',
-  Warning = 'warning',
-  Error = 'error',
 }
 
 export enum FolderColor {
