@@ -42,6 +42,7 @@ const remove = async (payload: Folder) => {
 
 <template>
   <main>
+
     <div class="folder-list-wrapper p-8x overflow-y-auto">
       <FolderList @click="selectFolder" @edit="edit" @delete="remove">
         <template #header>

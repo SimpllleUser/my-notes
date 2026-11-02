@@ -1,33 +1,62 @@
 <script setup lang="ts">
-import { ButtonVariant } from '@/shared/model/enums.ts'
+import { ButtonColor, ButtonSize, ButtonType, ButtonVariant } from '@/shared/model/enums.ts'
 
 withDefaults(
   defineProps<{
     variant?: ButtonVariant
-    size?: 'sm' | 'md'
-    type?: 'button' | 'submit' | 'reset'
+    color?: ButtonColor
+    size?: ButtonSize
+    type?: ButtonType
     active?: boolean
+    loading?: boolean
+    disabled?: boolean
   }>(),
-  { variant: ButtonVariant.Paper, size: 'md', type: 'button', active: false },
+  {
+    variant: ButtonVariant.Flat,
+    color: ButtonColor.Neutral,
+    size: ButtonSize.Medium,
+    type: ButtonType.Button,
+    active: false,
+    loading: false,
+    disabled: false,
+  },
 )
 </script>
 
 <template>
   <button
     :type="type"
-    class="inline-flex items-center justify-center gap-2 rounded-brutal border-2 border-ink font-black transition duration-150 hover:-translate-y-0.5 hover:shadow-brutal active:translate-y-0.5 active:shadow-none disabled:pointer-events-none disabled:opacity-50"
+    :disabled="disabled || loading"
+    class="btn"
     :class="[
-      size === 'sm' ? 'min-h-10 px-3 text-sm sm:min-h-8' : 'min-h-11 px-3 sm:min-h-10 sm:px-4',
       {
-        'bg-accent-paper shadow-brutal-sm': variant === ButtonVariant.Paper,
-        'bg-primary shadow-brutal-sm': variant === ButtonVariant.Primary,
-        'bg-primary-yellow shadow-brutal-sm': variant === ButtonVariant.Yellow,
-        'bg-secondary-blue text-white shadow-brutal-sm': variant === ButtonVariant.Blue,
-        'shadow-brutal hover:active:shadow-none': active,
+        'btn-xs': size === ButtonSize.ExtraSmall,
+        'btn-sm': size === ButtonSize.Small,
+        'btn-md': size === ButtonSize.Medium,
+        'btn-lg': size === ButtonSize.Large,
+        'btn-xl': size === ButtonSize.ExtraLarge,
       },
-      active && 'shadow-brutal!',
+      {
+        'btn-outline': variant === ButtonVariant.Outlined,
+        'btn-dash': variant === ButtonVariant.Dash,
+        'btn-ghost': variant === ButtonVariant.Ghost,
+        'btn-soft': variant === ButtonVariant.Soft,
+        'btn-link': variant === ButtonVariant.Link,
+        'btn-neutral': color === ButtonColor.Neutral,
+        'btn-primary': color === ButtonColor.Primary,
+        'btn-secondary': color === ButtonColor.Secondary,
+        'btn-accent': color === ButtonColor.Accent,
+        'btn-info': color === ButtonColor.Info,
+        'btn-success': color === ButtonColor.Success,
+        'btn-warning': color === ButtonColor.Warning,
+        'btn-error': color === ButtonColor.Error,
+        'btn-active': active,
+      },
     ]"
   >
+    <span v-if="loading" class="loading loading-spinner loading-sm" aria-hidden="true" />
+    <slot name="prefix" />
     <slot />
+    <slot name="suffix" />
   </button>
 </template>

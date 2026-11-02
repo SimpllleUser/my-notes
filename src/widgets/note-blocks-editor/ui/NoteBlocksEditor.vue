@@ -3,6 +3,7 @@ import { watch } from 'vue'
 import { TextEditor } from '@/features/rich-text-editor'
 import { useNoteBlocks, type SyncStatus } from '@/entities/node'
 import { UiButton } from '@/shared/ui'
+import { ButtonSize } from '@/shared/model/enums.ts'
 
 defineOptions({ name: 'NoteBlocksEditor' })
 
@@ -26,7 +27,7 @@ watch(syncStatus, (value) => (status.value = value), { immediate: true })
 
   <div v-else-if="loadError" class="flex items-center gap-3 p-4">
     <span class="text-sm">Не вдалося завантажити нотатку</span>
-    <UiButton size="sm" @click="reload">Спробувати ще раз</UiButton>
+    <UiButton :size="ButtonSize.Small" @click="reload">Спробувати ще раз</UiButton>
   </div>
 
   <TextEditor v-else-if="content" :content="content" @update="schedule" />

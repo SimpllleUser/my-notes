@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ButtonVariant } from '@/shared/model/enums.ts'
+import { ButtonColor, ButtonSize, ButtonVariant } from '@/shared/model/enums.ts'
 
 withDefaults(
   defineProps<{
     label: string
     variant?: ButtonVariant
-    size?: 'sm' | 'md'
+    color?: ButtonColor
+    size?: ButtonSize
   }>(),
-  { variant: ButtonVariant.Paper, size: 'md' },
+  { variant: ButtonVariant.Flat, color: ButtonColor.Neutral, size: ButtonSize.Medium },
 )
 </script>
 
@@ -16,17 +17,32 @@ withDefaults(
     type="button"
     :aria-label="label"
     :title="label"
-    class="grid place-items-center rounded-brutal border-2 border-ink font-black transition duration-150 hover:-translate-y-0.5 hover:shadow-brutal active:translate-y-0.5 active:shadow-none disabled:pointer-events-none disabled:opacity-50"
+    class="btn btn-square"
     :class="[
-      size === 'sm' ? 'h-10 w-10 text-lg sm:h-8 sm:w-8' : 'h-11 w-11 text-xl sm:h-10 sm:w-10',
       {
-        'bg-accent-paper shadow-brutal-sm': variant === ButtonVariant.Paper,
-        'bg-primary shadow-brutal-sm': variant === ButtonVariant.Primary,
-        'bg-primary-yellow shadow-brutal-sm': variant === ButtonVariant.Yellow,
-        'bg-secondary-blue text-white shadow-brutal-sm': variant === ButtonVariant.Blue,
+        'btn-xs': size === ButtonSize.ExtraSmall,
+        'btn-sm': size === ButtonSize.Small,
+        'btn-md': size === ButtonSize.Medium,
+        'btn-lg': size === ButtonSize.Large,
+        'btn-xl': size === ButtonSize.ExtraLarge,
+      },
+      {
+        'btn-outline': variant === ButtonVariant.Outlined,
+        'btn-dash': variant === ButtonVariant.Dash,
+        'btn-ghost': variant === ButtonVariant.Ghost,
+        'btn-soft': variant === ButtonVariant.Soft,
+        'btn-link': variant === ButtonVariant.Link,
+        'btn-neutral': color === ButtonColor.Neutral,
+        'btn-primary': color === ButtonColor.Primary,
+        'btn-secondary': color === ButtonColor.Secondary,
+        'btn-accent': color === ButtonColor.Accent,
+        'btn-info': color === ButtonColor.Info,
+        'btn-success': color === ButtonColor.Success,
+        'btn-warning': color === ButtonColor.Warning,
+        'btn-error': color === ButtonColor.Error,
       },
     ]"
   >
-    <slot />
+    <slot name="icon"><slot /></slot>
   </button>
 </template>

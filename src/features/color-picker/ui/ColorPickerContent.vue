@@ -11,15 +11,18 @@ const emit = defineEmits<{ select: [value: string] }>()
 </script>
 
 <template>
-  <p class="mb-2 text-xs font-bold uppercase tracking-wider text-ink-light">{{ label }}</p>
+  <h3 class="mb-2 text-sm font-semibold">{{ label }}</h3>
   <div class="grid grid-cols-4 gap-2">
     <button
       v-for="swatch in swatches"
       :key="swatch.class"
       type="button"
       :title="swatch.name"
-      class="aspect-square rounded-lg border-2 transition duration-150 hover:-translate-y-0.5 active:translate-y-0 active:scale-90"
-      :class="[swatch.class, swatch.class === modelValue ? 'border-ink' : 'border-transparent']"
+      class="btn btn-circle btn-sm border border-base-content/20"
+      :class="[
+        swatch.class,
+        { 'btn-active ring-2 ring-base-content ring-offset-2': swatch.class === modelValue },
+      ]"
       @click="emit('select', swatch.class)"
     />
   </div>

@@ -1,27 +1,65 @@
 <script setup lang="ts">
+import { InputSize, InputType } from '@/shared/model/enums.ts'
+
 withDefaults(
   defineProps<{
     placeholder?: string
-    type?: 'text' | 'password' | 'email'
+    type?: InputType
+    size?: InputSize
+    label?: string
+    helperText?: string
+    errorText?: string
+    invalid?: boolean
     disabled?: boolean
+    autofocus?: boolean
   }>(),
-  { type: 'text', placeholder: '', disabled: false },
+  {
+    type: InputType.Text,
+    size: InputSize.Medium,
+    placeholder: '',
+    helperText: '',
+    errorText: '',
+    invalid: false,
+    disabled: false,
+    autofocus: false,
+  },
 )
 
 const value = defineModel<string>({ default: '' })
 </script>
 
 <template>
-  <label
-    class="flex items-center rounded-brutal border-2 border-ink px-3 py-2 text-base transition duration-150 hover:shadow-brutal focus-within:bg-accent-paper focus-within:shadow-brutal has-disabled:pointer-events-none has-disabled:opacity-50 sm:text-sm"
-  >
-    <input
-      v-model="value"
-      :type="type"
-      :placeholder="placeholder"
-      :disabled="disabled"
-      autofocus
-      class="w-full bg-transparent outline-none placeholder:font-normal placeholder:text-ink-light disabled:cursor-not-allowed"
-    />
-  </label>
+  <fieldset class="fieldset w-full">
+    <legend v-if="label || $slots.label" class="fieldset-legend">
+      <slot name="label">{{ label }}</slot>
+    </legend>
+    <label
+      class="input w-full"
+      :class="{
+        'input-xs': size === InputSize.ExtraSmall,
+        'input-sm': size === InputSize.Small,
+        'input-md': size === InputSize.Medium,
+        'input-lg': size === InputSize.Large,
+        'input-xl': size === InputSize.ExtraLarge,
+        'input-error': invalid,
+      }"
+    >
+      <slot name="prefix" />
+      <input
+        v-model="value"
+        :type="type"
+        :placeholder="placeholder"
+        :disabled="disabled"
+        :autofocus="autofocus"
+        class="grow"
+      />
+      <slot name="suffix" />
+    </label>
+    <p v-if="invalid && (errorText || $slots.error)" class="label text-error">
+      <slot name="error">{{ errorText }}</slot>
+    </p>
+    <p v-else-if="helperText || $slots.helper" class="label">
+      <slot name="helper">{{ helperText }}</slot>
+    </p>
+  </fieldset>
 </template>

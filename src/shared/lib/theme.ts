@@ -1,19 +1,18 @@
 import { ref, watchEffect } from 'vue'
-
-export type Theme = 'light' | 'dark'
+import { ThemePalette } from '@/shared/model/enums.ts'
 
 const STORAGE_KEY = 'my-notes:theme'
 
-function getStoredTheme(): Theme | null {
+function getStoredTheme(): ThemePalette | null {
   const stored = localStorage.getItem(STORAGE_KEY)
-  return stored === 'light' || stored === 'dark' ? stored : null
+  return Object.values(ThemePalette).find((theme) => theme === stored) ?? null
 }
 
-function getPreferredTheme(): Theme {
-  return getStoredTheme() ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+function getPreferredTheme(): ThemePalette {
+  return getStoredTheme() ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? ThemePalette.Dark : ThemePalette.Light)
 }
 
-const theme = ref<Theme>(getPreferredTheme())
+const theme = ref<ThemePalette>(getPreferredTheme())
 
 watchEffect(() => {
   document.documentElement.dataset.theme = theme.value
@@ -22,10 +21,10 @@ watchEffect(() => {
 
 export function useTheme() {
   function toggleTheme() {
-    theme.value = theme.value === 'dark' ? 'light' : 'dark'
+    theme.value = theme.value === ThemePalette.Dark ? ThemePalette.Light : ThemePalette.Dark
   }
 
-  function setTheme(value: Theme) {
+  function setTheme(value: ThemePalette) {
     theme.value = value
   }
 

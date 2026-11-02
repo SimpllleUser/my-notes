@@ -2,7 +2,7 @@
 import { UiCard, UiButton, UIInputField, UiPopover } from '@/shared/ui'
 import { reactive, ref } from 'vue'
 import { type SingInPayload, useAuthStore } from '@/entities/auth'
-import { ButtonVariant } from '@/shared/model/enums.ts'
+import { ButtonColor, InputType, PopoverLocation } from '@/shared/model/enums.ts'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -35,18 +35,16 @@ const submit = async (payload: SingInPayload) => {
 
 <template>
   <UiCard class="w-100">
-    <UiPopover :model-value="isInvalid" location="top">
+    <UiPopover :model-value="isInvalid" :location="PopoverLocation.Top">
       <div class="w-80 text-primary">Some problem with auth</div>
     </UiPopover>
     <h2 class="text-xl font-black sm:text-2xl pb-2">Auth</h2>
     <div class="body grid gap-4">
-      <UIInputField v-model="form.email" placeholder="Email" type="email" />
-      <UIInputField v-model="form.password" placeholder="Password" type="password" />
+      <UIInputField v-model="form.email" placeholder="Email" :type="InputType.Email" />
+      <UIInputField v-model="form.password" placeholder="Password" :type="InputType.Password" />
     </div>
     <div class="flex justify-end pt-2">
-      <UiButton label="Sign in" :variant="ButtonVariant.Blue" @click="submit(form)"
-        >Sing in</UiButton
-      >
+      <UiButton label="Sign in" :color="ButtonColor.Info" @click="submit(form)">Sing in</UiButton>
     </div>
   </UiCard>
 </template>

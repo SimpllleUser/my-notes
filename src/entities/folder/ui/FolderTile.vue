@@ -2,7 +2,7 @@
 import { shallowRef, watch, type Component } from 'vue'
 import { resolveLucideIcon } from '@/shared/lib/lucide'
 import { UiIconButton } from '@/shared/ui'
-import { ButtonVariant } from '@/shared/model/enums.ts'
+import { ButtonColor, ButtonSize } from '@/shared/model/enums.ts'
 import type { FolderTileData } from '@/entities/folder'
 
 const props = defineProps<{
@@ -11,7 +11,7 @@ const props = defineProps<{
   actions?: boolean
 }>()
 
-defineEmits<{click: []; edit: [FolderTileData]; delete: [FolderTileData] }>()
+defineEmits<{ click: []; edit: [FolderTileData]; delete: [FolderTileData] }>()
 
 const iconComponent = shallowRef<Component | null>(null)
 const editIcon = shallowRef<Component | null>(null)
@@ -62,16 +62,16 @@ watch(
       >
         <UiIconButton
           label="Редагувати папку"
-          :variant="ButtonVariant.Yellow"
-          size="sm"
+          :color="ButtonColor.Warning"
+          :size="ButtonSize.Small"
           @click.stop="$emit('edit', folder)"
         >
           <component :is="editIcon" v-if="editIcon" :size="14" />
         </UiIconButton>
         <UiIconButton
           label="Видалити папку"
-          :variant="ButtonVariant.Primary"
-          size="sm"
+          :color="ButtonColor.Primary"
+          :size="ButtonSize.Small"
           @click.stop="$emit('delete', folder)"
         >
           <component :is="deleteIcon" v-if="deleteIcon" :size="14" />
