@@ -23,7 +23,7 @@ watch(syncStatus, (value) => (status.value = value), { immediate: true })
 </script>
 
 <template>
-  <p v-if="isLoading" class="p-4 text-sm text-ink-light">Завантаження…</p>
+  <p v-if="isLoading" class="p-1 text-sm text-ink-light">Завантаження…</p>
 
   <div v-else-if="loadError" class="flex items-center gap-3 p-4">
     <span class="text-sm">Не вдалося завантажити нотатку</span>

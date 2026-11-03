@@ -31,8 +31,8 @@ const tokens = {
 </script>
 
 <template>
-  <div class="card min-h-[70dvh] bg-base-100 shadow-sm note-editor">
-    <div class="card-body p-4 pb-20 md:p-6">
+  <div class="min-h-[70dvh] bg-base-100 shadow-sm note-editor">
+    <div class="pb-10">
       <BlokEditor
         :tools="tools"
         :inline-tools="inlineTools"
