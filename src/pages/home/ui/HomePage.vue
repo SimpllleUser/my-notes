@@ -6,6 +6,7 @@ import { type Folder, FolderForm } from '@/entities/folder'
 import type { FolderPayload } from '@/entities/folder/model/types.ts'
 import type { Nullable } from '@/shared/model/types.ts'
 import { useRouter } from 'vue-router'
+import { UIExplorer } from '@/features/explorer'
 
 defineOptions({
   name: 'HomePage',
@@ -38,10 +39,14 @@ const remove = async (payload: Folder) => {
   await foldersStore.delete(payload.$id)
   await foldersStore.getAll()
 }
+
+const folderId = ref('')
+const noteId = ref('')
 </script>
 
 <template>
   <main>
+    <UIExplorer v-model:folder="folderId" v-model:note="noteId" />
     <div class="folder-list-wrapper p-8x overflow-y-auto">
       <FolderList @click="selectFolder" @edit="edit" @delete="remove">
         <template #header>

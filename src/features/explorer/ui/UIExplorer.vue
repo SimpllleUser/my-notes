@@ -2,17 +2,17 @@
 import { type Component, computed, ref, shallowRef, watch } from 'vue'
 import { useFolderSelect } from '@/entities/folder'
 import { useNoteSelect } from '@/entities/note/model/useNoteSelect.ts'
-import { Circle, ChevronDown } from '@lucide/vue'
 import { resolveLucideIcon } from '@/shared/lib/lucide.ts'
-import { UiCard } from '@/shared/ui'
+import { type FileTreeNode, UiFileTree } from '@/shared/ui'
+import { FileTreeNodeType } from '@/shared/model/enums.ts'
 
 defineOptions({
   name: 'UIExplorer',
 })
 
-const { activeFolder, setFolder, folders } = useFolderSelect()
+const { folders } = useFolderSelect()
 const folderIds = computed(() => folders.value.map((folder) => folder.$id))
-const { setNote, activeNote, getNoteByFolder } = useNoteSelect(undefined, folderIds)
+const { getNoteByFolder } = useNoteSelect(undefined, folderIds)
 
 const iconsList = ref<Record<string, Component | null>>({})
 const getIcon = (icon: string) => {
@@ -32,53 +32,35 @@ watch(
   },
   { deep: true, immediate: true },
 )
+const treeItems = computed(() =>
+  folders.value.map((folder) => ({
+    id: folder.$id,
+    label: folder.name,
+    type: FileTreeNodeType.Folder,
+    children:
+      getNoteByFolder(folder.$id)?.map((note) => ({
+        id: note.$id,
+        label: note.name,
+        type: FileTreeNodeType.File,
+      })) || [],
+  })),
+)
+
+const selectedFolder = defineModel<string>('folder', { default: '' })
+const selectedNote = defineModel<string>('note', { default: '' })
+
+const onSelectTree = (value: FileTreeNode) => {
+  if (value.children) {
+    selectedFolder.value = value.id
+  } else {
+    selectedNote.value = value.id
+  }
+}
 </script>
 
 <template>
   <div>
-    {{ activeFolder?.name }}
-    <hr />
-    <UiCard class="max-w-60">
-      <div
-        v-for="(folder, index) in folders"
-        :key="folder.$id"
-        @click="setFolder(folder)"
-        class="cursor-pointer"
-      >
-        <div class="flex items-center">
-          <ChevronDown
-            class="transition"
-            :class="{
-              '-rotate-90': folder.$id === activeFolder?.$id,
-              '': folder.$id !== activeFolder?.$id,
-            }"
-          />
-          <div
-            class="flex items-center rounded-md w-full transition"
-            :class="[{ 'mt-1': index }, folder.$id === activeFolder?.$id ? folder.color : '']"
-          >
-            <div class="">
-              <component :is="iconsList[folder.icon]" v-if="folder.icon" />
-            </div>
-            <span class="pl-1">
-              {{ folder.name }}
-            </span>
-          </div>
-        </div>
-        <div class="pl-6">
-          <div v-for="note in getNoteByFolder(folder.$id)" :key="note.$id" @click="setNote(note)">
-            <div class="flex items-center">
-              <Circle
-                :size="12"
-                class="rounded-xl transition"
-                :class="activeNote?.$id === note.$id ? folder.color : ''"
-              />
-              <span class="pl-1 truncate">{{ note.name }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </UiCard>
+    <UiFileTree @select="onSelectTree" :items="treeItems" :expanded-ids="[selectedFolder]" />
   </div>
 </template>
 

@@ -44,6 +44,7 @@ export function useFolderSelect() {
   return {
     setFolder,
     goToFolder,
+    getFolder: folderStore.getFolder,
     folders,
     activeFolder,
   }
