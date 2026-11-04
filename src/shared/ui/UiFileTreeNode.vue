@@ -5,11 +5,17 @@ import type { FileTreeNode } from './file-tree.types.ts'
 
 defineOptions({ name: 'UiFileTreeNode' })
 
-const props = defineProps<{
-  items: FileTreeNode[]
-  selectedId?: string
-  expandedIds: string[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    items: FileTreeNode[]
+    selectedId?: string
+    expandedIds: string[]
+    withDoubleClick?: boolean
+  }>(),
+  {
+    withDoubleClick: false,
+  },
+)
 
 const emit = defineEmits<{
   select: [node: FileTreeNode]
@@ -21,6 +27,16 @@ function isExpanded(id: string) {
 }
 
 function handleFolderClick(event: MouseEvent, node: FileTreeNode) {
+  if (node.disabled) {
+    event.preventDefault()
+    return
+  }
+
+  if (!props.withDoubleClick) emit('select', node)
+}
+
+function handleDoubleClick(event: MouseEvent, node: FileTreeNode) {
+  if (!props.withDoubleClick) return
   if (node.disabled) {
     event.preventDefault()
     return
@@ -48,6 +64,7 @@ function handleToggle(event: Event, id: string) {
         :aria-disabled="node.disabled || undefined"
         :class="{ 'menu-active': selectedId === node.id }"
         @click="handleFolderClick($event, node)"
+        @dblclick="handleDoubleClick($event, node)"
       >
         <slot
           name="icon"
@@ -70,6 +87,7 @@ function handleToggle(event: Event, id: string) {
           :items="node.children"
           :selected-id="selectedId"
           :expanded-ids="expandedIds"
+          :with-double-click="withDoubleClick"
           @select="emit('select', $event)"
           @toggle="(id, expanded) => emit('toggle', id, expanded)"
         >
@@ -102,7 +120,8 @@ function handleToggle(event: Event, id: string) {
       :aria-selected="selectedId === node.id"
       :disabled="node.disabled"
       :class="{ 'menu-active': selectedId === node.id }"
-      @click="emit('select', node)"
+      @click="!withDoubleClick && emit('select', node)"
+      @dblclick="handleDoubleClick($event, node)"
     >
       <slot name="icon" :node="node" :expanded="false" :selected="selectedId === node.id">
         <File class="size-4 shrink-0" aria-hidden="true" />

@@ -11,11 +11,13 @@ withDefaults(
     label?: string
     size?: FileTreeSize
     bordered?: boolean
+    withDoubleClick?: boolean
   }>(),
   {
     label: 'File tree',
     size: FileTreeSize.ExtraSmall,
     bordered: false,
+    withDoubleClick: false,
   },
 )
 
@@ -58,6 +60,7 @@ function handleToggle(id: string, expanded: boolean) {
       :selected-id="selectedId"
       :expanded-ids="expandedIds"
       @select="handleSelect"
+      :withDoubleClick="withDoubleClick"
       @toggle="handleToggle"
     >
       <template #icon="scope">

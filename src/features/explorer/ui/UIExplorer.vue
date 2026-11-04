@@ -60,7 +60,12 @@ const onSelectTree = (value: FileTreeNode) => {
 
 <template>
   <div>
-    <UiFileTree @select="onSelectTree" :items="treeItems" :expanded-ids="[selectedFolder]" />
+    <UiFileTree
+      withDoubleClick
+      @select="onSelectTree"
+      :items="treeItems"
+      :expanded-ids="[selectedFolder]"
+    />
   </div>
 </template>
 
