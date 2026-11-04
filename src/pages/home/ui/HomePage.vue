@@ -2,8 +2,9 @@
 import { computed, ref } from 'vue'
 import { UIExplorer } from '@/features/explorer'
 import { NoteBlocksEditor } from '@/widgets/note-blocks-editor'
-import { UiStatus } from '@/shared/ui'
+import { UiDivider, UiStatus } from '@/shared/ui'
 import { getSyncStatusView, type SyncStatus } from '@/entities/node'
+import { DividerDirection } from '@/shared/model/enums.ts'
 
 defineOptions({
   name: 'HomePage',

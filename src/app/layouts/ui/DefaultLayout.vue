@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ThemeSwitcher } from '@/features/theme-switcher'
-import { AppLogo } from '@/shared/ui'
+import { AppLogo, UiDivider } from '@/shared/ui'
 import { ref } from 'vue'
 
 defineOptions({
@@ -21,10 +21,11 @@ const changeColor = () => {
 
 <template>
   <main class="">
-    <header class="flex justify-between py-3 px-8">
+    <header class="flex justify-between py-3 px-8 bg-base-300">
       <AppLogo width="44" height="44" :color="color" :key="color" />
       <ThemeSwitcher @select="changeColor" />
     </header>
+    <UiDivider class="p-0 m-0 h-1" />
     <slot />
   </main>
 </template>
