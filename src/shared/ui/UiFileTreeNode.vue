@@ -9,6 +9,7 @@ const props = withDefaults(
   defineProps<{
     items: FileTreeNode[]
     selectedId?: string
+    preselectedId?: string
     expandedIds: string[]
     withDoubleClick?: boolean
   }>(),
@@ -19,6 +20,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   select: [node: FileTreeNode]
+  'pre-select': [node: FileTreeNode]
   toggle: [id: string, expanded: boolean]
 }>()
 
@@ -32,7 +34,8 @@ function handleFolderClick(event: MouseEvent, node: FileTreeNode) {
     return
   }
 
-  if (!props.withDoubleClick) emit('select', node)
+  if (props.withDoubleClick) emit('pre-select', node)
+  else emit('select', node)
 }
 
 function handleDoubleClick(event: MouseEvent, node: FileTreeNode) {
@@ -62,7 +65,10 @@ function handleToggle(event: Event, id: string) {
         :aria-expanded="isExpanded(node.id)"
         :aria-selected="selectedId === node.id"
         :aria-disabled="node.disabled || undefined"
-        :class="{ 'menu-active': selectedId === node.id }"
+        :class="{
+          'menu-active': selectedId === node.id,
+          'menu-focus': preselectedId === node.id,
+        }"
         @click="handleFolderClick($event, node)"
         @dblclick="handleDoubleClick($event, node)"
       >
@@ -86,9 +92,11 @@ function handleToggle(event: Event, id: string) {
         <UiFileTreeNode
           :items="node.children"
           :selected-id="selectedId"
+          :preselected-id="preselectedId"
           :expanded-ids="expandedIds"
           :with-double-click="withDoubleClick"
           @select="emit('select', $event)"
+          @pre-select="emit('pre-select', $event)"
           @toggle="(id, expanded) => emit('toggle', id, expanded)"
         >
           <template #icon="scope">
@@ -119,8 +127,11 @@ function handleToggle(event: Event, id: string) {
       role="treeitem"
       :aria-selected="selectedId === node.id"
       :disabled="node.disabled"
-      :class="{ 'menu-active': selectedId === node.id }"
-      @click="!withDoubleClick && emit('select', node)"
+      :class="{
+        'text-primary': selectedId === node.id,
+        'menu-focus': preselectedId === node.id,
+      }"
+      @click="withDoubleClick ? emit('pre-select', node) : emit('select', node)"
       @dblclick="handleDoubleClick($event, node)"
     >
       <slot name="icon" :node="node" :expanded="false" :selected="selectedId === node.id">

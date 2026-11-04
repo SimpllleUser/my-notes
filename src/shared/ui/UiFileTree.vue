@@ -23,12 +23,19 @@ withDefaults(
 
 const selectedId = defineModel<string>({ default: '' })
 const expandedIds = defineModel<string[]>('expanded', { default: () => [] })
-const emit = defineEmits<{ select: [node: FileTreeNode] }>()
+const preSelectedNode = defineModel<FileTreeNode | null>('preSelect', { default: null })
+
+const emit = defineEmits<{ select: [node: FileTreeNode]; 'pre-select': [node: FileTreeNode] }>()
 
 function handleSelect(node: FileTreeNode) {
   if (node.disabled) return
   selectedId.value = node.id
   emit('select', node)
+}
+function handlePreSelect(node: FileTreeNode) {
+  if (node.disabled) return
+  preSelectedNode.value = node
+  emit('pre-select', node)
 }
 
 function handleToggle(id: string, expanded: boolean) {
@@ -61,6 +68,8 @@ function handleToggle(id: string, expanded: boolean) {
       :selected-id="selectedId"
       :expanded-ids="expandedIds"
       @select="handleSelect"
+      @pre-select="handlePreSelect"
+      :preselected-id="preSelectedNode?.id"
       :withDoubleClick="withDoubleClick"
       @toggle="handleToggle"
     >

@@ -48,6 +48,7 @@ const treeItems = computed(() =>
 
 const selectedFolder = defineModel<string>('folder', { default: '' })
 const selectedNote = defineModel<string>('note', { default: '' })
+const preSelected = defineModel<FileTreeNode | null>('preSelected', { default: null })
 
 const onSelectTree = (value: FileTreeNode) => {
   if (value.children) {
@@ -56,6 +57,7 @@ const onSelectTree = (value: FileTreeNode) => {
     selectedNote.value = value.id
   }
 }
+
 </script>
 
 <template>
@@ -63,6 +65,7 @@ const onSelectTree = (value: FileTreeNode) => {
     <UiFileTree
       withDoubleClick
       @select="onSelectTree"
+      v-model:pre-select="preSelected"
       :items="treeItems"
       :expanded-ids="[selectedFolder]"
     />

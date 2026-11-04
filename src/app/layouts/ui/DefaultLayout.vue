@@ -21,7 +21,7 @@ const changeColor = () => {
 
 <template>
   <main class="">
-    <header class="flex justify-between py-3 px-8 bg-base-300">
+    <header class="flex justify-between py-2 px-4 bg-base-300">
       <AppLogo width="44" height="44" :color="color" :key="color" />
       <ThemeSwitcher @select="changeColor" />
     </header>
