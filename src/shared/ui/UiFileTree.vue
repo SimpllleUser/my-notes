@@ -3,7 +3,7 @@ import { File, Folder, FolderOpen } from '@lucide/vue'
 import { FileTreeSize } from '@/shared/model/enums.ts'
 import { FileTreeNodeType } from '@/shared/model/enums.ts'
 import UiFileTreeNode from './UiFileTreeNode.vue'
-import type { FileTreeNode } from './file-tree.types.ts'
+import type { FileTreeNode } from '../model/file-tree.types.ts'
 
 withDefaults(
   defineProps<{
@@ -43,7 +43,7 @@ function handleToggle(id: string, expanded: boolean) {
   <ul
     role="tree"
     :aria-label="label"
-    class="menu w-full rounded-box bg-base-200"
+    class="menu w-full rounded-box bg-base-300"
     :class="[
       {
         'menu-xs': size === FileTreeSize.ExtraSmall,
@@ -55,6 +55,7 @@ function handleToggle(id: string, expanded: boolean) {
       },
     ]"
   >
+    <slot name="header"></slot>
     <UiFileTreeNode
       :items="items"
       :selected-id="selectedId"

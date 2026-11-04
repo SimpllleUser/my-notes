@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { File, Folder, FolderOpen } from '@lucide/vue'
 import { FileTreeNodeType } from '@/shared/model/enums.ts'
-import type { FileTreeNode } from './file-tree.types.ts'
+import type { FileTreeNode } from '../model/file-tree.types.ts'
 
 defineOptions({ name: 'UiFileTreeNode' })
 

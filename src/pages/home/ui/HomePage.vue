@@ -34,7 +34,7 @@ const statusView = computed(() => getSyncStatusView(syncStatus.value))
 
 <template>
   <div class="grid grid-cols-12">
-    <aside class="col-span-2 h-screen">
+    <aside class="col-span-2 h-screen bg-base-300">
       <UIExplorer class="w-full" v-model:folder="folderId" v-model:note="noteId" />
     </aside>
     <main class="col-span-10 pl-2 border-l-4 border-l-base-300">
@@ -46,7 +46,8 @@ const statusView = computed(() => getSyncStatusView(syncStatus.value))
           :key="`${noteId}`"
           v-model:status="syncStatus"
           :note-id="noteId"
-        />
+        >
+        </NoteBlocksEditor>
       </div>
     </main>
   </div>

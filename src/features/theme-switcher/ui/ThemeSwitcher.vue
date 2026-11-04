@@ -9,6 +9,11 @@ import {
 } from '@/shared/model/enums.ts'
 import { useTheme } from '@/shared/lib/theme.ts'
 import { UiButton, UiDropdown } from '@/shared/ui'
+import { nextTick } from 'vue'
+
+const emits = defineEmits<{
+  select: []
+}>()
 
 const { theme, setTheme } = useTheme()
 const palettes = Object.values(ThemePalette)
@@ -16,14 +21,14 @@ const palettes = Object.values(ThemePalette)
 function selectTheme(palette: ThemePalette, hide: () => void) {
   setTheme(palette)
   hide()
+  nextTick(() => {
+    emits('select')
+  })
 }
 </script>
 
 <template>
-  <UiDropdown
-    :location="DropdownLocation.BottomEnd"
-    content-class="w-52 p-2"
-  >
+  <UiDropdown :location="DropdownLocation.BottomEnd" content-class="w-52 p-2">
     <template #trigger="{ props, open }">
       <UiButton
         v-bind="props"
