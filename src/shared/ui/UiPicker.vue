@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import UiPopover from './UiPopover.vue'
+import type { PopoverLocation } from '@/shared/model/enums.ts'
 
 withDefaults(
   defineProps<{
@@ -9,8 +10,9 @@ withDefaults(
      */
     popover?: boolean
     panelClass?: string
+    location?: PopoverLocation
   }>(),
-  { popover: true, panelClass: '' },
+  { popover: true, panelClass: '', location: undefined },
 )
 
 const open = defineModel<boolean>('open', { default: false })
@@ -31,6 +33,7 @@ function toggle() {
     v-if="popover"
     v-model="open"
     :content-class="panelClass"
+    :location="location"
     :open-on-hover="false"
     :open-on-click="false"
     :interactive="true"

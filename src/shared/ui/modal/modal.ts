@@ -1,7 +1,13 @@
 import { shallowReactive, type VNode, type VNodeChild } from 'vue'
 import type { ComponentSize } from '@/shared/model/enums.ts'
 
-export type ModalCloseReason = 'action' | 'close-button' | 'backdrop' | 'escape' | 'programmatic'
+export enum ModalCloseReason {
+  Action = 'action',
+  CloseButton = 'close-button',
+  Backdrop = 'backdrop',
+  Escape = 'escape',
+  Programmatic = 'programmatic',
+}
 
 export type ModalActionContext = {
   close: (value?: unknown) => void
@@ -54,7 +60,7 @@ let nextId = 0
 let resolveActive: ((result: ModalResult) => void) | undefined
 
 export function openModal(options: ModalOptions): Promise<ModalResult> {
-  if (resolveActive) resolveActive({ reason: 'programmatic' })
+  if (resolveActive) resolveActive({ reason: ModalCloseReason.Programmatic })
 
   const id = ++nextId
   state.active = { ...options, id }
@@ -64,7 +70,7 @@ export function openModal(options: ModalOptions): Promise<ModalResult> {
   })
 }
 
-export function closeModal(value?: unknown, reason: ModalCloseReason = 'programmatic') {
+export function closeModal(value?: unknown, reason: ModalCloseReason = ModalCloseReason.Programmatic) {
   if (!state.active) return
   const resolve = resolveActive
   resolveActive = undefined

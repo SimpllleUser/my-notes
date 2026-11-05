@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { type Component, computed, ref, shallowRef, watch } from 'vue'
-import { FileEntityTypes, FolderCreateModal, useFolderSelect } from '@/entities/folder'
-import { useNoteSelect } from '@/entities/note/model/useNoteSelect.ts'
-import { resolveLucideIcon } from '@/shared/lib/lucide.ts'
+import { computed, ref } from 'vue'
+import { FileEntityTypes, useFolderSelect } from '@/entities/folder'
+import { useNoteSelect } from '@/entities/note'
 import { type FileTreeNode, UiFileTree } from '@/shared/ui'
 import { FileTreeNodeType } from '@/shared/model/enums.ts'
-import UIExplorerActions from '@/features/explorer/ui/UIExplorerActions.vue'
+import UIExplorerActions from './UIExplorerActions.vue'
+import FolderCreateModal from './FolderCreateModal.vue'
+import ExplorerDeleteModal from './ExplorerDeleteModal.vue'
+import { useExplorerEntityActions } from '../model/useExplorerEntityActions'
 
 defineOptions({
   name: 'UIExplorer',
@@ -15,24 +17,6 @@ const { folders } = useFolderSelect()
 const folderIds = computed(() => folders.value.map((folder) => folder.$id))
 const { getNoteByFolder } = useNoteSelect(undefined, folderIds)
 
-const iconsList = ref<Record<string, Component | null>>({})
-const getIcon = (icon: string) => {
-  if (icon in iconsList.value) return iconsList.value[icon]
-  resolveLucideIcon(icon).then((value) => {
-    iconsList.value[icon] = shallowRef(value)
-  })
-}
-
-watch(
-  () => folders.value,
-  (items) => {
-    if (!items.length) return
-    items.forEach((item) => {
-      getIcon(item.icon)
-    })
-  },
-  { deep: true, immediate: true },
-)
 const treeItems = computed(() =>
   folders.value.map((folder) => ({
     id: folder.$id,
@@ -50,30 +34,91 @@ const treeItems = computed(() =>
 const selectedFolder = defineModel<string>('folder', { default: '' })
 const selectedNote = defineModel<string>('note', { default: '' })
 const preSelect = defineModel<FileTreeNode | null>('preSelected', { default: null })
-const isCreateModalOpen = ref(false)
-const entityType = ref<FileEntityTypes | null>(null)
+const {
+  isOpen,
+  type,
+  isSaving,
+  error,
+  mode,
+  target,
+  isDeleteOpen,
+  isDeleting,
+  deleteError,
+  open,
+  openEdit,
+  requestDelete,
+  create,
+  remove,
+} = useExplorerEntityActions(
+  selectedFolder,
+  folderIds,
+  (noteId) => (selectedNote.value = noteId),
+  (deleted) => {
+    if (deleted.type === FileEntityTypes.Folder && selectedFolder.value === deleted.entity.$id) {
+      selectedFolder.value = ''
+      selectedNote.value = ''
+    } else if (deleted.type === FileEntityTypes.File && selectedNote.value === deleted.entity.$id) {
+      selectedNote.value = ''
+    }
+  },
+)
 
-function openCreateModal(type: FileEntityTypes) {
-  entityType.value = type
-  isCreateModalOpen.value = true
+const editValue = computed(() => {
+  const current = target.value
+  if (!current) return undefined
+  return current.type === FileEntityTypes.Folder
+    ? { name: current.entity.name, color: current.entity.color, icon: current.entity.icon }
+    : { name: current.entity.name }
+})
+
+function onPreSelectTree(node: FileTreeNode) {
+  if (node.type === FileTreeNodeType.Folder) {
+    selectedFolder.value = node.id
+    return
+  }
+
+  const parentFolder = treeItems.value.find((folder) => folder.children?.some((note) => note.id === node.id))
+  if (parentFolder) selectedFolder.value = parentFolder.id
 }
 
-const onSelectTree = (value: FileTreeNode) => {
-  if (value.children) {
-    selectedFolder.value = value.id
+function onSelectTree(node: FileTreeNode) {
+  if (node.type === FileTreeNodeType.Folder) {
+    selectedFolder.value = node.id
   } else {
-    selectedNote.value = value.id
+    selectedNote.value = node.id
   }
 }
 </script>
 
 <template>
   <div>
-    <FolderCreateModal v-model="isCreateModalOpen" :type="entityType" />
-    <UIExplorerActions @create-entity="openCreateModal" />
+    <FolderCreateModal
+      v-model="isOpen"
+      :type="type"
+      :mode="mode"
+      :initial-value="editValue"
+      :saving="isSaving"
+      :error="error"
+      @save="create"
+    />
+    <ExplorerDeleteModal
+      v-model:open="isDeleteOpen"
+      :name="target?.entity.name ?? ''"
+      :type="target?.type ?? null"
+      :deleting="isDeleting"
+      :error="deleteError"
+      @confirm="remove"
+    />
+    <UIExplorerActions
+      :selected-node="preSelect"
+      @create-entity="open"
+      @edit="openEdit"
+      @delete="requestDelete"
+    />
     <UiFileTree
       withDoubleClick
       @select="onSelectTree"
+      @pre-select="onPreSelectTree"
       v-model:pre-select="preSelect"
       :items="treeItems"
       :expanded-ids="[selectedFolder]"

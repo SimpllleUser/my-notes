@@ -19,16 +19,23 @@ export const useFoldersStore = defineStore('folders', {
   actions: {
     async getAll() {
       const { data, error } = await folderAPI.getAll()
+      if (error) throw error
       this.folders = data
     },
     async create(payload: FolderPayload) {
-       await folderAPI.create(payload)
+      const result = await folderAPI.create(payload)
+      if (result.error) throw result.error
+      return result.data
     },
     async update(payload: Folder) {
-       await folderAPI.update(payload)
+      const { data, error } = await folderAPI.update(payload)
+      if (error) throw error
+      return data
     },
     async delete(payload: string) {
-       await folderAPI.delete(payload)
+      const { data, error } = await folderAPI.delete(payload)
+      if (error) throw error
+      return data
     },
   },
 })

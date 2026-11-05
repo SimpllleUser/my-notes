@@ -5,7 +5,7 @@ import { useLocalStorage } from '@vueuse/core'
 import NoteSidebar from '../ui/NoteSidebar.vue'
 import ToggleSidebarButton from '@/pages/folder/ui/ToggleSidebarButton.vue'
 import { NoteBlocksEditor } from '@/widgets/note-blocks-editor'
-import { getSyncStatusView, type SyncStatus } from '@/entities/node'
+import { getSyncStatusView, SyncStatus } from '@/entities/node'
 import type { Note } from '@/entities/note'
 import type { Nullable } from '@/shared/model/types.ts'
 import { UiStatus } from '@/shared/ui'
@@ -22,7 +22,7 @@ const toggleSidebar = () => (sidebarCollapsed.value = !sidebarCollapsed.value)
 const activeNote = ref<Nullable<Note>>(null)
 const changeNote = (note: Note) => (activeNote.value = note)
 
-const syncStatus = ref<SyncStatus>('saved')
+const syncStatus = ref<SyncStatus>(SyncStatus.Saved)
 const statusView = computed(() => getSyncStatusView(syncStatus.value))
 </script>
 

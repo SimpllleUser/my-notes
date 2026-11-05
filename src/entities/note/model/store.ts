@@ -3,7 +3,6 @@ import type { Nullable } from '@/shared/model/types.ts'
 import { noteAPI } from '@/entities/note/model/api.ts'
 import type { Note } from '@/entities/note'
 import type { NotePayload } from '@/entities/note/model/types.ts'
-import { data } from 'autoprefixer'
 
 export const useNotesStore = defineStore('notes', {
   state: () =>
@@ -35,27 +34,32 @@ export const useNotesStore = defineStore('notes', {
     async getByFolder(folderIds: string[]) {
       const result = await Promise.all(
         folderIds.map(async (folderId) => {
-          const {data} = await noteAPI.getAll(folderId)
-          return [
-            folderId,data || []
-          ]
-        })
+          const { data, error } = await noteAPI.getAll(folderId)
+          if (error) throw error
+          return [folderId, data ?? []] as const
+        }),
       )
       this.noteByFolders = Object.fromEntries(result)
     },
     async getAll(folderId: string): Promise<void> {
       const { data, error } = await noteAPI.getAll(folderId)
-      this.notes = data
       if (error) throw error
+      this.notes = data
     },
     async create(payload: NotePayload) {
-      return noteAPI.create(payload)
+      const result = await noteAPI.create(payload)
+      if (result.error) throw result.error
+      return result.data
     },
     async update(payload: Note) {
-      return noteAPI.update(payload)
+      const { data, error } = await noteAPI.update(payload)
+      if (error) throw error
+      return data
     },
     async delete(payload: string) {
-      return noteAPI.delete(payload)
+      const { data, error } = await noteAPI.delete(payload)
+      if (error) throw error
+      return data
     },
   },
 })

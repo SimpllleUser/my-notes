@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { FileEntityTypes } from '@/entities/folder'
-import { UiButton, UiPicker } from '@/shared/ui'
+import { type FileTreeNode, UiButton, UiDropdown, UiPicker } from '@/shared/ui'
 import { ButtonSize, ButtonVariant } from '@/shared/model/enums.ts'
-import { SquarePlus, ListChevronsDownUp, ListChevronsUpDown } from '@lucide/vue'
+import { Ellipsis, SquarePlus, ListChevronsDownUp, ListChevronsUpDown } from '@lucide/vue'
+import { ExplorerItemAction } from '../model/types'
 
 const BUTTON_PROPS = {
   variant: ButtonVariant.Ghost,
@@ -11,15 +12,25 @@ const BUTTON_PROPS = {
 
 const emit = defineEmits<{
   'create-entity': [type: FileEntityTypes]
+  edit: [node: FileTreeNode]
+  delete: [node: FileTreeNode]
 }>()
 
+defineProps<{ selectedNode: FileTreeNode | null }>()
+
 const entityOptions = [
-  { type: FileEntityTypes.File, label: 'File' },
+  { type: FileEntityTypes.File, label: 'Note' },
   { type: FileEntityTypes.Folder, label: 'Folder' },
 ]
 
 function chooseEntity(type: FileEntityTypes, hide: () => void) {
   emit('create-entity', type)
+  hide()
+}
+
+function runAction(action: ExplorerItemAction, node: FileTreeNode | null, hide: () => void) {
+  if (node && action === ExplorerItemAction.Edit) emit('edit', node)
+  if (node && action === ExplorerItemAction.Delete) emit('delete', node)
   hide()
 }
 </script>
@@ -57,6 +68,36 @@ function chooseEntity(type: FileEntityTypes, hide: () => void) {
     <UiButton :size="BUTTON_PROPS.size" :variant="BUTTON_PROPS.variant" class="menu-title">
       <ListChevronsDownUp :size="12" />
     </UiButton>
+    <UiDropdown label="Selected item actions" :disabled="!selectedNode" content-class="w-36 p-1">
+      <template #trigger="{ props: triggerProps }">
+        <UiButton
+          v-bind="triggerProps"
+          :size="BUTTON_PROPS.size"
+          :variant="BUTTON_PROPS.variant"
+          :disabled="!selectedNode"
+          class="menu-title"
+          aria-label="Edit or delete selected item"
+        >
+          <Ellipsis :size="14" />
+        </UiButton>
+      </template>
+      <template #default="{ hide }">
+        <li>
+          <button type="button" @click="runAction(ExplorerItemAction.Edit, selectedNode, hide)">
+            Edit
+          </button>
+        </li>
+        <li>
+          <button
+            type="button"
+            class="text-error"
+            @click="runAction(ExplorerItemAction.Delete, selectedNode, hide)"
+          >
+            Delete
+          </button>
+        </li>
+      </template>
+    </UiDropdown>
   </div>
 </template>
 

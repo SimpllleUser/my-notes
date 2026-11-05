@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { watch } from 'vue'
 import { TextEditor } from '@/features/rich-text-editor'
-import { useNoteBlocks, type SyncStatus } from '@/entities/node'
+import { useNoteBlocks, SyncStatus } from '@/entities/node'
 import { UiButton } from '@/shared/ui'
 import { ButtonSize } from '@/shared/model/enums.ts'
 
 defineOptions({ name: 'NoteBlocksEditor' })
 
 const props = defineProps<{ noteId: string }>()
-const status = defineModel<SyncStatus>('status', { default: 'saved' })
+const status = defineModel<SyncStatus>('status', { default: SyncStatus.Saved })
 
 const {
   content,

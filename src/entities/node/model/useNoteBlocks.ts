@@ -6,7 +6,7 @@ import { nodeAPI } from './api'
 import { diffBlocks, type BlockChange, type BlockEntry } from './diffBlocks'
 import { assignOrders } from './order'
 import { blockToPayload, rowsToBlocks } from './serialization'
-import type { SyncStatus } from './syncStatus'
+import { SyncStatus } from './syncStatus'
 
 const DEBOUNCE_MS = 600
 const RETRY_DELAY_MS = 2000
@@ -32,7 +32,7 @@ export function useNoteBlocks(noteId: string) {
   const content = shallowRef<OutputData | null>(null)
   const isLoading = ref(true)
   const loadError = ref<unknown>(null)
-  const status = ref<SyncStatus>('saved')
+  const status = ref<SyncStatus>(SyncStatus.Saved)
 
   /** Що вже гарантовано збережено на сервері (blockId → блок + order / rowId). */
   const committed = new Map<string, BlockEntry>()
@@ -130,12 +130,12 @@ export function useNoteBlocks(noteId: string) {
 
     if (failed === 0) {
       retries = 0
-      if (!latest) status.value = 'saved'
+      if (!latest) status.value = SyncStatus.Saved
       return
     }
 
     latest ??= target
-    status.value = 'error'
+    status.value = SyncStatus.Error
     if (retries < MAX_RETRIES) {
       retries += 1
       retryTimer = setTimeout(flush, RETRY_DELAY_MS * retries)
@@ -154,7 +154,7 @@ export function useNoteBlocks(noteId: string) {
   function schedule(data: OutputData) {
     latest = data.blocks
     retries = 0
-    status.value = 'saving'
+    status.value = SyncStatus.Saving
     clearTimeout(debounceTimer)
     clearTimeout(retryTimer)
     debounceTimer = setTimeout(flush, DEBOUNCE_MS)

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, watch, type VNodeChild } from 'vue'
 import { ComponentSize } from '@/shared/model/enums.ts'
-import { closeModal, getModalState, type ModalAction, type ModalContent } from './modal.ts'
+import { closeModal, getModalState, ModalCloseReason, type ModalAction, type ModalContent } from './modal.ts'
 
 const props = withDefaults(
   defineProps<{
@@ -65,12 +65,12 @@ function syncLocalDialog() {
 
 function handleGlobalCancel(event: Event) {
   event.preventDefault()
-  closeModal(undefined, 'escape')
+  closeModal(undefined, ModalCloseReason.Escape)
 }
 
 function handleGlobalBackdrop(event: MouseEvent) {
   if (event.target === dialog && state.active?.closeOnBackdrop !== false) {
-    closeModal(undefined, 'backdrop')
+    closeModal(undefined, ModalCloseReason.Backdrop)
   }
 }
 
@@ -89,8 +89,8 @@ function handleLocalBackdrop(event: MouseEvent) {
 
 async function handleAction(action: ModalAction) {
   if (action.disabled) return
-  const shouldClose = await action.onClick?.({ close: (value) => closeModal(value, 'action') })
-  if (shouldClose !== false && state.active) closeModal(action.value, 'action')
+  const shouldClose = await action.onClick?.({ close: (value) => closeModal(value, ModalCloseReason.Action) })
+  if (shouldClose !== false && state.active) closeModal(action.value, ModalCloseReason.Action)
 }
 
 watch(() => state.active?.id, syncGlobalDialog, { flush: 'post' })
@@ -128,7 +128,7 @@ onUnmounted(() => {
         type="button"
         class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
         :aria-label="state.active.closeLabel ?? 'Close dialog'"
-        @click="closeModal(undefined, 'close-button')"
+        @click="closeModal(undefined, ModalCloseReason.CloseButton)"
       >
         ✕
       </button>
@@ -166,7 +166,7 @@ onUnmounted(() => {
     </div>
     <form
       class="modal-backdrop"
-      @submit.prevent="state.active?.closeOnBackdrop !== false && closeModal(undefined, 'backdrop')"
+      @submit.prevent="state.active?.closeOnBackdrop !== false && closeModal(undefined, ModalCloseReason.Backdrop)"
     >
       <button type="submit" :aria-label="state.active.closeLabel ?? 'Close dialog'">close</button>
     </form>

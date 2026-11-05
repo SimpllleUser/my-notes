@@ -14,10 +14,10 @@ export { default as UiDropdown } from './UiDropdown.vue'
 export { default as UiMenu } from './UiMenu.vue'
 export { default as UiModal } from './modal/UiModal.vue'
 export { useModal, openModal, closeModal } from './modal/modal.ts'
+export { ModalCloseReason } from './modal/modal.ts'
 export type {
   ModalAction,
   ModalActionContext,
-  ModalCloseReason,
   ModalContent,
   ModalOptions,
   ModalResult,
