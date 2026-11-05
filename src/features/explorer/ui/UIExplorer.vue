@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { type Component, computed, ref, shallowRef, watch } from 'vue'
-import { useFolderSelect } from '@/entities/folder'
+import { FileEntityTypes, FolderCreateModal, useFolderSelect } from '@/entities/folder'
 import { useNoteSelect } from '@/entities/note/model/useNoteSelect.ts'
 import { resolveLucideIcon } from '@/shared/lib/lucide.ts'
 import { type FileTreeNode, UiFileTree } from '@/shared/ui'
@@ -50,6 +50,13 @@ const treeItems = computed(() =>
 const selectedFolder = defineModel<string>('folder', { default: '' })
 const selectedNote = defineModel<string>('note', { default: '' })
 const preSelect = defineModel<FileTreeNode | null>('preSelected', { default: null })
+const isCreateModalOpen = ref(false)
+const entityType = ref<FileEntityTypes | null>(null)
+
+function openCreateModal(type: FileEntityTypes) {
+  entityType.value = type
+  isCreateModalOpen.value = true
+}
 
 const onSelectTree = (value: FileTreeNode) => {
   if (value.children) {
@@ -62,7 +69,8 @@ const onSelectTree = (value: FileTreeNode) => {
 
 <template>
   <div>
-    <UIExplorerActions :preSelect="preSelect" />
+    <FolderCreateModal v-model="isCreateModalOpen" :type="entityType" />
+    <UIExplorerActions @create-entity="openCreateModal" />
     <UiFileTree
       withDoubleClick
       @select="onSelectTree"

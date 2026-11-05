@@ -12,6 +12,17 @@ export { default as UiLoading } from './UiLoading.vue'
 export { default as UiTabs } from './UiTabs.vue'
 export { default as UiDropdown } from './UiDropdown.vue'
 export { default as UiMenu } from './UiMenu.vue'
+export { default as UiModal } from './modal/UiModal.vue'
+export { useModal, openModal, closeModal } from './modal/modal.ts'
+export type {
+  ModalAction,
+  ModalActionContext,
+  ModalCloseReason,
+  ModalContent,
+  ModalOptions,
+  ModalResult,
+  ModalSlots,
+} from './modal/modal.ts'
 export { default as AppLogo } from './AppLogo.vue'
 export type { FileTreeNode } from '../model/file-tree.types.ts'
 export type { UiTabItem } from '../model/tabs.types.ts'
