@@ -1,10 +1,21 @@
 <script setup lang="ts">
-import { BlokEditor } from '@bloklabs/vue'
+import { BlokEditor as RawBlokEditor } from '@bloklabs/vue'
+import type { DefineComponent } from 'vue'
 import type { OutputData } from '@bloklabs/core'
+import type { BlokConfig } from '@bloklabs/core'
 import { computed } from 'vue'
 import { useTheme } from '@/shared/lib/theme.ts'
 import { ThemePalette } from '@/shared/model/enums.ts'
-import { inlineTools, tools } from '@/features/rich-text-editor/model/tools.ts'
+import { inlineToolbar, tools } from '../model/tools'
+
+type EditorProps = Pick<BlokConfig, 'tools' | 'inlineToolbar' | 'style' | 'theme'> & {
+  data: OutputData
+  onSave?: (data: OutputData) => void
+}
+
+// @bloklabs/vue's exported component resolves to `never` in vue-tsc. Keep a
+// local prop contract so this integration remains checked at the call site.
+const BlokEditor = RawBlokEditor as unknown as DefineComponent<EditorProps>
 
 defineOptions({ name: 'TextEditor' })
 
@@ -18,15 +29,21 @@ const editorTheme = computed(() =>
     : 'light',
 )
 
-const tokens = {
-  '--blok-text-primary': 'var(--color-base-content)',
-  '--blok-popover-bg': 'var(--color-base-100)',
-  '--blok-bg-light': 'color-mix(in srgb, var(--color-base-content) 8%, transparent)',
-  '--blok-bg-secondary': 'color-mix(in srgb, var(--color-base-content) 5%, transparent)',
-  '--blok-bg-tertiary': 'color-mix(in srgb, var(--color-base-content) 8%, transparent)',
-  '--blok-border-secondary': 'color-mix(in srgb, var(--color-base-content) 12%, transparent)',
-  '--blok-selection': 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
-  '--blok-placeholder-color': 'color-mix(in srgb, var(--color-base-content) 45%, transparent)',
+const style = {
+  tokens: {
+    '--blok-text-primary': 'var(--color-base-content)',
+    '--blok-popover-bg': 'var(--color-base-100)',
+    '--blok-bg-light': 'color-mix(in srgb, var(--color-base-content) 8%, transparent)',
+    '--blok-bg-secondary': 'color-mix(in srgb, var(--color-base-content) 5%, transparent)',
+    '--blok-bg-tertiary': 'color-mix(in srgb, var(--color-base-content) 8%, transparent)',
+    '--blok-border-secondary': 'color-mix(in srgb, var(--color-base-content) 12%, transparent)',
+    '--blok-selection': 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
+    '--blok-placeholder-color': 'color-mix(in srgb, var(--color-base-content) 45%, transparent)',
+  },
+}
+
+function handleSave(data: OutputData) {
+  emit('update', data)
 }
 </script>
 
@@ -35,11 +52,11 @@ const tokens = {
     <div class="pb-10">
       <BlokEditor
         :tools="tools"
-        :inline-tools="inlineTools"
+        :inline-toolbar="inlineToolbar"
         :data="content"
-        :tokens="tokens"
+        :style="style"
         :theme="editorTheme"
-        @save="emit('update', $event)"
+        @save="handleSave"
       />
     </div>
   </div>

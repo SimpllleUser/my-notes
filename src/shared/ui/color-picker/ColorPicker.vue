@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { usePickerOpen } from '@/shared/lib/usePickerOpen'
-import { UiIconButton, UiPicker } from '@/shared/ui'
+import UiIconButton from '../UiIconButton.vue'
+import UiPicker from '../UiPicker.vue'
 import { ButtonColor, ButtonVariant, PopoverLocation } from '@/shared/model/enums.ts'
 import { getRandomArrayItem } from '@/shared/utils/arrays.ts'
-import { useColorPicker } from '../model/useColorPicker'
+import { useColorPicker } from './model/useColorPicker'
 import ColorPickerContent from './ColorPickerContent.vue'
 
 const props = withDefaults(

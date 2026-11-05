@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import { useLayout } from '@/app/layouts/model/useLayout.ts'
-import UiModal from '@/shared/ui/modal/UiModal.vue'
+import { UiModal } from '@/shared/ui'
 
-const {layout} = useLayout()
+const { layout } = useLayout()
 </script>
 
 <template>

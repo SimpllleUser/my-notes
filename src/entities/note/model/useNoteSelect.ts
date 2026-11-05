@@ -1,40 +1,16 @@
-import { computed, type ComputedRef, onBeforeMount, ref, watch } from 'vue'
-import type { Nullable } from '@/shared/model/types.ts'
-import type { Note } from '@/entities/note'
+import { type ComputedRef, watch } from 'vue'
 import { useNotesStore } from './store'
 
-export function useNoteSelect(
-  folderId?: ComputedRef<Nullable<string>>,
-  folderIds?: ComputedRef<Nullable<string[]>>,
-) {
+export function useNoteSelect(folderIds: ComputedRef<string[]>) {
   const noteStore = useNotesStore()
 
-  const activeNote = ref<Nullable<Note>>(null)
-  const notes = computed(() => noteStore.noteList)
-
-  const setNote = (note: Note): void => {
-    activeNote.value = note
-  }
-
   watch(
-    () => folderId?.value,
-    async (id) => {
-      if (!id) return
-      await noteStore.getAll(id)
-    },
-  )
-  watch(
-    () => folderIds?.value,
-    async (ids, oldsOids) => {
-      if ((!ids || ids?.length === oldsOids?.length)) return
+    folderIds,
+    async (ids) => {
       await noteStore.getByFolder(ids)
     },
+    { immediate: true },
   )
 
-  return {
-    setNote,
-    notes,
-    activeNote,
-    getNoteByFolder: noteStore.getNoteByFolder
-  }
+  return { getNoteByFolder: noteStore.getNoteByFolder }
 }

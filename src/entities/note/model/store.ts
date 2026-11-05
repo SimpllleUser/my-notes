@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
 import type { Nullable } from '@/shared/model/types.ts'
-import { noteAPI } from '@/entities/note/model/api.ts'
-import type { Note } from '@/entities/note'
-import type { NotePayload } from '@/entities/note/model/types.ts'
+import { noteAPI } from './api'
+import type { Note, NotePayload } from './types'
 
 export const useNotesStore = defineStore('notes', {
   state: () =>
@@ -14,11 +13,10 @@ export const useNotesStore = defineStore('notes', {
       noteByFolders: Record<string, Note[]>
     },
   getters: {
-    noteList: (state) => state.notes || [],
     getNoteByFolder: (state) => (folderId: string) => {
       const existKey = folderId in state.noteByFolders
       if (!folderId || !existKey) return []
-      return state.noteByFolders[folderId]
+      return state.noteByFolders[folderId] ?? []
     },
     getNotes:
       (state) =>

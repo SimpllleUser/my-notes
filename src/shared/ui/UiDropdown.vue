@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VNodeChild } from 'vue'
 import { ChevronDown } from '@lucide/vue'
 import { DropdownLocation } from '@/shared/model/enums.ts'
 import UiButton from './UiButton.vue'
@@ -20,6 +21,24 @@ withDefaults(
 )
 
 const open = defineModel<boolean>({ default: false })
+
+function toggle() {
+  open.value = !open.value
+}
+
+function hide() {
+  open.value = false
+}
+
+defineSlots<{
+  trigger?: (props: {
+    props: Record<string, unknown>
+    open: boolean
+    toggle: () => void
+    hide: () => void
+  }) => VNodeChild
+  default?: (props: { open: boolean; hide: () => void }) => VNodeChild
+}>()
 </script>
 
 <template>
@@ -31,7 +50,7 @@ const open = defineModel<boolean>({ default: false })
     :open-on-click="true"
     :content-class="contentClass"
   >
-    <template #activator="{ props, isActive, toggle, hide }">
+    <template #activator="{ props, isActive }">
       <slot name="trigger" :props :open="isActive" :toggle :hide>
         <UiButton v-bind="props" :disabled aria-haspopup="menu">
           {{ label }}

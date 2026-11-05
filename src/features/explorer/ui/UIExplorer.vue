@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { FileEntityTypes, useFolderSelect } from '@/entities/folder'
+import { useFolderSelect } from '@/entities/folder'
 import { useNoteSelect } from '@/entities/note'
 import { type FileTreeNode, UiFileTree } from '@/shared/ui'
 import { FileTreeNodeType } from '@/shared/model/enums.ts'
@@ -8,6 +8,7 @@ import UIExplorerActions from './UIExplorerActions.vue'
 import FolderCreateModal from './FolderCreateModal.vue'
 import ExplorerDeleteModal from './ExplorerDeleteModal.vue'
 import { useExplorerEntityActions } from '../model/useExplorerEntityActions'
+import { FileEntityTypes } from '../model/types'
 
 defineOptions({
   name: 'UIExplorer',
@@ -15,7 +16,7 @@ defineOptions({
 
 const { folders } = useFolderSelect()
 const folderIds = computed(() => folders.value.map((folder) => folder.$id))
-const { getNoteByFolder } = useNoteSelect(undefined, folderIds)
+const { getNoteByFolder } = useNoteSelect(folderIds)
 
 const treeItems = computed(() =>
   folders.value.map((folder) => ({
@@ -34,6 +35,7 @@ const treeItems = computed(() =>
 const selectedFolder = defineModel<string>('folder', { default: '' })
 const selectedNote = defineModel<string>('note', { default: '' })
 const preSelect = defineModel<FileTreeNode | null>('preSelected', { default: null })
+const expandedFolderIds = ref<string[]>([])
 const {
   isOpen,
   type,
@@ -47,13 +49,19 @@ const {
   open,
   openEdit,
   requestDelete,
-  create,
+  save,
   remove,
 } = useExplorerEntityActions(
   selectedFolder,
   folderIds,
   (noteId) => (selectedNote.value = noteId),
   (deleted) => {
+    if (
+      preSelect.value?.id === deleted.entity.$id ||
+      (deleted.type === FileEntityTypes.Folder && selectedFolder.value === deleted.entity.$id)
+    ) {
+      preSelect.value = null
+    }
     if (deleted.type === FileEntityTypes.Folder && selectedFolder.value === deleted.entity.$id) {
       selectedFolder.value = ''
       selectedNote.value = ''
@@ -74,19 +82,32 @@ const editValue = computed(() => {
 function onPreSelectTree(node: FileTreeNode) {
   if (node.type === FileTreeNodeType.Folder) {
     selectedFolder.value = node.id
+    if (!expandedFolderIds.value.includes(node.id)) expandedFolderIds.value.push(node.id)
     return
   }
 
   const parentFolder = treeItems.value.find((folder) => folder.children?.some((note) => note.id === node.id))
-  if (parentFolder) selectedFolder.value = parentFolder.id
+  if (parentFolder) {
+    selectedFolder.value = parentFolder.id
+    if (!expandedFolderIds.value.includes(parentFolder.id)) expandedFolderIds.value.push(parentFolder.id)
+  }
 }
 
 function onSelectTree(node: FileTreeNode) {
   if (node.type === FileTreeNodeType.Folder) {
     selectedFolder.value = node.id
+    if (!expandedFolderIds.value.includes(node.id)) expandedFolderIds.value.push(node.id)
   } else {
     selectedNote.value = node.id
   }
+}
+
+function expandAllFolders() {
+  expandedFolderIds.value = [...folderIds.value]
+}
+
+function collapseAllFolders() {
+  expandedFolderIds.value = []
 }
 </script>
 
@@ -99,7 +120,7 @@ function onSelectTree(node: FileTreeNode) {
       :initial-value="editValue"
       :saving="isSaving"
       :error="error"
-      @save="create"
+      @save="save"
     />
     <ExplorerDeleteModal
       v-model:open="isDeleteOpen"
@@ -114,6 +135,8 @@ function onSelectTree(node: FileTreeNode) {
       @create-entity="open"
       @edit="openEdit"
       @delete="requestDelete"
+      @expand-all="expandAllFolders"
+      @collapse-all="collapseAllFolders"
     />
     <UiFileTree
       withDoubleClick
@@ -121,7 +144,7 @@ function onSelectTree(node: FileTreeNode) {
       @pre-select="onPreSelectTree"
       v-model:pre-select="preSelect"
       :items="treeItems"
-      :expanded-ids="[selectedFolder]"
+      v-model:expanded="expandedFolderIds"
     />
   </div>
 </template>

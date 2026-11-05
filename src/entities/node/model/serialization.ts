@@ -14,21 +14,42 @@ export const blockToPayload = (entry: BlockEntry, noteId: string): NodePayload =
 
 // ——— Читання ———
 
-const isBlock = (value: any): value is OutputBlockData =>
-  !!value && typeof value.type === 'string' && typeof value.data === 'object' && value.data !== null
+type LegacyNode = {
+  type?: unknown
+  data?: unknown
+  text?: unknown
+  content?: unknown
+  attrs?: Record<string, unknown>
+}
 
-const textOf = (node: any): string => node?.text ?? (node?.content ?? []).map(textOf).join('')
+function toLegacyNode(value: unknown): LegacyNode {
+  return typeof value === 'object' && value !== null ? (value as LegacyNode) : {}
+}
+
+const isBlock = (value: unknown): value is OutputBlockData => {
+  const block = toLegacyNode(value)
+  return typeof block.type === 'string' && typeof block.data === 'object' && block.data !== null
+}
+
+const textOf = (value: unknown): string => {
+  const node = toLegacyNode(value)
+  if (typeof node.text === 'string') return node.text
+  return Array.isArray(node.content) ? node.content.map(textOf).join('') : ''
+}
 
 /**
  * Рядки, збережені ще Tiptap-ом: переносимо лише текст абзаців і заголовків.
  * Складні блоки (callout, toggle, таблиці) спрощуються до абзацу.
  */
-function fromLegacy(raw: any): OutputBlockData {
-  const id = raw?.attrs?.id ?? crypto.randomUUID()
+function fromLegacy(value: unknown): OutputBlockData {
+  const raw = toLegacyNode(value)
+  const attrs = raw.attrs
+  const id = typeof attrs?.id === 'string' ? attrs.id : crypto.randomUUID()
   const text = textOf(raw)
 
-  if (raw?.type === 'heading') {
-    return { id, type: 'header', data: { text, level: raw.attrs?.level ?? 2 } }
+  if (raw.type === 'heading') {
+    const level = typeof attrs?.level === 'number' ? attrs.level : 2
+    return { id, type: 'header', data: { text, level } }
   }
   return { id, type: 'paragraph', data: { text } }
 }

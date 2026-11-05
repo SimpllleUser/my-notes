@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColorSwatch } from '../model/useColorPicker'
+import type { ColorSwatch } from './model/useColorPicker'
 
 defineProps<{
   label: string

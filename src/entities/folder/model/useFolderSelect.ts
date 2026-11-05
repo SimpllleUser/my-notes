@@ -1,7 +1,7 @@
-import { useFoldersStore } from '@/entities/folder/model/store.ts'
+import { useFoldersStore } from './store'
 import { computed, onBeforeMount, ref } from 'vue'
 import type { Nullable } from '@/shared/model/types.ts'
-import type { Folder } from '@/entities/folder'
+import type { Folder } from './types'
 import { useRoute, useRouter } from 'vue-router'
 
 export function useFolderSelect() {

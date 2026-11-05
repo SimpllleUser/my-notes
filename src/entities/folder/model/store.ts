@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import type { Nullable } from '@/shared/model/types.ts'
-import type { Folder } from '@/entities/folder'
-import { folderAPI } from '@/entities/folder/model/api.ts'
-import type { FolderPayload } from '@/entities/folder/model/types.ts'
+import type { Folder } from './types'
+import { folderAPI } from './api'
+import type { FolderPayload } from './types'
 
 export const useFoldersStore = defineStore('folders', {
   state: () =>

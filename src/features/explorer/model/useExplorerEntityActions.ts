@@ -1,15 +1,15 @@
 import { ref, type ComputedRef, type Ref } from 'vue'
-import { FileEntityTypes, useFoldersStore } from '@/entities/folder'
+import { useFoldersStore } from '@/entities/folder'
 import { useNotesStore } from '@/entities/note'
 import { FileTreeNodeType, FolderColor } from '@/shared/model/enums.ts'
 import type { FileTreeNode } from '@/shared/ui'
-import { ExplorerFormMode } from './types'
-import type { ExplorerCreatePayload, ExplorerEntity } from './types'
+import { ExplorerFormMode, FileEntityTypes } from './types'
+import type { ExplorerEntity, ExplorerSavePayload } from './types'
 
 export function useExplorerEntityActions(
   folderId: Ref<string>,
   folderIds: ComputedRef<string[]>,
-  onNoteCreated: (noteId: string) => void,
+  onNoteSelected: (noteId: string) => void,
   onEntityDeleted: (target: ExplorerEntity) => void,
 ) {
   const foldersStore = useFoldersStore()
@@ -67,25 +67,33 @@ export function useExplorerEntityActions(
     return cause instanceof Error ? cause.message : 'Could not complete the action. Please try again.'
   }
 
-  async function create(payload: ExplorerCreatePayload) {
+  async function save(payload: ExplorerSavePayload) {
     if (!type.value || payload.type !== type.value || isSaving.value) return
     isSaving.value = true
     error.value = ''
 
     try {
-      if (mode.value === ExplorerFormMode.Edit && target.value?.type === FileEntityTypes.Folder) {
+      if (
+        mode.value === ExplorerFormMode.Edit &&
+        target.value?.type === FileEntityTypes.Folder &&
+        payload.type === FileEntityTypes.Folder
+      ) {
         const folder = target.value.entity
         await foldersStore.update({ ...folder, name: payload.name, color: payload.color, icon: payload.icon })
         await foldersStore.getAll()
         await notesStore.getByFolder(folderIds.value)
-      } else if (mode.value === ExplorerFormMode.Edit && target.value?.type === FileEntityTypes.File) {
+      } else if (
+        mode.value === ExplorerFormMode.Edit &&
+        target.value?.type === FileEntityTypes.File &&
+        payload.type === FileEntityTypes.File
+      ) {
         const entity = target.value.entity
         const note = await notesStore.update({ ...entity, name: payload.name })
         await Promise.all([
           notesStore.getAll(entity.folder),
           notesStore.getByFolder(folderIds.value),
         ])
-        if (note) onNoteCreated(note.$id)
+        if (note) onNoteSelected(note.$id)
       } else if (payload.type === FileEntityTypes.Folder) {
         await foldersStore.create({
           name: payload.name,
@@ -101,7 +109,7 @@ export function useExplorerEntityActions(
           notesStore.getAll(folderId.value),
           notesStore.getByFolder(folderIds.value),
         ])
-        if (note) onNoteCreated(note.$id)
+        if (note) onNoteSelected(note.$id)
       }
 
       isOpen.value = false
@@ -124,7 +132,7 @@ export function useExplorerEntityActions(
         const notes = notesStore.getNoteByFolder(current.entity.$id)
         await Promise.all(notes.map((note) => notesStore.delete(note.$id)))
         await foldersStore.delete(current.entity.$id)
-        await foldersStore.getAll()
+        await Promise.all([foldersStore.getAll(), notesStore.getAll(current.entity.$id)])
         await notesStore.getByFolder(folderIds.value)
       } else {
         await notesStore.delete(current.entity.$id)
@@ -156,7 +164,7 @@ export function useExplorerEntityActions(
     open,
     openEdit,
     requestDelete,
-    create,
+    save,
     remove,
   }
 }

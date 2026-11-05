@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { FileEntityTypes } from '@/entities/folder'
 import { ButtonColor, ComponentSize } from '@/shared/model/enums.ts'
 import { UiButton, UiModal } from '@/shared/ui'
+import { FileEntityTypes } from '../model/types'
 
 withDefaults(
   defineProps<{

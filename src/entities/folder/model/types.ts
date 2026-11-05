@@ -5,11 +5,6 @@ interface IFolder {
   // count: number
 }
 
-export enum FileEntityTypes {
-  File = 'file',
-  Folder = 'folder'
-}
-
 import type { BaseEntity } from '@/shared/model/types.ts'
 
 export type Folder = BaseEntity<IFolder>

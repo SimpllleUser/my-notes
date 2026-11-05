@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { FileEntityTypes } from '@/entities/folder'
-import { ColorPicker } from '@/features/color-picker'
-import { IconPicker } from '@/features/icon-picker'
 import {
   ButtonColor,
   ButtonType,
@@ -11,9 +8,9 @@ import {
   FolderColor,
   PopoverLocation,
 } from '@/shared/model/enums.ts'
-import { UIInputField, UiButton, UiModal } from '@/shared/ui'
-import { ExplorerFormMode } from '../model/types'
-import type { ExplorerCreatePayload } from '../model/types'
+import { ColorPicker, IconPicker, UIInputField, UiButton, UiModal } from '@/shared/ui'
+import { ExplorerFormMode, FileEntityTypes } from '../model/types'
+import type { ExplorerSavePayload } from '../model/types'
 
 const props = withDefaults(
   defineProps<{
@@ -26,7 +23,7 @@ const props = withDefaults(
   { type: null, mode: ExplorerFormMode.Create, initialValue: undefined, saving: false, error: '' },
 )
 
-const emit = defineEmits<{ save: [payload: ExplorerCreatePayload] }>()
+const emit = defineEmits<{ save: [payload: ExplorerSavePayload] }>()
 const isOpen = defineModel<boolean>()
 const name = ref('')
 const color = ref<string>(FolderColor.Primary)
@@ -53,12 +50,12 @@ function save() {
   submitted.value = true
   if (isNameEmpty.value || !props.type || props.saving) return
 
-  emit('save', {
-    name: name.value.trim(),
-    type: props.type,
-    color: color.value,
-    icon: icon.value,
-  })
+  const nameValue = name.value.trim()
+  if (props.type === FileEntityTypes.Folder) {
+    emit('save', { name: nameValue, type: props.type, color: color.value, icon: icon.value })
+  } else {
+    emit('save', { name: nameValue, type: props.type })
+  }
 }
 </script>
 

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { FileEntityTypes } from '@/entities/folder'
 import { type FileTreeNode, UiButton, UiDropdown, UiPicker } from '@/shared/ui'
 import { ButtonSize, ButtonVariant } from '@/shared/model/enums.ts'
 import { Ellipsis, SquarePlus, ListChevronsDownUp, ListChevronsUpDown } from '@lucide/vue'
-import { ExplorerItemAction } from '../model/types'
+import { ExplorerItemAction, FileEntityTypes } from '../model/types'
 
 const BUTTON_PROPS = {
   variant: ButtonVariant.Ghost,
@@ -14,6 +13,8 @@ const emit = defineEmits<{
   'create-entity': [type: FileEntityTypes]
   edit: [node: FileTreeNode]
   delete: [node: FileTreeNode]
+  'expand-all': []
+  'collapse-all': []
 }>()
 
 defineProps<{ selectedNode: FileTreeNode | null }>()
@@ -62,10 +63,22 @@ function runAction(action: ExplorerItemAction, node: FileTreeNode | null, hide: 
         </div>
       </template>
     </UiPicker>
-    <UiButton :size="BUTTON_PROPS.size" :variant="BUTTON_PROPS.variant" class="menu-title">
+    <UiButton
+      :size="BUTTON_PROPS.size"
+      :variant="BUTTON_PROPS.variant"
+      class="menu-title"
+      aria-label="Expand all folders"
+      @click="emit('expand-all')"
+    >
       <ListChevronsUpDown :size="12" />
     </UiButton>
-    <UiButton :size="BUTTON_PROPS.size" :variant="BUTTON_PROPS.variant" class="menu-title">
+    <UiButton
+      :size="BUTTON_PROPS.size"
+      :variant="BUTTON_PROPS.variant"
+      class="menu-title"
+      aria-label="Collapse all folders"
+      @click="emit('collapse-all')"
+    >
       <ListChevronsDownUp :size="12" />
     </UiButton>
     <UiDropdown label="Selected item actions" :disabled="!selectedNode" content-class="w-36 p-1">

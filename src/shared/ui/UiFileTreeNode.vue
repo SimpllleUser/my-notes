@@ -2,6 +2,7 @@
 import { File, Folder, FolderOpen } from '@lucide/vue'
 import { FileTreeNodeType } from '@/shared/model/enums.ts'
 import type { FileTreeNode } from '../model/file-tree.types.ts'
+import type { VNodeChild } from 'vue'
 
 defineOptions({ name: 'UiFileTreeNode' })
 
@@ -22,6 +23,11 @@ const emit = defineEmits<{
   select: [node: FileTreeNode]
   'pre-select': [node: FileTreeNode]
   toggle: [id: string, expanded: boolean]
+}>()
+
+defineSlots<{
+  icon?: (props: { node: FileTreeNode; expanded: boolean; selected: boolean }) => VNodeChild
+  label?: (props: { node: FileTreeNode; selected: boolean }) => VNodeChild
 }>()
 
 function isExpanded(id: string) {

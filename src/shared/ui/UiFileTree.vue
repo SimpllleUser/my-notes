@@ -4,6 +4,7 @@ import { FileTreeSize } from '@/shared/model/enums.ts'
 import { FileTreeNodeType } from '@/shared/model/enums.ts'
 import UiFileTreeNode from './UiFileTreeNode.vue'
 import type { FileTreeNode } from '../model/file-tree.types.ts'
+import type { VNodeChild } from 'vue'
 
 withDefaults(
   defineProps<{
@@ -26,6 +27,13 @@ const expandedIds = defineModel<string[]>('expanded', { default: () => [] })
 const preSelectedNode = defineModel<FileTreeNode | null>('preSelect', { default: null })
 
 const emit = defineEmits<{ select: [node: FileTreeNode]; 'pre-select': [node: FileTreeNode] }>()
+
+defineSlots<{
+  header?: () => VNodeChild
+  empty?: () => VNodeChild
+  icon?: (props: { node: FileTreeNode; expanded: boolean; selected: boolean }) => VNodeChild
+  label?: (props: { node: FileTreeNode; selected: boolean }) => VNodeChild
+}>()
 
 function handleSelect(node: FileTreeNode) {
   if (node.disabled) return
