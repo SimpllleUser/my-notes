@@ -5,6 +5,7 @@ import { useNoteSelect } from '@/entities/note/model/useNoteSelect.ts'
 import { resolveLucideIcon } from '@/shared/lib/lucide.ts'
 import { type FileTreeNode, UiFileTree } from '@/shared/ui'
 import { FileTreeNodeType } from '@/shared/model/enums.ts'
+import UIExplorerActions from '@/features/explorer/ui/UIExplorerActions.vue'
 
 defineOptions({
   name: 'UIExplorer',
@@ -48,7 +49,7 @@ const treeItems = computed(() =>
 
 const selectedFolder = defineModel<string>('folder', { default: '' })
 const selectedNote = defineModel<string>('note', { default: '' })
-const preSelected = defineModel<FileTreeNode | null>('preSelected', { default: null })
+const preSelect = defineModel<FileTreeNode | null>('preSelected', { default: null })
 
 const onSelectTree = (value: FileTreeNode) => {
   if (value.children) {
@@ -57,15 +58,15 @@ const onSelectTree = (value: FileTreeNode) => {
     selectedNote.value = value.id
   }
 }
-
 </script>
 
 <template>
   <div>
+    <UIExplorerActions :preSelect="preSelect" />
     <UiFileTree
       withDoubleClick
       @select="onSelectTree"
-      v-model:pre-select="preSelected"
+      v-model:pre-select="preSelect"
       :items="treeItems"
       :expanded-ids="[selectedFolder]"
     />
