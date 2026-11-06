@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, shallowRef } from 'vue'
 import type { OutputData } from '@bloklabs/core'
-import { ColorPicker } from '@/features/color-picker'
-import { IconPicker } from '@/features/icon-picker'
 import { TextEditor } from '@/features/rich-text-editor'
 import {
   UIInputField,
   UiButton,
   UiCard,
+  ColorPicker,
+  IconPicker,
   UiDivider,
   UiDropdown,
   UiFileTree,

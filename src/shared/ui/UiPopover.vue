@@ -8,6 +8,7 @@ import {
   useId,
   watch,
   type CSSProperties,
+  type VNodeChild,
 } from 'vue'
 import { PopoverAlign, PopoverLocation, PopoverSide } from '@/shared/model/enums.ts'
 
@@ -72,6 +73,14 @@ const props = withDefaults(
 const emit = defineEmits<{
   /** Клік поза панеллю та активатором (аналог `click:outside` у VOverlay). */
   'click:outside': [event: MouseEvent]
+}>()
+
+defineSlots<{
+  activator?: (props: { isActive: boolean; props: Record<string, unknown> }) => VNodeChild
+  default?: (props: { isActive: boolean; hide: () => void }) => VNodeChild
+  menu?: (props: { isActive: boolean; hide: () => void }) => VNodeChild
+  header?: (props: { isActive: boolean; hide: () => void }) => VNodeChild
+  actions?: (props: { isActive: boolean; hide: () => void }) => VNodeChild
 }>()
 
 const model = defineModel<boolean>({ default: false })

@@ -17,14 +17,7 @@ const emit = defineEmits<{
 const notesStore = useNotesStore()
 
 const searchingName = ref('')
-const activeNote = useLocalStorage<Note>(`node-${props.folder.id}}`, {} as Note)
 const popOverState = ref(false)
-
-onBeforeMount(async () => {
-  await notesStore.getAll(props.folder.id)
-  if (!activeNote.value?.$id) activeNote.value = notesStore.getNotes()[0]
-  emit('set-note', activeNote.value as Note)
-})
 
 const noteName = ref('')
 const hidePopOver = () => {
@@ -47,13 +40,13 @@ const selectNote = (note: Note) => {
 }
 
 const createNote = async () => {
-  const { data } = await notesStore.create({
+  const note = await notesStore.create({
     name: noteName.value,
     folder: props.folder.id,
   })
   hidePopOver()
   await notesStore.getAll(props.folder.id)
-  if (data) selectNote(data)
+  if (note) selectNote(note)
 }
 </script>
 

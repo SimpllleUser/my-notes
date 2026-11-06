@@ -2,7 +2,7 @@
 import type { Component } from 'vue'
 import { Search } from '@lucide/vue'
 import { InputType } from '@/shared/model/enums.ts'
-import { UIInputField } from '@/shared/ui'
+import UIInputField from '../UIInputField.vue'
 
 withDefaults(
   defineProps<{

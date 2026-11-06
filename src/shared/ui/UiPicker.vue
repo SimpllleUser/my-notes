@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { VNodeChild } from 'vue'
 import UiPopover from './UiPopover.vue'
+import type { PopoverLocation } from '@/shared/model/enums.ts'
 
 withDefaults(
   defineProps<{
@@ -9,9 +11,29 @@ withDefaults(
      */
     popover?: boolean
     panelClass?: string
+    location?: PopoverLocation
   }>(),
-  { popover: true, panelClass: '' },
+  { popover: true, panelClass: '', location: undefined },
 )
+
+defineSlots<{
+  trigger?: (props: {
+    open: boolean
+    toggle: () => void
+    show: () => void
+    hide: () => void
+    props: Record<string, unknown>
+  }) => VNodeChild
+  activator?: (props: {
+    open: boolean
+    toggle: () => void
+    show: () => void
+    hide: () => void
+    props: Record<string, unknown>
+  }) => VNodeChild
+  default?: (props: { hide: () => void }) => VNodeChild
+  content?: (props: { hide: () => void }) => VNodeChild
+}>()
 
 const open = defineModel<boolean>('open', { default: false })
 
@@ -31,6 +53,7 @@ function toggle() {
     v-if="popover"
     v-model="open"
     :content-class="panelClass"
+    :location="location"
     :open-on-hover="false"
     :open-on-click="false"
     :interactive="true"
@@ -60,7 +83,7 @@ function toggle() {
     </slot>
   </UiPopover>
   <div v-else>
-    <slot>
+    <slot :hide="hide">
       <slot name="content" :hide="hide" />
     </slot>
   </div>

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { watch } from 'vue'
 import { TextEditor } from '@/features/rich-text-editor'
-import { useNoteBlocks, type SyncStatus } from '@/entities/node'
+import { useNoteBlocks, SyncStatus } from '@/entities/node'
 import { UiButton } from '@/shared/ui'
 import { ButtonSize } from '@/shared/model/enums.ts'
 
 defineOptions({ name: 'NoteBlocksEditor' })
 
 const props = defineProps<{ noteId: string }>()
-const status = defineModel<SyncStatus>('status', { default: 'saved' })
+const status = defineModel<SyncStatus>('status', { default: SyncStatus.Saved })
 
 const {
   content,
@@ -23,7 +23,7 @@ watch(syncStatus, (value) => (status.value = value), { immediate: true })
 </script>
 
 <template>
-  <p v-if="isLoading" class="p-4 text-sm text-ink-light">Завантаження…</p>
+  <p v-if="isLoading" class="p-1 text-sm text-ink-light">Завантаження…</p>
 
   <div v-else-if="loadError" class="flex items-center gap-3 p-4">
     <span class="text-sm">Не вдалося завантажити нотатку</span>

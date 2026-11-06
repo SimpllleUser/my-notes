@@ -4,5 +4,5 @@ defineProps<{ folderId: string; }>()
 </script>
 
 <template>
-
+  <div />
 </template>

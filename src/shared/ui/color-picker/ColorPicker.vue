@@ -1,19 +1,29 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { usePickerOpen } from '@/shared/lib/usePickerOpen'
-import { UiIconButton, UiPicker } from '@/shared/ui'
-import { ButtonColor, ButtonVariant } from '@/shared/model/enums.ts'
+import UiIconButton from '../UiIconButton.vue'
+import UiPicker from '../UiPicker.vue'
+import { ButtonColor, ButtonVariant, PopoverLocation } from '@/shared/model/enums.ts'
 import { getRandomArrayItem } from '@/shared/utils/arrays.ts'
-import { useColorPicker } from '../model/useColorPicker'
+import { useColorPicker } from './model/useColorPicker'
 import ColorPickerContent from './ColorPickerContent.vue'
 
 const props = withDefaults(
-  defineProps<{ label?: string; autoOpen?: boolean; autoInit?: boolean; popover?: boolean }>(),
+  defineProps<{
+    label?: string
+    autoOpen?: boolean
+    autoInit?: boolean
+    popover?: boolean
+    compact?: boolean
+    location?: PopoverLocation
+  }>(),
   {
     label: 'Обрати колір',
     autoOpen: false,
     autoInit: false,
     popover: true,
+    compact: false,
+    location: PopoverLocation.BottomEnd,
   },
 )
 const model = defineModel<string | undefined>()
@@ -37,7 +47,12 @@ defineExpose({ show, hide, toggle })
 </script>
 
 <template>
-  <UiPicker v-model:open="open" :popover="popover" panel-class="w-56">
+  <UiPicker
+    v-model:open="open"
+    :popover="popover"
+    :location="location"
+    :panel-class="compact ? 'w-36 !p-2' : 'w-56'"
+  >
     <template #trigger="triggerProps">
       <slot name="trigger" v-bind="triggerProps" :value="model">
         <UiIconButton
@@ -51,6 +66,6 @@ defineExpose({ show, hide, toggle })
       </slot>
     </template>
 
-    <ColorPickerContent :label :swatches :model-value="model" @select="select" />
+    <ColorPickerContent :label :swatches :model-value="model" :compact @select="select" />
   </UiPicker>
 </template>

@@ -3,7 +3,8 @@ import { File, Folder, FolderOpen } from '@lucide/vue'
 import { FileTreeSize } from '@/shared/model/enums.ts'
 import { FileTreeNodeType } from '@/shared/model/enums.ts'
 import UiFileTreeNode from './UiFileTreeNode.vue'
-import type { FileTreeNode } from './file-tree.types.ts'
+import type { FileTreeNode } from '../model/file-tree.types.ts'
+import type { VNodeChild } from 'vue'
 
 withDefaults(
   defineProps<{
@@ -11,22 +12,38 @@ withDefaults(
     label?: string
     size?: FileTreeSize
     bordered?: boolean
+    withDoubleClick?: boolean
   }>(),
   {
     label: 'File tree',
     size: FileTreeSize.ExtraSmall,
     bordered: false,
+    withDoubleClick: false,
   },
 )
 
 const selectedId = defineModel<string>({ default: '' })
 const expandedIds = defineModel<string[]>('expanded', { default: () => [] })
-const emit = defineEmits<{ select: [node: FileTreeNode] }>()
+const preSelectedNode = defineModel<FileTreeNode | null>('preSelect', { default: null })
+
+const emit = defineEmits<{ select: [node: FileTreeNode]; 'pre-select': [node: FileTreeNode] }>()
+
+defineSlots<{
+  header?: () => VNodeChild
+  empty?: () => VNodeChild
+  icon?: (props: { node: FileTreeNode; expanded: boolean; selected: boolean }) => VNodeChild
+  label?: (props: { node: FileTreeNode; selected: boolean }) => VNodeChild
+}>()
 
 function handleSelect(node: FileTreeNode) {
   if (node.disabled) return
   selectedId.value = node.id
   emit('select', node)
+}
+function handlePreSelect(node: FileTreeNode) {
+  if (node.disabled) return
+  preSelectedNode.value = node
+  emit('pre-select', node)
 }
 
 function handleToggle(id: string, expanded: boolean) {
@@ -41,7 +58,7 @@ function handleToggle(id: string, expanded: boolean) {
   <ul
     role="tree"
     :aria-label="label"
-    class="menu w-full rounded-box bg-base-200"
+    class="menu w-full rounded-box bg-base-300"
     :class="[
       {
         'menu-xs': size === FileTreeSize.ExtraSmall,
@@ -53,11 +70,15 @@ function handleToggle(id: string, expanded: boolean) {
       },
     ]"
   >
+    <slot name="header"></slot>
     <UiFileTreeNode
       :items="items"
       :selected-id="selectedId"
       :expanded-ids="expandedIds"
       @select="handleSelect"
+      @pre-select="handlePreSelect"
+      :preselected-id="preSelectedNode?.id"
+      :withDoubleClick="withDoubleClick"
       @toggle="handleToggle"
     >
       <template #icon="scope">

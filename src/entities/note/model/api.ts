@@ -1,8 +1,7 @@
 import { tablesDB } from '@/shared/api/appwrite.ts'
 import { ID, type Models, Query, type TablesDB } from 'appwrite'
 import type { APIResponse } from '@/shared/model/types.ts'
-import type { Note } from '@/entities/note'
-import type { NotePayload } from '@/entities/note/model/types.ts'
+import type { Note, NotePayload } from './types'
 
 export class NoteAPI {
   tablesDB: TablesDB

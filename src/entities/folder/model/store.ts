@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import type { Nullable } from '@/shared/model/types.ts'
-import type { Folder } from '@/entities/folder'
-import { folderAPI } from '@/entities/folder/model/api.ts'
-import type { FolderPayload } from '@/entities/folder/model/types.ts'
+import type { Folder } from './types'
+import { folderAPI } from './api'
+import type { FolderPayload } from './types'
 
 export const useFoldersStore = defineStore('folders', {
   state: () =>
@@ -19,16 +19,23 @@ export const useFoldersStore = defineStore('folders', {
   actions: {
     async getAll() {
       const { data, error } = await folderAPI.getAll()
+      if (error) throw error
       this.folders = data
     },
     async create(payload: FolderPayload) {
-       await folderAPI.create(payload)
+      const result = await folderAPI.create(payload)
+      if (result.error) throw result.error
+      return result.data
     },
     async update(payload: Folder) {
-       await folderAPI.update(payload)
+      const { data, error } = await folderAPI.update(payload)
+      if (error) throw error
+      return data
     },
     async delete(payload: string) {
-       await folderAPI.delete(payload)
+      const { data, error } = await folderAPI.delete(payload)
+      if (error) throw error
+      return data
     },
   },
 })

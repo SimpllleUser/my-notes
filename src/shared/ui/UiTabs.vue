@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, useId } from 'vue'
 import { TabsPlacement, TabsSize, TabsVariant } from '@/shared/model/enums.ts'
-import type { UiTabItem } from './tabs.types.ts'
+import type { UiTabItem } from '../model/tabs.types.ts'
 
 const props = withDefaults(
   defineProps<{

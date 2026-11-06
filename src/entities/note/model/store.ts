@@ -1,17 +1,23 @@
 import { defineStore } from 'pinia'
 import type { Nullable } from '@/shared/model/types.ts'
-import { noteAPI } from '@/entities/note/model/api.ts'
-import type { Note } from '@/entities/note'
-import type { NotePayload } from '@/entities/note/model/types.ts'
+import { noteAPI } from './api'
+import type { Note, NotePayload } from './types'
 
 export const useNotesStore = defineStore('notes', {
   state: () =>
     ({
       notes: null,
+      noteByFolders: {},
     }) as {
       notes: Nullable<Note[]>
+      noteByFolders: Record<string, Note[]>
     },
   getters: {
+    getNoteByFolder: (state) => (folderId: string) => {
+      const existKey = folderId in state.noteByFolders
+      if (!folderId || !existKey) return []
+      return state.noteByFolders[folderId] ?? []
+    },
     getNotes:
       (state) =>
       (search = '') => {
@@ -23,19 +29,35 @@ export const useNotesStore = defineStore('notes', {
       },
   },
   actions: {
+    async getByFolder(folderIds: string[]) {
+      const result = await Promise.all(
+        folderIds.map(async (folderId) => {
+          const { data, error } = await noteAPI.getAll(folderId)
+          if (error) throw error
+          return [folderId, data ?? []] as const
+        }),
+      )
+      this.noteByFolders = Object.fromEntries(result)
+    },
     async getAll(folderId: string): Promise<void> {
       const { data, error } = await noteAPI.getAll(folderId)
-      this.notes = data
       if (error) throw error
+      this.notes = data
     },
     async create(payload: NotePayload) {
-      return noteAPI.create(payload)
+      const result = await noteAPI.create(payload)
+      if (result.error) throw result.error
+      return result.data
     },
     async update(payload: Note) {
-      return noteAPI.update(payload)
+      const { data, error } = await noteAPI.update(payload)
+      if (error) throw error
+      return data
     },
     async delete(payload: string) {
-      return noteAPI.delete(payload)
+      const { data, error } = await noteAPI.delete(payload)
+      if (error) throw error
+      return data
     },
   },
 })

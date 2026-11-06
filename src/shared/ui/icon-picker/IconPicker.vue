@@ -2,9 +2,10 @@
 import { onMounted, shallowRef, watch, type Component } from 'vue'
 import { resolveLucideIcon } from '@/shared/lib/lucide'
 import { usePickerOpen } from '@/shared/lib/usePickerOpen'
-import { UiIconButton, UiPicker } from '@/shared/ui'
+import UiIconButton from '../UiIconButton.vue'
+import UiPicker from '../UiPicker.vue'
 import { ButtonColor, ButtonVariant } from '@/shared/model/enums.ts'
-import { useIconPicker } from '../model/useIconPicker'
+import { useIconPicker } from './model/useIconPicker'
 import IconPickerContent from './IconPickerContent.vue'
 
 const props = withDefaults(

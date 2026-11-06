@@ -1,37 +1,129 @@
 <script setup lang="ts">
 import { File, Folder, FolderOpen } from '@lucide/vue'
+import { onBeforeUnmount } from 'vue'
 import { FileTreeNodeType } from '@/shared/model/enums.ts'
-import type { FileTreeNode } from './file-tree.types.ts'
+import type { FileTreeNode } from '../model/file-tree.types.ts'
+import type { VNodeChild } from 'vue'
 
 defineOptions({ name: 'UiFileTreeNode' })
 
-const props = defineProps<{
-  items: FileTreeNode[]
-  selectedId?: string
-  expandedIds: string[]
-}>()
+const props = withDefaults(
+  defineProps<{
+    items: FileTreeNode[]
+    selectedId?: string
+    preselectedId?: string
+    expandedIds: string[]
+    withDoubleClick?: boolean
+  }>(),
+  {
+    withDoubleClick: false,
+  },
+)
 
 const emit = defineEmits<{
   select: [node: FileTreeNode]
+  'pre-select': [node: FileTreeNode]
   toggle: [id: string, expanded: boolean]
 }>()
+
+defineSlots<{
+  icon?: (props: { node: FileTreeNode; expanded: boolean; selected: boolean }) => VNodeChild
+  label?: (props: { node: FileTreeNode; selected: boolean }) => VNodeChild
+}>()
+
+const DOUBLE_ACTIVATION_DELAY_MS = 400
+const SYNTHETIC_CLICK_DELAY_MS = 800
+let pendingActivation: { nodeId: string; timeout: ReturnType<typeof setTimeout> } | null = null
+let suppressedClick: { nodeId: string; timeout: ReturnType<typeof setTimeout> } | null = null
 
 function isExpanded(id: string) {
   return props.expandedIds.includes(id)
 }
 
-function handleFolderClick(event: MouseEvent, node: FileTreeNode) {
+function clearPendingActivation() {
+  if (!pendingActivation) return
+  clearTimeout(pendingActivation.timeout)
+  pendingActivation = null
+}
+
+function clearSuppressedClick() {
+  if (!suppressedClick) return
+  clearTimeout(suppressedClick.timeout)
+  suppressedClick = null
+}
+
+function activateFolder(node: FileTreeNode) {
+  const shouldExpand = !isExpanded(node.id)
+  clearPendingActivation()
+  if (props.withDoubleClick) emit('pre-select', node)
+  emit('select', node)
+  emit('toggle', node.id, shouldExpand)
+}
+
+function handleActivation(event: MouseEvent, node: FileTreeNode, isKeyboardActivation = false) {
   if (node.disabled) {
     event.preventDefault()
     return
   }
 
-  emit('select', node)
+  if (node.type === FileTreeNodeType.Folder) {
+    activateFolder(node)
+    return
+  }
+
+  if (!props.withDoubleClick || (isKeyboardActivation && event.detail === 0)) {
+    clearPendingActivation()
+    emit('select', node)
+    return
+  }
+
+  if (pendingActivation?.nodeId === node.id || event.detail >= 2) {
+    clearPendingActivation()
+    event.preventDefault()
+    emit('select', node)
+    return
+  }
+
+  clearPendingActivation()
+  emit('pre-select', node)
+  pendingActivation = {
+    nodeId: node.id,
+    timeout: setTimeout(clearPendingActivation, DOUBLE_ACTIVATION_DELAY_MS),
+  }
+}
+
+function handlePointerUp(event: PointerEvent, node: FileTreeNode) {
+  if (event.button !== 0 || node.disabled) return
+
+  clearSuppressedClick()
+  suppressedClick = {
+    nodeId: node.id,
+    timeout: setTimeout(clearSuppressedClick, SYNTHETIC_CLICK_DELAY_MS),
+  }
+
+  handleActivation(event, node)
+}
+
+function handleClick(event: MouseEvent, node: FileTreeNode) {
+  if (event.detail !== 0 && suppressedClick?.nodeId === node.id) {
+    event.preventDefault()
+    clearSuppressedClick()
+    return
+  }
+
+  if (event.detail === 0) clearSuppressedClick()
+  if (node.type === FileTreeNodeType.Folder) event.preventDefault()
+  handleActivation(event, node, true)
 }
 
 function handleToggle(event: Event, id: string) {
   emit('toggle', id, (event.currentTarget as HTMLDetailsElement).open)
 }
+
+onBeforeUnmount(() => {
+  clearPendingActivation()
+  clearSuppressedClick()
+})
 </script>
 
 <template>
@@ -43,11 +135,16 @@ function handleToggle(event: Event, id: string) {
     >
       <summary
         role="treeitem"
+        class="touch-manipulation select-none"
         :aria-expanded="isExpanded(node.id)"
         :aria-selected="selectedId === node.id"
         :aria-disabled="node.disabled || undefined"
-        :class="{ 'menu-active': selectedId === node.id }"
-        @click="handleFolderClick($event, node)"
+        :class="{
+          'menu-active': selectedId === node.id,
+          'menu-focus': preselectedId === node.id,
+        }"
+        @pointerup="handlePointerUp($event, node)"
+        @click="handleClick($event, node)"
       >
         <slot
           name="icon"
@@ -69,8 +166,11 @@ function handleToggle(event: Event, id: string) {
         <UiFileTreeNode
           :items="node.children"
           :selected-id="selectedId"
+          :preselected-id="preselectedId"
           :expanded-ids="expandedIds"
+          :with-double-click="withDoubleClick"
           @select="emit('select', $event)"
+          @pre-select="emit('pre-select', $event)"
           @toggle="(id, expanded) => emit('toggle', id, expanded)"
         >
           <template #icon="scope">
@@ -99,10 +199,15 @@ function handleToggle(event: Event, id: string) {
       v-else
       type="button"
       role="treeitem"
+      class="touch-manipulation select-none"
       :aria-selected="selectedId === node.id"
       :disabled="node.disabled"
-      :class="{ 'menu-active': selectedId === node.id }"
-      @click="emit('select', node)"
+      :class="{
+        'text-primary': selectedId === node.id,
+        'menu-focus': preselectedId === node.id,
+      }"
+      @pointerup="handlePointerUp($event, node)"
+      @click="handleClick($event, node)"
     >
       <slot name="icon" :node="node" :expanded="false" :selected="selectedId === node.id">
         <File class="size-4 shrink-0" aria-hidden="true" />

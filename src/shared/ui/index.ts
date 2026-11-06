@@ -12,5 +12,21 @@ export { default as UiLoading } from './UiLoading.vue'
 export { default as UiTabs } from './UiTabs.vue'
 export { default as UiDropdown } from './UiDropdown.vue'
 export { default as UiMenu } from './UiMenu.vue'
-export type { FileTreeNode } from './file-tree.types.ts'
-export type { UiTabItem } from './tabs.types.ts'
+export { default as ColorPicker } from './color-picker/ColorPicker.vue'
+export { default as ColorPickerContent } from './color-picker/ColorPickerContent.vue'
+export { default as IconPicker } from './icon-picker/IconPicker.vue'
+export { default as IconPickerContent } from './icon-picker/IconPickerContent.vue'
+export { default as UiModal } from './modal/UiModal.vue'
+export { useModal, openModal, closeModal } from './modal/modal.ts'
+export { ModalCloseReason } from './modal/modal.ts'
+export type {
+  ModalAction,
+  ModalActionContext,
+  ModalContent,
+  ModalOptions,
+  ModalResult,
+  ModalSlots,
+} from './modal/modal.ts'
+export { default as AppLogo } from './AppLogo.vue'
+export type { FileTreeNode } from '../model/file-tree.types.ts'
+export type { UiTabItem } from '../model/tabs.types.ts'
