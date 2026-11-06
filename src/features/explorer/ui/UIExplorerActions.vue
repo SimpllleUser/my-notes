@@ -31,7 +31,9 @@ function chooseEntity(type: FileEntityTypes, hide: () => void) {
 
 function runAction(action: ExplorerItemAction, node: FileTreeNode | null, hide: () => void) {
   if (node && action === ExplorerItemAction.Edit) emit('edit', node)
-  if (node && action === ExplorerItemAction.Delete) emit('delete', props.selectedNodes)
+  if (node && action === ExplorerItemAction.Delete) {
+    emit('delete', props.selectedNodes.length ? props.selectedNodes : [node])
+  }
   hide()
 }
 </script>
