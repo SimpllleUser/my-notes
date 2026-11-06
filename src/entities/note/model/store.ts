@@ -27,6 +27,10 @@ export const useNotesStore = defineStore('notes', {
           name.toLocaleLowerCase().includes(search.toLocaleLowerCase()),
         )
       },
+    getNoteById: (state) => (noteId: string) => {
+      console.log(state.notes, noteId)
+      return state.notes?.find((note) => note.$id === noteId)
+    },
   },
   actions: {
     async getByFolder(folderIds: string[]) {
