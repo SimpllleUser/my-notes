@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useFolderSelect } from '@/entities/folder'
 import { useNoteSelect } from '@/entities/note'
 import { type FileTreeNode, UiFileTree } from '@/shared/ui'
@@ -40,6 +40,7 @@ const treeItems = computed(() =>
 
 const selectedFolder = defineModel<string>('folder', { default: '' })
 const selectedNote = defineModel<string>('note', { default: '' })
+const selectedTreeId = ref('')
 const preSelect = defineModel<FileTreeNode | null>('preSelected', { default: null })
 const preSelects = ref<FileTreeNode[]>([])
 const expandedFolderIds = ref<string[]>([])
@@ -120,6 +121,21 @@ function expandAllFolders() {
 function collapseAllFolders() {
   expandedFolderIds.value = []
 }
+
+watch(
+  () => [selectedFolder.value, selectedNote.value] as const,
+  ([folderId, noteId]) => {
+    selectedTreeId.value = noteId || folderId
+    const noteFolderId = noteId
+      ? treeItems.value.find((folder) => folder.children?.some((note) => note.id === noteId))?.id
+      : undefined
+    const folderToExpand = folderId || noteFolderId
+    if (folderToExpand && !expandedFolderIds.value.includes(folderToExpand)) {
+      expandedFolderIds.value = [...expandedFolderIds.value, folderToExpand]
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -157,8 +173,9 @@ function collapseAllFolders() {
       @pre-select="onPreSelectTree"
       v-model:pre-select="preSelect"
       v-model:pre-selects="preSelects"
-      :items="treeItems"
       v-model:expanded="expandedFolderIds"
+      v-model="selectedTreeId"
+      :items="treeItems"
     >
       <template #label="scope">
         <span v-bind="scope">{{ scope.node.label }}</span>

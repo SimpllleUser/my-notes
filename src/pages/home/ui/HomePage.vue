@@ -2,15 +2,15 @@
 import { computed, ref } from 'vue'
 import { UIExplorer } from '@/features/explorer'
 import { NoteBlocksEditor } from '@/widgets/note-blocks-editor'
-import { UiStatus } from '@/shared/ui'
 import { getSyncStatusView, SyncStatus } from '@/entities/node'
+import { useLocalStorage } from '@vueuse/core'
 
 defineOptions({
   name: 'HomePage',
 })
 
-const folderId = ref('')
-const noteId = ref('')
+const folderId = useLocalStorage('folderId', '')
+const noteId = useLocalStorage('noteId', '')
 const syncStatus = ref<SyncStatus>(SyncStatus.Saved)
 const statusView = computed(() => getSyncStatusView(syncStatus.value))
 </script>
