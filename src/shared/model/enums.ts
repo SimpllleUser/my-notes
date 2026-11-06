@@ -10,6 +10,11 @@ export enum DaisyColor {
   Error = 'error',
 }
 
+export enum Animate {
+  Ping= 'ping',
+  Bounce= 'bounce'
+}
+
 /** Built-in DaisyUI palettes enabled by the app. */
 export enum ThemePalette {
   Light = 'light',

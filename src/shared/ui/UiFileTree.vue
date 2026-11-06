@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { File, Folder, FolderOpen } from '@lucide/vue'
+import type { VNodeChild } from 'vue'
 import { computed } from 'vue'
-import { FileTreeSize } from '@/shared/model/enums.ts'
-import { FileTreeNodeType } from '@/shared/model/enums.ts'
+import {
+  Animate,
+  ComponentSize,
+  FileTreeNodeType,
+  FileTreeSize,
+  StatusTone,
+} from '@/shared/model/enums.ts'
 import UiFileTreeNode from './UiFileTreeNode.vue'
 import type { FileTreeNode } from '../model/file-tree.types.ts'
-import type { VNodeChild } from 'vue'
+import UiStatus from '@/shared/ui/UiStatus.vue'
 
 withDefaults(
   defineProps<{
