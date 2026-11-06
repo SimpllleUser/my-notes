@@ -46,6 +46,7 @@ const inlineClasses: Record<string, ToolConstructable> = {
   underline: T.Underline,
   inlineCode: T.InlineCode,
   equation: T.Equation,
+  clearFormat: T.ClearFormat,
   supSub: T.SupSub,
 }
 
