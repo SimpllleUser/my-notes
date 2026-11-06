@@ -7,10 +7,11 @@ withDefaults(
   defineProps<{
     name: string
     type: FileEntityTypes | null
+    count?: number
     deleting?: boolean
     error?: string
   }>(),
-  { deleting: false, error: '' },
+  { deleting: false, error: '', count: 1 },
 )
 
 const emit = defineEmits<{ confirm: [] }>()
@@ -20,12 +21,12 @@ const isOpen = defineModel<boolean>('open', { required: true })
 <template>
   <UiModal v-model:open="isOpen" boxClass="!p-3" bodyClass="!py-2" :size="ComponentSize.Small">
     <template #title>
-      <span class="text-sm font-semibold">Delete {{ type === FileEntityTypes.Folder ? 'folder' : 'note' }}?</span>
+      <span class="text-sm font-semibold">{{ count > 1 ? `Delete ${count} items?` : `Delete ${type === FileEntityTypes.Folder ? 'folder' : 'note'}?` }}</span>
     </template>
     <template #body>
       <div class="flex flex-col gap-3">
         <p class="text-sm">
-          Delete <strong>{{ name }}</strong>? This action cannot be undone.
+          {{ count > 1 ? `Delete ${count} selected items?` : 'Delete' }} <strong v-if="count <= 1">{{ name }}</strong>? This action cannot be undone.
           <template v-if="type === FileEntityTypes.Folder">
             Notes inside this folder will also be deleted.
           </template>

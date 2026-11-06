@@ -35,6 +35,7 @@ const treeItems = computed(() =>
 const selectedFolder = defineModel<string>('folder', { default: '' })
 const selectedNote = defineModel<string>('note', { default: '' })
 const preSelect = defineModel<FileTreeNode | null>('preSelected', { default: null })
+const preSelects = ref<FileTreeNode[]>([])
 const expandedFolderIds = ref<string[]>([])
 const {
   isOpen,
@@ -48,7 +49,7 @@ const {
   deleteError,
   open,
   openEdit,
-  requestDelete,
+  requestDeleteMany,
   save,
   remove,
 } = useExplorerEntityActions(
@@ -62,6 +63,7 @@ const {
     ) {
       preSelect.value = null
     }
+    preSelects.value = preSelects.value.filter((node) => node.id !== deleted.entity.$id)
     if (deleted.type === FileEntityTypes.Folder && selectedFolder.value === deleted.entity.$id) {
       selectedFolder.value = ''
       selectedNote.value = ''
@@ -126,15 +128,17 @@ function collapseAllFolders() {
       v-model:open="isDeleteOpen"
       :name="target?.entity.name ?? ''"
       :type="target?.type ?? null"
+      :count="preSelects.length"
       :deleting="isDeleting"
       :error="deleteError"
       @confirm="remove"
     />
     <UIExplorerActions
       :selected-node="preSelect"
+      :selected-nodes="preSelects"
       @create-entity="open"
       @edit="openEdit"
-      @delete="requestDelete"
+      @delete="requestDeleteMany"
       @expand-all="expandAllFolders"
       @collapse-all="collapseAllFolders"
     />
@@ -143,6 +147,7 @@ function collapseAllFolders() {
       @select="onSelectTree"
       @pre-select="onPreSelectTree"
       v-model:pre-select="preSelect"
+      v-model:pre-selects="preSelects"
       :items="treeItems"
       v-model:expanded="expandedFolderIds"
     />

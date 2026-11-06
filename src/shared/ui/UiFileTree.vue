@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { File, Folder, FolderOpen } from '@lucide/vue'
+import { computed } from 'vue'
 import { FileTreeSize } from '@/shared/model/enums.ts'
 import { FileTreeNodeType } from '@/shared/model/enums.ts'
 import UiFileTreeNode from './UiFileTreeNode.vue'
@@ -25,6 +26,7 @@ withDefaults(
 const selectedId = defineModel<string>({ default: '' })
 const expandedIds = defineModel<string[]>('expanded', { default: () => [] })
 const preSelectedNode = defineModel<FileTreeNode | null>('preSelect', { default: null })
+const preSelectedNodes = defineModel<FileTreeNode[]>('preSelects', { default: () => [] })
 
 const emit = defineEmits<{ select: [node: FileTreeNode]; 'pre-select': [node: FileTreeNode] }>()
 
@@ -40,11 +42,20 @@ function handleSelect(node: FileTreeNode) {
   selectedId.value = node.id
   emit('select', node)
 }
-function handlePreSelect(node: FileTreeNode) {
+function handlePreSelect(node: FileTreeNode, additive: boolean) {
   if (node.disabled) return
-  preSelectedNode.value = node
+  const current = preSelectedNodes.value.filter((item) => item.id !== node.id)
+  const next = additive
+    ? preSelectedNodes.value.some((item) => item.id === node.id)
+      ? current
+      : [...preSelectedNodes.value, node]
+    : [node]
+  preSelectedNodes.value = next
+  preSelectedNode.value = next.at(-1) ?? null
   emit('pre-select', node)
 }
+
+const preselectedIds = computed(() => preSelectedNodes.value.map((node) => node.id))
 
 function handleToggle(id: string, expanded: boolean) {
   const ids = new Set(expandedIds.value)
@@ -77,7 +88,7 @@ function handleToggle(id: string, expanded: boolean) {
       :expanded-ids="expandedIds"
       @select="handleSelect"
       @pre-select="handlePreSelect"
-      :preselected-id="preSelectedNode?.id"
+      :preselected-ids="preselectedIds"
       :withDoubleClick="withDoubleClick"
       @toggle="handleToggle"
     >

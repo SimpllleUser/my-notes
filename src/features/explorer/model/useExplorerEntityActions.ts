@@ -20,6 +20,7 @@ export function useExplorerEntityActions(
   const error = ref('')
   const mode = ref(ExplorerFormMode.Create)
   const target = ref<ExplorerEntity | null>(null)
+  const deleteTargets = ref<ExplorerEntity[]>([])
   const isDeleteOpen = ref(false)
   const isDeleting = ref(false)
   const deleteError = ref('')
@@ -55,10 +56,11 @@ export function useExplorerEntityActions(
     isOpen.value = true
   }
 
-  function requestDelete(node: FileTreeNode) {
-    const entity = getEntity(node)
-    if (!entity) return
-    target.value = entity
+  function requestDeleteMany(nodes: FileTreeNode[]) {
+    const entities = nodes.map(getEntity).filter((entity): entity is ExplorerEntity => entity !== null)
+    if (!entities.length) return
+    deleteTargets.value = entities
+    target.value = entities.length === 1 ? (entities[0] ?? null) : null
     deleteError.value = ''
     isDeleteOpen.value = true
   }
@@ -121,29 +123,27 @@ export function useExplorerEntityActions(
   }
 
   async function remove() {
-    const current = target.value
-    if (!current || isDeleting.value) return
+    const targets = deleteTargets.value.length ? deleteTargets.value : target.value ? [target.value] : []
+    if (!targets.length || isDeleting.value) return
     isDeleting.value = true
     deleteError.value = ''
 
     try {
-      if (current.type === FileEntityTypes.Folder) {
-        await notesStore.getByFolder(folderIds.value)
-        const notes = notesStore.getNoteByFolder(current.entity.$id)
-        await Promise.all(notes.map((note) => notesStore.delete(note.$id)))
-        await foldersStore.delete(current.entity.$id)
-        await Promise.all([foldersStore.getAll(), notesStore.getAll(current.entity.$id)])
-        await notesStore.getByFolder(folderIds.value)
-      } else {
-        await notesStore.delete(current.entity.$id)
-        await Promise.all([
-          notesStore.getAll(current.entity.folder),
-          notesStore.getByFolder(folderIds.value),
-        ])
+      const folderTargets = targets.filter((item) => item.type === FileEntityTypes.Folder)
+      const noteTargets = targets.filter((item) => item.type === FileEntityTypes.File)
+      await notesStore.getByFolder(folderIds.value)
+      const notesInFolders = folderTargets.flatMap((item) => notesStore.getNoteByFolder(item.entity.$id))
+      const noteIds = new Set([...notesInFolders.map((note) => note.$id), ...noteTargets.map((item) => item.entity.$id)])
+      await Promise.all([...noteIds].map((id) => notesStore.delete(id)))
+      await Promise.all(folderTargets.map((item) => foldersStore.delete(item.entity.$id)))
+      await Promise.all([foldersStore.getAll(), ...folderIds.value.map((id) => notesStore.getAll(id))])
+      await notesStore.getByFolder(folderIds.value)
+      for (const item of targets) {
+        onEntityDeleted(item)
       }
-      onEntityDeleted(current)
       isDeleteOpen.value = false
       target.value = null
+      deleteTargets.value = []
     } catch (cause) {
       deleteError.value = getErrorMessage(cause)
     } finally {
@@ -163,7 +163,7 @@ export function useExplorerEntityActions(
     deleteError,
     open,
     openEdit,
-    requestDelete,
+    requestDeleteMany,
     save,
     remove,
   }
