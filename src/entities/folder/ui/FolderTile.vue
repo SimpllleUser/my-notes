@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { shallowRef, watch, type Component } from 'vue'
-import { resolveLucideIcon } from '@/shared/lib/lucide'
-import { UiIconButton } from '@/shared/ui'
+import { UiDynamicIcon, UiIconButton } from '@/shared/ui'
 import { ButtonColor, ButtonSize } from '@/shared/model/enums.ts'
 import type { FolderTileData } from '@/entities/folder'
 
@@ -13,27 +11,6 @@ const props = defineProps<{
 
 defineEmits<{ click: []; edit: [FolderTileData]; delete: [FolderTileData] }>()
 
-const iconComponent = shallowRef<Component | null>(null)
-const editIcon = shallowRef<Component | null>(null)
-const deleteIcon = shallowRef<Component | null>(null)
-
-watch(
-  () => props.folder.icon,
-  async (icon) => {
-    iconComponent.value = await resolveLucideIcon(icon)
-  },
-  { immediate: true },
-)
-
-watch(
-  () => props.actions,
-  async (actions) => {
-    if (!actions) return
-    editIcon.value = await resolveLucideIcon('Pencil')
-    deleteIcon.value = await resolveLucideIcon('Trash')
-  },
-  { immediate: true },
-)
 </script>
 
 <template>
@@ -46,7 +23,7 @@ watch(
         class="grid h-20 w-20 place-items-center rounded-xl border-2 border-ink"
         :class="folder.color"
       >
-        <component :is="iconComponent" v-if="iconComponent" :size="40" />
+        <UiDynamicIcon :name="folder.icon" :size="40" />
       </span>
       <span>
         <span class="block truncate font-bold" :class="actions && 'max-sm:pr-24'">{{
@@ -66,7 +43,7 @@ watch(
           :size="ButtonSize.Small"
           @click.stop="$emit('edit', folder)"
         >
-          <component :is="editIcon" v-if="editIcon" :size="14" />
+          <UiDynamicIcon name="Pencil" :size="14" />
         </UiIconButton>
         <UiIconButton
           label="Видалити папку"
@@ -74,7 +51,7 @@ watch(
           :size="ButtonSize.Small"
           @click.stop="$emit('delete', folder)"
         >
-          <component :is="deleteIcon" v-if="deleteIcon" :size="14" />
+          <UiDynamicIcon name="Trash" :size="14" />
         </UiIconButton>
       </div>
     </div>
