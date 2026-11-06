@@ -11,7 +11,7 @@ const props = withDefaults(
   defineProps<{
     items: FileTreeNode[]
     selectedId?: string
-    preselectedId?: string
+    preselectedIds?: string[]
     expandedIds: string[]
     withDoubleClick?: boolean
   }>(),
@@ -22,7 +22,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   select: [node: FileTreeNode]
-  'pre-select': [node: FileTreeNode]
+  'pre-select': [node: FileTreeNode, additive: boolean]
   toggle: [id: string, expanded: boolean]
 }>()
 
@@ -52,10 +52,10 @@ function clearSuppressedClick() {
   suppressedClick = null
 }
 
-function activateFolder(node: FileTreeNode) {
+function activateFolder(node: FileTreeNode, event: MouseEvent) {
   const shouldExpand = !isExpanded(node.id)
   clearPendingActivation()
-  if (props.withDoubleClick) emit('pre-select', node)
+  if (props.withDoubleClick) emit('pre-select', node, event.metaKey || event.ctrlKey)
   emit('select', node)
   emit('toggle', node.id, shouldExpand)
 }
@@ -67,7 +67,7 @@ function handleActivation(event: MouseEvent, node: FileTreeNode, isKeyboardActiv
   }
 
   if (node.type === FileTreeNodeType.Folder) {
-    activateFolder(node)
+    activateFolder(node, event)
     return
   }
 
@@ -85,7 +85,7 @@ function handleActivation(event: MouseEvent, node: FileTreeNode, isKeyboardActiv
   }
 
   clearPendingActivation()
-  emit('pre-select', node)
+  emit('pre-select', node, event.metaKey || event.ctrlKey)
   pendingActivation = {
     nodeId: node.id,
     timeout: setTimeout(clearPendingActivation, DOUBLE_ACTIVATION_DELAY_MS),
@@ -141,7 +141,7 @@ onBeforeUnmount(() => {
         :aria-disabled="node.disabled || undefined"
         :class="{
           'menu-active': selectedId === node.id,
-          'menu-focus': preselectedId === node.id,
+          'menu-focus': preselectedIds?.includes(node.id),
         }"
         @pointerup="handlePointerUp($event, node)"
         @click="handleClick($event, node)"
@@ -166,11 +166,11 @@ onBeforeUnmount(() => {
         <UiFileTreeNode
           :items="node.children"
           :selected-id="selectedId"
-          :preselected-id="preselectedId"
+        :preselected-ids="preselectedIds"
           :expanded-ids="expandedIds"
           :with-double-click="withDoubleClick"
           @select="emit('select', $event)"
-          @pre-select="emit('pre-select', $event)"
+          @pre-select="(node, additive) => emit('pre-select', node, additive)"
           @toggle="(id, expanded) => emit('toggle', id, expanded)"
         >
           <template #icon="scope">
@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
       :disabled="node.disabled"
       :class="{
         'text-primary': selectedId === node.id,
-        'menu-focus': preselectedId === node.id,
+        'menu-focus': preselectedIds?.includes(node.id),
       }"
       @pointerup="handlePointerUp($event, node)"
       @click="handleClick($event, node)"

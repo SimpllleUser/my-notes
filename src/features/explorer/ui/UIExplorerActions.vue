@@ -12,12 +12,12 @@ const BUTTON_PROPS = {
 const emit = defineEmits<{
   'create-entity': [type: FileEntityTypes]
   edit: [node: FileTreeNode]
-  delete: [node: FileTreeNode]
+  delete: [nodes: FileTreeNode[]]
   'expand-all': []
   'collapse-all': []
 }>()
 
-defineProps<{ selectedNode: FileTreeNode | null }>()
+const props = defineProps<{ selectedNode: FileTreeNode | null; selectedNodes: FileTreeNode[] }>()
 
 const entityOptions = [
   { type: FileEntityTypes.File, label: 'Note' },
@@ -31,7 +31,7 @@ function chooseEntity(type: FileEntityTypes, hide: () => void) {
 
 function runAction(action: ExplorerItemAction, node: FileTreeNode | null, hide: () => void) {
   if (node && action === ExplorerItemAction.Edit) emit('edit', node)
-  if (node && action === ExplorerItemAction.Delete) emit('delete', node)
+  if (node && action === ExplorerItemAction.Delete) emit('delete', props.selectedNodes)
   hide()
 }
 </script>
@@ -89,14 +89,14 @@ function runAction(action: ExplorerItemAction, node: FileTreeNode | null, hide: 
           :variant="BUTTON_PROPS.variant"
           :disabled="!selectedNode"
           class="menu-title"
-          aria-label="Edit or delete selected item"
+          :aria-label="props.selectedNodes.length > 1 ? `Actions for ${props.selectedNodes.length} selected items` : 'Edit or delete selected item'"
         >
           <Ellipsis :size="14" />
         </UiButton>
       </template>
       <template #default="{ hide }">
         <li>
-          <button type="button" @click="runAction(ExplorerItemAction.Edit, selectedNode, hide)">
+          <button type="button" :disabled="props.selectedNodes.length > 1" @click="runAction(ExplorerItemAction.Edit, selectedNode, hide)">
             Edit
           </button>
         </li>
@@ -106,7 +106,7 @@ function runAction(action: ExplorerItemAction, node: FileTreeNode | null, hide: 
             class="text-error"
             @click="runAction(ExplorerItemAction.Delete, selectedNode, hide)"
           >
-            Delete
+            Delete{{ props.selectedNodes.length > 1 ? ` (${props.selectedNodes.length})` : '' }}
           </button>
         </li>
       </template>
