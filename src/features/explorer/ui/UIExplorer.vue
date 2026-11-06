@@ -3,16 +3,22 @@ import { computed, ref } from 'vue'
 import { useFolderSelect } from '@/entities/folder'
 import { useNoteSelect } from '@/entities/note'
 import { type FileTreeNode, UiFileTree } from '@/shared/ui'
-import { FileTreeNodeType } from '@/shared/model/enums.ts'
+import { Animate, ComponentSize, FileTreeNodeType, StatusTone } from '@/shared/model/enums.ts'
 import UIExplorerActions from './UIExplorerActions.vue'
 import FolderCreateModal from './FolderCreateModal.vue'
 import ExplorerDeleteModal from './ExplorerDeleteModal.vue'
 import { useExplorerEntityActions } from '../model/useExplorerEntityActions'
 import { FileEntityTypes } from '../model/types'
+import { type StatusView, SyncStatus } from '@/entities/node'
+import UiStatus from '../../../shared/ui/UiStatus.vue'
 
 defineOptions({
   name: 'UIExplorer',
 })
+
+defineProps<{
+  status: StatusView
+}>()
 
 const { folders } = useFolderSelect()
 const folderIds = computed(() => folders.value.map((folder) => folder.$id))
@@ -88,10 +94,13 @@ function onPreSelectTree(node: FileTreeNode) {
     return
   }
 
-  const parentFolder = treeItems.value.find((folder) => folder.children?.some((note) => note.id === node.id))
+  const parentFolder = treeItems.value.find((folder) =>
+    folder.children?.some((note) => note.id === node.id),
+  )
   if (parentFolder) {
     selectedFolder.value = parentFolder.id
-    if (!expandedFolderIds.value.includes(parentFolder.id)) expandedFolderIds.value.push(parentFolder.id)
+    if (!expandedFolderIds.value.includes(parentFolder.id))
+      expandedFolderIds.value.push(parentFolder.id)
   }
 }
 
@@ -150,7 +159,18 @@ function collapseAllFolders() {
       v-model:pre-selects="preSelects"
       :items="treeItems"
       v-model:expanded="expandedFolderIds"
-    />
+    >
+      <template #label="scope">
+        <span v-bind="scope">{{ scope.node.label }}</span>
+        <UiStatus
+          v-if="!scope.node?.children && scope.selected && status.status === SyncStatus.Saving"
+          :size="ComponentSize.Medium"
+          :tone="StatusTone.Warning"
+          :animate="Animate.Bounce"
+        />
+        <span v-else class="pr-4"></span>
+      </template>
+    </UiFileTree>
   </div>
 </template>
 

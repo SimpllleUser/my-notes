@@ -18,12 +18,15 @@ const statusView = computed(() => getSyncStatusView(syncStatus.value))
 <template>
   <div class="grid grid-cols-12">
     <aside class="col-span-2 h-screen bg-base-300">
-      <UIExplorer class="w-full" v-model:folder="folderId" v-model:note="noteId" />
+      <UIExplorer
+        :status="statusView"
+        class="w-full"
+        v-model:folder="folderId"
+        v-model:note="noteId"
+      />
     </aside>
     <main class="col-span-10 pl-2 border-l-4 border-l-base-300">
       <div class="folder-list-wrapper p-8x overflow-y-auto">
-        <UiStatus :label="statusView.label" :tone="statusView.tone" />
-
         <NoteBlocksEditor
           v-if="noteId"
           :key="`${noteId}`"
