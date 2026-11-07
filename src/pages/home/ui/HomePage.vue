@@ -8,6 +8,7 @@ import { useFoldersStore } from '@/entities/folder'
 import { useNotesStore } from '@/entities/note'
 import { UiDivider, UiDynamicIcon } from '@/shared/ui'
 import { MoveRight } from '@lucide/vue'
+import { FolderColor } from '@/shared/model/enums.ts'
 
 defineOptions({
   name: 'HomePage',
@@ -42,17 +43,22 @@ const noteTitle = computed(
       <div class="folder-list-wrapper p-8x overflow-y-auto">
         <div class="flex items-end p-4 pb-0">
           <div class="pr-2">
-            <UiDynamicIcon v-if="folder?.icon" :name="folder.icon" :size="40" />
+            <div :class="folder?.color" class="p-1 rounded-sm">
+              <UiDynamicIcon
+                v-if="folder?.icon"
+                :name="folder.icon"
+                class="text-ink"
+                :size="30"
+              />
+            </div>
           </div>
-          <div class="text-4xl opacity-80">
+          <div class="text-4xl">
             {{ folder?.name || '' }}
           </div>
-          <div class="px-4 text-2xl opacity-40">
-            \
-          </div>
+          <div class="px-4 text-2xl opacity-40">\</div>
           <div class="text-2xl opacity-60">{{ noteTitle }}</div>
         </div>
-        <UiDivider class="mr-1"/>
+        <UiDivider class="mr-1" />
         <NoteBlocksEditor
           v-if="noteId"
           :key="`${noteId}`"

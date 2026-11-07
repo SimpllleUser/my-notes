@@ -11,8 +11,8 @@ export enum DaisyColor {
 }
 
 export enum Animate {
-  Ping= 'ping',
-  Bounce= 'bounce'
+  Ping = 'ping',
+  Bounce = 'bounce',
 }
 
 /** Built-in DaisyUI palettes enabled by the app. */
@@ -175,20 +175,38 @@ export enum PopoverSide {
 }
 
 export enum FolderColor {
-  Primary = 'bg-primary',
-  Yellow = 'bg-primary-yellow',
-  Blue = 'bg-secondary-blue',
-  Purple = 'bg-secondary-purple',
-  Green = 'bg-secondary-green',
-  Red = 'bg-secondary-red',
-  Cyan = 'bg-secondary-cyan',
-  Teal = 'bg-secondary-teal',
-  Lime = 'bg-secondary-lime',
-  Mint = 'bg-accent-mint',
-  Orange = 'bg-accent-orange',
-  Gold = 'bg-accent-gold',
-  Sky = 'bg-accent-sky',
-  Lavender = 'bg-accent-lavender',
-  Brown = 'bg-accent-brown',
-  Ink = 'bg-ink',
+  Red = 'bg-red-500',
+  Orange = 'bg-orange-500',
+  Amber = 'bg-amber-500',
+  Yellow = 'bg-yellow-500',
+  Lime = 'bg-lime-500',
+  Green = 'bg-green-500',
+  Emerald = 'bg-emerald-500',
+  Teal = 'bg-teal-500',
+  Cyan = 'bg-cyan-500',
+  Sky = 'bg-sky-500',
+  Blue = 'bg-blue-500',
+  Indigo = 'bg-indigo-500',
+  Violet = 'bg-violet-500',
+  Purple = 'bg-purple-500',
+  Fuchsia = 'bg-fuchsia-500',
+  Pink = 'bg-pink-500',
+  Rose = 'bg-rose-500',
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
