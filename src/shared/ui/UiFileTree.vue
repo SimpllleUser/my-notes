@@ -3,15 +3,11 @@ import { File, Folder, FolderOpen } from '@lucide/vue'
 import type { VNodeChild } from 'vue'
 import { computed } from 'vue'
 import {
-  Animate,
-  ComponentSize,
   FileTreeNodeType,
   FileTreeSize,
-  StatusTone,
 } from '@/shared/model/enums.ts'
 import UiFileTreeNode from './UiFileTreeNode.vue'
 import type { FileTreeNode } from '../model/file-tree.types.ts'
-import UiStatus from '@/shared/ui/UiStatus.vue'
 
 withDefaults(
   defineProps<{

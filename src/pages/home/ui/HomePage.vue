@@ -7,8 +7,6 @@ import { useLocalStorage } from '@vueuse/core'
 import { useFoldersStore } from '@/entities/folder'
 import { useNotesStore } from '@/entities/note'
 import { UiDivider, UiDynamicIcon } from '@/shared/ui'
-import { MoveRight } from '@lucide/vue'
-import { FolderColor } from '@/shared/model/enums.ts'
 
 defineOptions({
   name: 'HomePage',
