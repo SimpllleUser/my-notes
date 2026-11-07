@@ -7,7 +7,9 @@ import { ButtonSize } from '@/shared/model/enums.ts'
 
 defineOptions({ name: 'NoteBlocksEditor' })
 
-const props = defineProps<{ noteId: string }>()
+const props = withDefaults(defineProps<{ noteId: string; fullSize?: boolean }>(), {
+  fullSize: false,
+})
 const status = defineModel<SyncStatus>('status', { default: SyncStatus.Saved })
 
 const {
@@ -30,5 +32,5 @@ watch(syncStatus, (value) => (status.value = value), { immediate: true })
     <UiButton :size="ButtonSize.Small" @click="reload">Спробувати ще раз</UiButton>
   </div>
 
-  <TextEditor v-else-if="content" :content="content" @update="schedule" />
+  <TextEditor v-else-if="content" :content="content" :fullSize="fullSize" @update="schedule" />
 </template>

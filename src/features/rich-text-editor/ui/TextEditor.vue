@@ -19,28 +19,42 @@ const BlokEditor = RawBlokEditor as unknown as DefineComponent<EditorProps>
 
 defineOptions({ name: 'TextEditor' })
 
-defineProps<{ content: OutputData }>()
+const props = defineProps<{ content: OutputData; fullSize: boolean }>()
 const emit = defineEmits<{ update: [data: OutputData] }>()
 
 const { theme } = useTheme()
 const editorTheme = computed(() =>
-  [ThemePalette.Dark, ThemePalette.Dracula, ThemePalette.Night, ThemePalette.Dim].includes(theme.value)
+  [
+    ThemePalette.Light,
+    ThemePalette.Dark,
+    ThemePalette.Pastel,
+    ThemePalette.Fantasy,
+    ThemePalette.Dracula,
+    ThemePalette.Night,
+    ThemePalette.Dim,
+  ].includes(theme.value)
     ? 'dark'
     : 'light',
 )
 
-const style = {
-  tokens: {
-    '--blok-text-primary': 'var(--color-base-content)',
-    '--blok-popover-bg': 'var(--color-base-100)',
-    '--blok-bg-light': 'color-mix(in srgb, var(--color-base-content) 8%, transparent)',
-    '--blok-bg-secondary': 'color-mix(in srgb, var(--color-base-content) 5%, transparent)',
-    '--blok-bg-tertiary': 'color-mix(in srgb, var(--color-base-content) 8%, transparent)',
-    '--blok-border-secondary': 'color-mix(in srgb, var(--color-base-content) 12%, transparent)',
-    '--blok-selection': 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
-    '--blok-placeholder-color': 'color-mix(in srgb, var(--color-base-content) 45%, transparent)',
-  },
-}
+const style = computed(() => {
+  const fullSizeToken = props.fullSize ? {
+    '--blok-content-max-width': '100%',
+  } : {}
+  return {
+    tokens: {
+      ...fullSizeToken,
+      '--blok-text-primary': 'var(--color-base-content)',
+      '--blok-popover-bg': 'var(--color-base-100)',
+      '--blok-bg-light': 'color-mix(in srgb, var(--color-base-content) 8%, transparent)',
+      '--blok-bg-secondary': 'color-mix(in srgb, var(--color-base-content) 5%, transparent)',
+      '--blok-bg-tertiary': 'color-mix(in srgb, var(--color-base-content) 8%, transparent)',
+      '--blok-border-secondary': 'color-mix(in srgb, var(--color-base-content) 12%, transparent)',
+      '--blok-selection': 'color-mix(in srgb, var(--color-primary) 30%, transparent)',
+      '--blok-placeholder-color': 'color-mix(in srgb, var(--color-base-content) 45%, transparent)',
+    },
+  }
+})
 
 function handleSave(data: OutputData) {
   emit('update', data)
@@ -51,19 +65,20 @@ function handleSave(data: OutputData) {
   <div class="min-h-[70dvh] bg-base-100 shadow-sm note-editor">
     <div class="pb-10">
       <BlokEditor
+        class="editor-fullscreen"
         :tools="tools"
         :inline-toolbar="inlineToolbar"
         :data="content"
         :style="style"
         :theme="editorTheme"
         @save="handleSave"
+        width="100%"
       />
     </div>
   </div>
 </template>
 
-<style>
-/* Токени гуттера Blok оголошує на самій обгортці, тому правило має бути на ній, а не на предку */
+<style scoped>
 .note-editor [data-blok-interface] {
   --blok-editor-gutter-start: 56px;
 }
