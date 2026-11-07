@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import { useFolderSelect } from '@/entities/folder'
 import { useNoteSelect } from '@/entities/note'
-import { type FileTreeNode, UiFileTree } from '@/shared/ui'
+import { type FileTreeNode, UiDynamicIcon, UiFileTree } from '@/shared/ui'
 import { Animate, ComponentSize, FileTreeNodeType, StatusTone } from '@/shared/model/enums.ts'
 import UIExplorerActions from './UIExplorerActions.vue'
 import FolderCreateModal from './FolderCreateModal.vue'
@@ -29,6 +29,7 @@ const treeItems = computed(() =>
     id: folder.$id,
     label: folder.name,
     type: FileTreeNodeType.Folder,
+    icon: folder.icon,
     children:
       getNoteByFolder(folder.$id)?.map((note) => ({
         id: note.$id,
@@ -136,6 +137,16 @@ watch(
   },
   { immediate: true },
 )
+
+const folderMap = computed(() =>
+  folders.value.reduce(
+    (acc, folder) => ({
+      ...acc,
+      [folder.$id]: folder,
+    }),
+    {},
+  ),
+)
 </script>
 
 <template>
@@ -177,6 +188,11 @@ watch(
       v-model="selectedTreeId"
       :items="treeItems"
     >
+      <template #icon="scope">
+        <div v-if="scope.node?.children" class="p-1 rounded-sm" :class="folderMap[scope.node.id]?.color">
+          <UiDynamicIcon :name="folderMap[scope.node.id]?.icon" class="size-4 shrink-0" />
+        </div>
+      </template>
       <template #label="scope">
         <span v-bind="scope">{{ scope.node.label }}</span>
         <UiStatus
