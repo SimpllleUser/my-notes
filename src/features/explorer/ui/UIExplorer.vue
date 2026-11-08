@@ -150,7 +150,7 @@ const folderMap = computed(() =>
 </script>
 
 <template>
-  <div>
+  <div class="flex h-full min-h-0 flex-col">
     <FolderCreateModal
       v-model="isOpen"
       :type="type"
@@ -170,6 +170,7 @@ const folderMap = computed(() =>
       @confirm="remove"
     />
     <UIExplorerActions
+      class="relative z-10 shrink-0"
       :selected-node="preSelect"
       :selected-nodes="preSelects"
       @create-entity="open"
@@ -178,6 +179,7 @@ const folderMap = computed(() =>
       @expand-all="expandAllFolders"
       @collapse-all="collapseAllFolders"
     />
+    <div class="min-h-0 flex-1 overflow-y-auto">
     <UiFileTree
       withDoubleClick
       @select="onSelectTree"
@@ -204,6 +206,7 @@ const folderMap = computed(() =>
         <span v-else class="pr-4"></span>
       </template>
     </UiFileTree>
+    </div>
   </div>
 </template>
 

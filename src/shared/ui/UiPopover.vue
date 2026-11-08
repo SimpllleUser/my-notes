@@ -4,6 +4,7 @@ import {
   mergeProps,
   onBeforeUnmount,
   onMounted,
+  nextTick,
   ref,
   useId,
   watch,
@@ -88,6 +89,8 @@ const model = defineModel<boolean>({ default: false })
 const uid = useId()
 const contentId = computed(() => props.id ?? `ui-popover-${uid}`)
 const rootRef = ref<HTMLElement | null>(null)
+const panelRef = ref<HTMLElement | null>(null)
+const floatingStyle = ref<CSSProperties>({ position: 'fixed', top: '0px', left: '0px' })
 
 const SIDES: Record<string, PopoverSide> = {
   top: PopoverSide.Top,
@@ -109,33 +112,52 @@ function parseLocation(location: PopoverLocation): { side: PopoverSide; align: P
   return { side, align }
 }
 
-const panelStyle = computed<CSSProperties>(() => {
-  const { side } = parseLocation(props.location)
-  const gap = `${props.offset}px`
-  const style: CSSProperties = {}
+function updatePanelPosition() {
+  const activator = rootRef.value?.firstElementChild as HTMLElement | null
+  const panel = panelRef.value
+  if (!activator || !panel) return
 
-  switch (side) {
-    case PopoverSide.Top:
-      style.marginBottom = gap
-      break
-    case PopoverSide.Bottom:
-      style.marginTop = gap
-      break
-    case PopoverSide.Left:
-      style.marginRight = gap
-      break
-    case PopoverSide.Right:
-      style.marginLeft = gap
-      break
-    case PopoverSide.Center:
-      style.top = '50%'
-      style.left = '50%'
-      style.transform = 'translate(-50%, -50%)'
-      return style
+  const anchor = activator.getBoundingClientRect()
+  const bounds = panel.getBoundingClientRect()
+  const { side, align } = parseLocation(props.location)
+  let top = anchor.bottom + props.offset
+  let left = anchor.left
+
+  if (side === PopoverSide.Top) top = anchor.top - bounds.height - props.offset
+  if (side === PopoverSide.Left) {
+    top = anchor.top
+    left = anchor.left - bounds.width - props.offset
+  }
+  if (side === PopoverSide.Right) {
+    top = anchor.top
+    left = anchor.right + props.offset
+  }
+  if (side === PopoverSide.Center) {
+    top = (window.innerHeight - bounds.height) / 2
+    left = (window.innerWidth - bounds.width) / 2
+  } else if (side === PopoverSide.Top || side === PopoverSide.Bottom) {
+    if (align === PopoverAlign.Center) left = anchor.left + (anchor.width - bounds.width) / 2
+    if (align === PopoverAlign.End) left = anchor.right - bounds.width
+  } else if (align === PopoverAlign.Center) {
+    top = anchor.top + (anchor.height - bounds.height) / 2
+  } else if (align === PopoverAlign.End) {
+    top = anchor.bottom - bounds.height
   }
 
-  return style
+  left = Math.max(8, Math.min(left, window.innerWidth - bounds.width - 8))
+  top = Math.max(8, Math.min(top, window.innerHeight - bounds.height - 8))
+  floatingStyle.value = { position: 'fixed', top: `${top}px`, left: `${left}px` }
+}
+
+watch(model, async (isOpen) => {
+  if (!isOpen) return
+  await nextTick()
+  updatePanelPosition()
 })
+
+function updateOpenPanelPosition() {
+  if (model.value) updatePanelPosition()
+}
 
 const locationClasses = computed(() => {
   const { side, align } = parseLocation(props.location)
@@ -236,7 +258,10 @@ const activatorSlotProps = computed(() =>
 
 function handleClickOutside(event: MouseEvent) {
   if (!model.value || props.disabled) return
-  if (rootRef.value && rootRef.value.contains(event.target as globalThis.Node)) return
+  if (
+    (rootRef.value && rootRef.value.contains(event.target as globalThis.Node)) ||
+    (panelRef.value && panelRef.value.contains(event.target as globalThis.Node))
+  ) return
   emit('click:outside', event)
   if (!props.persistent) hide()
 }
@@ -249,6 +274,8 @@ function syncOutsideListener(isOpen: boolean) {
 onMounted(() => {
   syncOutsideListener(model.value)
   watch(model, syncOutsideListener)
+  window.addEventListener('resize', updateOpenPanelPosition)
+  window.addEventListener('scroll', updateOpenPanelPosition, true)
 })
 
 watch(
@@ -262,6 +289,8 @@ watch(
 onBeforeUnmount(() => {
   clearTimers()
   document.removeEventListener('pointerdown', handleClickOutside)
+  window.removeEventListener('resize', updateOpenPanelPosition)
+  window.removeEventListener('scroll', updateOpenPanelPosition, true)
 })
 
 defineExpose({ isActive: model, show, hide, toggle })
@@ -275,18 +304,20 @@ defineExpose({ isActive: model, show, hide, toggle })
   >
     <slot name="activator" :is-active="model" :props="activatorSlotProps" />
 
-    <div
-      v-if="eager || model"
-      v-show="model"
-      tabindex="0"
-      :id="contentId"
-      v-bind="contentProps"
-      class="dropdown-content z-20 max-w-[calc(100vw-2rem)] rounded-box bg-base-100 p-4 shadow-xl"
-      :class="contentClass"
-      :style="panelStyle"
-      @mouseenter="onContentEnter"
-      @mouseleave="onContentLeave"
-    >
+    <Teleport to="body">
+      <div
+        v-if="eager || model"
+        ref="panelRef"
+        v-show="model"
+        tabindex="0"
+        :id="contentId"
+        v-bind="contentProps"
+        class="fixed z-[9999] max-w-[calc(100vw-2rem)] rounded-box bg-base-100 p-4 shadow-xl"
+        :class="contentClass"
+        :style="floatingStyle"
+        @mouseenter="onContentEnter"
+        @mouseleave="onContentLeave"
+      >
       <div v-if="$slots.header" class="pb-2 font-semibold">
         <slot name="header" :is-active="model" :hide="hide" />
       </div>
@@ -297,6 +328,7 @@ defineExpose({ isActive: model, show, hide, toggle })
       <div v-if="$slots.actions" class="flex justify-end gap-2 pt-2">
         <slot name="actions" :is-active="model" :hide="hide" />
       </div>
-    </div>
+      </div>
+    </Teleport>
   </div>
 </template>

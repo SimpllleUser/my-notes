@@ -83,7 +83,7 @@ function runAction(action: ExplorerItemAction, node: FileTreeNode | null, hide: 
     >
       <ListChevronsDownUp :size="12" />
     </UiButton>
-    <UiDropdown label="Selected item actions" :disabled="!selectedNode" content-class="w-36 p-1">
+    <UiDropdown label="Selected item actions" :disabled="!props.selectedNode" content-class="w-36 p-1">
       <template #trigger="{ props: triggerProps }">
         <UiButton
           v-bind="triggerProps"
