@@ -6,7 +6,7 @@ defineProps<{ folder: Folder; noteTitle: string }>()
 </script>
 
 <template>
-  <div class="flex items-center min-w-0 flex-wrap py-2 px-4">
+  <div class="sticky top-0 z-30 flex items-center min-w-0 flex-wrap bg-base-100 py-2 px-4">
     <div class="flex justify-between items-center w-full">
       <div class="flex items-end">
         <div class="shrink-0 pr-2">
