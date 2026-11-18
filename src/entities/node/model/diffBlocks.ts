@@ -1,4 +1,5 @@
 import type { OutputBlockData } from '@bloklabs/core'
+import { ChangeAction } from './types'
 
 /** Блок разом з його позицією (дробовий `order`). */
 export interface BlockEntry {
@@ -7,11 +8,11 @@ export interface BlockEntry {
 }
 
 export type BlockChange =
-  | { action: 'create'; entry: BlockEntry }
-  | { action: 'update'; entry: BlockEntry }
-  | { action: 'delete'; blockId: string }
+  | { action: ChangeAction.Create; entry: BlockEntry }
+  | { action: ChangeAction.Update; entry: BlockEntry }
+  | { action: ChangeAction.Delete; blockId: string }
 
-const isSameEntry = (a: BlockEntry, b: BlockEntry) =>
+export const isSameEntry = (a: BlockEntry, b: BlockEntry) =>
   a.order === b.order && JSON.stringify(a.block) === JSON.stringify(b.block)
 
 /**
@@ -34,12 +35,12 @@ export function diffBlocks(
     seen.add(id)
 
     const before = committed.get(id)
-    if (!before) changes.push({ action: 'create', entry })
-    else if (!isSameEntry(before, entry)) changes.push({ action: 'update', entry })
+    if (!before) changes.push({ action: ChangeAction.Create, entry })
+    else if (!isSameEntry(before, entry)) changes.push({ action: ChangeAction.Update, entry })
   }
 
   for (const id of committed.keys()) {
-    if (!seen.has(id)) changes.push({ action: 'delete', blockId: id })
+    if (!seen.has(id)) changes.push({ action: ChangeAction.Delete, blockId: id })
   }
 
   return changes
