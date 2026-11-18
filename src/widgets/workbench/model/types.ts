@@ -4,6 +4,8 @@ export interface EditorGroup {
   /** id нотаток у порядку відображення */
   tabs: string[]
   activeTab: string | null
+  /** Відносна ширина групи (flex-grow); сума розподіляється пропорційно. */
+  size: number
 }
 
 export interface WorkbenchState {

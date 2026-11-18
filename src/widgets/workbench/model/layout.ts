@@ -6,10 +6,18 @@ import type { EditorGroup, WorkbenchState } from './types'
  * ніколи не пишуть в одну нотатку одночасно).
  */
 
-const createGroup = (tabs: string[] = []): EditorGroup => ({
+/**
+ * Розміри груп — частки ширини, їх сума завжди дорівнює 1.
+ * Це важливо: flex-grow із сумою < 1 не заповнює весь вільний простір.
+ */
+export const MIN_GROUP_SIZE = 0.1
+const DEFAULT_GROUP_SIZE = 1
+
+const createGroup = (tabs: string[] = [], size = DEFAULT_GROUP_SIZE): EditorGroup => ({
   id: crypto.randomUUID(),
   tabs,
   activeTab: tabs[0] ?? null,
+  size,
 })
 
 export function createInitialState(): WorkbenchState {
@@ -22,6 +30,12 @@ const findGroup = (state: WorkbenchState, groupId: string) =>
 
 const findGroupByTab = (state: WorkbenchState, noteId: string) =>
   state.groups.find((group) => group.tabs.includes(noteId))
+
+/** Приводить розміри до часток із сумою 1 (після видалення групи тощо). */
+function normalizeSizes(groups: EditorGroup[]): EditorGroup[] {
+  const total = groups.reduce((sum, group) => sum + group.size, 0)
+  return groups.map((group) => ({ ...group, size: group.size / total }))
+}
 
 const replaceGroup = (state: WorkbenchState, updated: EditorGroup): WorkbenchState => ({
   ...state,
@@ -45,7 +59,7 @@ function dropIfEmpty(state: WorkbenchState, groupId: string): WorkbenchState {
   const group = state.groups[index]
   if (!group || group.tabs.length > 0 || state.groups.length === 1) return state
 
-  const groups = state.groups.filter((item) => item.id !== groupId)
+  const groups = normalizeSizes(state.groups.filter((item) => item.id !== groupId))
   const activeGroupId =
     state.activeGroupId === groupId
       ? (groups[index] ?? groups[index - 1]).id
@@ -92,9 +106,11 @@ export function splitRight(state: WorkbenchState, groupId: string, noteId: strin
   const source = findGroup(state, groupId)
   if (!source?.tabs.includes(noteId) || source.tabs.length < 2) return state
 
-  const created = createGroup([noteId])
+  // Нова група забирає половину ширини тієї, з якої вийшла вкладка.
+  const halfSize = source.size / 2
+  const created = createGroup([noteId], halfSize)
   const groups = state.groups.map((group) =>
-    group.id === groupId ? withoutTab(group, noteId) : group,
+    group.id === groupId ? { ...withoutTab(group, noteId), size: halfSize } : group,
   )
   groups.splice(state.groups.indexOf(source) + 1, 0, created)
   return { groups, activeGroupId: created.id }
@@ -113,6 +129,28 @@ export function moveTab(state: WorkbenchState, noteId: string, toGroupId: string
   return dropIfEmpty({ ...moved, activeGroupId: target.id }, source.id)
 }
 
+/**
+ * Зсуває межу між групою і наступною за нею: `delta` — у тих самих одиницях, що й `size`.
+ * Сума розмірів пари не змінюється, кожна з них не менша за MIN_GROUP_SIZE.
+ */
+export function resizeGroups(
+  state: WorkbenchState,
+  leftGroupId: string,
+  delta: number,
+): WorkbenchState {
+  const index = state.groups.findIndex((group) => group.id === leftGroupId)
+  const left = state.groups[index]
+  const right = state.groups[index + 1]
+  if (!left || !right) return state
+
+  const total = left.size + right.size
+  const leftSize = Math.min(Math.max(left.size + delta, MIN_GROUP_SIZE), total - MIN_GROUP_SIZE)
+  const groups = [...state.groups]
+  groups[index] = { ...left, size: leftSize }
+  groups[index + 1] = { ...right, size: total - leftSize }
+  return { ...state, groups }
+}
+
 /** Закриває вкладки нотаток, яких більше не існує (наприклад, після видалення). */
 export function retainTabs(state: WorkbenchState, existing: ReadonlySet<string>): WorkbenchState {
   return state.groups
@@ -124,7 +162,7 @@ export function retainTabs(state: WorkbenchState, existing: ReadonlySet<string>)
     }, state)
 }
 
-const isGroup = (value: unknown): value is EditorGroup => {
+const isGroup = (value: unknown): value is Omit<EditorGroup, 'size'> & { size?: number } => {
   const group = value as EditorGroup
   return (
     typeof group?.id === 'string' &&
@@ -143,7 +181,15 @@ export function parseState(raw: string | null): WorkbenchState {
       parsed.groups.length > 0 &&
       parsed.groups.every(isGroup) &&
       parsed.groups.some((group) => group.id === parsed.activeGroupId)
-    return valid ? parsed : createInitialState()
+    if (!valid) return createInitialState()
+    // Стан зі старих версій міг не мати size.
+    const groups = normalizeSizes(
+      parsed.groups.map((group) => ({
+        ...group,
+        size: group.size > 0 ? group.size : DEFAULT_GROUP_SIZE,
+      })),
+    )
+    return { ...parsed, groups }
   } catch {
     return createInitialState()
   }

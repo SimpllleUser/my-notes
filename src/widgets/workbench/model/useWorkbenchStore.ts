@@ -35,6 +35,8 @@ export const useWorkbenchStore = defineStore('workbench', () => {
       apply((s) => layout.splitRight(s, groupId, noteId)),
     moveTab: (noteId: string, toGroupId: string) =>
       apply((s) => layout.moveTab(s, noteId, toGroupId)),
+    resizeGroups: (leftGroupId: string, delta: number) =>
+      apply((s) => layout.resizeGroups(s, leftGroupId, delta)),
     retainTabs: (existing: ReadonlySet<string>) => apply((s) => layout.retainTabs(s, existing)),
   }
 })

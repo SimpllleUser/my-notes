@@ -29,7 +29,8 @@ function setStatus(noteId: string, status: SyncStatus) {
 
 <template>
   <section
-    class="flex min-h-0 min-w-0 flex-1 flex-col border-base-300 not-first:border-t md:not-first:border-t-0 md:not-first:border-l"
+    class="flex min-h-0 min-w-0 flex-1 flex-col border-base-300 not-first:border-t md:grow-(--group-size) md:not-first:border-t-0"
+    :style="{ '--group-size': group.size }"
     @pointerdown.capture="store.focusGroup(group.id)"
   >
     <WorkbenchTabs
