@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import { UIExplorer } from '@/features/explorer'
+import { AppendImportButton, UIExplorer } from '@/features/explorer'
 import { EditorWorkbench, useWorkbenchStore } from '@/widgets/workbench'
 import { getSyncStatusView, SyncStatus } from '@/entities/node'
 import { useLocalStorage } from '@vueuse/core'
@@ -71,28 +71,30 @@ watch(
             :note-title="getHeaderData(headerNoteId).noteTitle"
           >
             <template #actions>
-              <UiButton
-                @click="readMode = !readMode"
-                :size="ComponentSize.Small"
-                :variant="ButtonVariant.Ghost"
-                :color="DaisyColor.Neutral"
-                :title="readMode ? 'Режим редагування' : 'Режим читання'"
-                :aria-label="readMode ? 'Режим редагування' : 'Режим читання'"
-                :aria-pressed="readMode"
-                class="ml-auto"
-              >
-                <Pencil :size="16" v-if="readMode" />
-                <BookOpen :size="16" v-else />
-              </UiButton>
-              <UiButton
-                @click="fullSizeEditor = !fullSizeEditor"
-                :size="ComponentSize.Small"
-                :variant="ButtonVariant.Ghost"
-                :color="DaisyColor.Neutral"
-              >
-                <Maximize :size="16" v-if="fullSizeEditor" />
-                <Minimize :size="16" v-else />
-              </UiButton>
+              <div>
+                <AppendImportButton :note-id="headerNoteId" class="ml-auto" />
+                <UiButton
+                  @click="readMode = !readMode"
+                  :size="ComponentSize.Small"
+                  :variant="ButtonVariant.Ghost"
+                  :color="DaisyColor.Neutral"
+                  :title="readMode ? 'Режим редагування' : 'Режим читання'"
+                  :aria-label="readMode ? 'Режим редагування' : 'Режим читання'"
+                  :aria-pressed="readMode"
+                >
+                  <Pencil :size="16" v-if="readMode" />
+                  <BookOpen :size="16" v-else />
+                </UiButton>
+                <UiButton
+                  @click="fullSizeEditor = !fullSizeEditor"
+                  :size="ComponentSize.Small"
+                  :variant="ButtonVariant.Ghost"
+                  :color="DaisyColor.Neutral"
+                >
+                  <Maximize :size="16" v-if="fullSizeEditor" />
+                  <Minimize :size="16" v-else />
+                </UiButton>
+              </div>
             </template>
           </HomePageHeader>
         </template>

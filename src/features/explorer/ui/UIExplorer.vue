@@ -7,7 +7,9 @@ import { Animate, ComponentSize, FileTreeNodeType, StatusTone } from '@/shared/m
 import UIExplorerActions from './UIExplorerActions.vue'
 import FolderCreateModal from './FolderCreateModal.vue'
 import ExplorerDeleteModal from './ExplorerDeleteModal.vue'
+import ImportNoteModal from './ImportNoteModal.vue'
 import { useExplorerEntityActions } from '../model/useExplorerEntityActions'
+import { useNoteImport } from '../model/useNoteImport'
 import { FileEntityTypes } from '../model/types'
 import { type StatusView, SyncStatus } from '@/entities/node'
 import UiStatus from '../../../shared/ui/UiStatus.vue'
@@ -80,6 +82,12 @@ const {
       selectedNote.value = ''
     }
   },
+)
+
+const noteImport = useNoteImport(
+  selectedFolder,
+  folderIds,
+  (noteId) => (selectedNote.value = noteId),
 )
 
 const editValue = computed(() => {
@@ -190,11 +198,18 @@ const sidebarContentClasses = computed(() =>
         :error="deleteError"
         @confirm="remove"
       />
+      <ImportNoteModal
+        v-model="noteImport.isOpen.value"
+        :importing="noteImport.isImporting.value"
+        :error="noteImport.error.value"
+        @import="noteImport.importNote"
+      />
       <UIExplorerActions
         class="relative z-10 shrink-0"
         :selected-node="preSelect"
         :selected-nodes="preSelects"
         @create-entity="open"
+        @import-note="noteImport.open"
         @edit="openEdit"
         @delete="requestDeleteMany"
         @expand-all="expandAllFolders"

@@ -1,3 +1,6 @@
 export type { Node } from './model/types'
 export { useNoteBlocks } from './model/useNoteBlocks'
 export { getSyncStatusView, SyncStatus, type StatusView } from './model/syncStatus'
+export { parseImportedBlocks } from './model/importBlocks'
+export { appendImportedBlocks, saveImportedBlocks } from './model/saveImportedBlocks'
+export { getNoteRevision, reloadNote } from './model/noteRevision'

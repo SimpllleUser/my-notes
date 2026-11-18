@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { NoteBlocksEditor } from '@/widgets/note-blocks-editor'
 import { useNoteLookup } from '@/entities/note'
-import { SyncStatus } from '@/entities/node'
+import { getNoteRevision, SyncStatus } from '@/entities/node'
 import { UiDivider } from '@/shared/ui'
 import { useWorkbenchStore } from '../model/useWorkbenchStore'
 import type { EditorGroup } from '../model/types'
@@ -48,7 +48,7 @@ function setStatus(noteId: string, status: SyncStatus) {
         <slot name="header" :note-id="group.activeTab" />
         <UiDivider class="my-0 mr-1" />
         <NoteBlocksEditor
-          :key="group.activeTab"
+          :key="`${group.activeTab}:${getNoteRevision(group.activeTab)}`"
           :note-id="group.activeTab"
           :full-size="fullSize"
           :read-only="readOnly"
