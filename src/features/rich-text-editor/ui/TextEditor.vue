@@ -8,7 +8,7 @@ import { ThemePalette } from '@/shared/model/enums.ts'
 import { inlineToolbar, tools } from '../model/tools'
 import EditorMobileToolbar from './EditorMobileToolbar.vue'
 
-type EditorProps = Pick<BlokConfig, 'tools' | 'inlineToolbar' | 'style' | 'theme'> & {
+type EditorProps = Pick<BlokConfig, 'tools' | 'inlineToolbar' | 'style' | 'theme' | 'readOnly'> & {
   data: OutputData
   onSave?: (data: OutputData) => void
   onReady?: (blok: Blok) => void
@@ -20,7 +20,7 @@ const BlokEditor = RawBlokEditor as unknown as DefineComponent<EditorProps>
 
 defineOptions({ name: 'TextEditor' })
 
-const props = defineProps<{ content: OutputData; fullSize: boolean }>()
+const props = defineProps<{ content: OutputData; fullSize: boolean; readOnly?: boolean }>()
 const emit = defineEmits<{ update: [data: OutputData] }>()
 
 const blok = shallowRef<Blok | null>(null)
@@ -67,7 +67,7 @@ function handleSave(data: OutputData) {
 
 <template>
   <div ref="editorEl" class="min-h-[70dvh] bg-base-100 shadow-sm note-editor">
-    <div class="pb-10">
+    <div class="pb-10 transition-[padding] duration-200" :class="{ 'pl-4 md:pl-10': readOnly }">
       <BlokEditor
         class="editor-fullscreen"
         :tools="tools"
@@ -75,13 +75,14 @@ function handleSave(data: OutputData) {
         :data="content"
         :style="style"
         :theme="editorTheme"
+        :read-only="readOnly ? { hideControls: true } : false"
         @save="handleSave"
         @ready="blok = $event"
         width="100%"
       />
     </div>
   </div>
-  <EditorMobileToolbar :blok="blok" :editor-el="editorEl" />
+  <EditorMobileToolbar v-if="!readOnly" :blok="blok" :editor-el="editorEl" />
 </template>
 
 <style scoped>

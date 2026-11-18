@@ -10,7 +10,7 @@ import WorkbenchTabs from './WorkbenchTabs.vue'
 
 defineOptions({ name: 'EditorGroup' })
 
-const props = defineProps<{ group: EditorGroup; fullSize: boolean }>()
+const props = defineProps<{ group: EditorGroup; fullSize: boolean; readOnly: boolean }>()
 const statuses = defineModel<Record<string, SyncStatus>>('statuses', { default: () => ({}) })
 
 const store = useWorkbenchStore()
@@ -51,6 +51,7 @@ function setStatus(noteId: string, status: SyncStatus) {
           :key="group.activeTab"
           :note-id="group.activeTab"
           :full-size="fullSize"
+          :read-only="readOnly"
           @update:status="setStatus(group.activeTab, $event)"
         />
       </template>

@@ -7,7 +7,7 @@ import WorkbenchResizer from './WorkbenchResizer.vue'
 
 defineOptions({ name: 'EditorWorkbench' })
 
-defineProps<{ fullSize: boolean }>()
+defineProps<{ fullSize: boolean; readOnly: boolean }>()
 /** Статус синхронізації кожної відкритої нотатки (noteId → status). */
 const statuses = defineModel<Record<string, SyncStatus>>('statuses', { default: () => ({}) })
 
@@ -30,7 +30,12 @@ function resizeAfter(groupId: string, deltaPx: number) {
         v-if="index > 0"
         @resize="resizeAfter(store.groups[index - 1].id, $event)"
       />
-      <EditorGroup v-model:statuses="statuses" :group="group" :full-size="fullSize">
+      <EditorGroup
+        v-model:statuses="statuses"
+        :group="group"
+        :full-size="fullSize"
+        :read-only="readOnly"
+      >
         <template #header="slotProps">
           <slot name="header" v-bind="slotProps" />
         </template>

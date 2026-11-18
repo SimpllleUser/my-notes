@@ -8,7 +8,7 @@ import { useFoldersStore } from '@/entities/folder'
 import { useNoteLookup } from '@/entities/note'
 import { UiButton } from '@/shared/ui'
 import { ButtonVariant, ComponentSize, DaisyColor } from '@/shared/model/enums.ts'
-import { Maximize, Minimize } from '@lucide/vue'
+import { BookOpen, Maximize, Minimize, Pencil } from '@lucide/vue'
 import HomePageHeader from '@/pages/home/ui/HomePageHeader.vue'
 
 defineOptions({
@@ -21,6 +21,7 @@ const { findNote, noteIds, isLoaded } = useNoteLookup()
 
 const folderId = useLocalStorage('folderId', '')
 const fullSizeEditor = useLocalStorage('fullSizeEditor', false)
+const readMode = useLocalStorage('readMode', false)
 const statuses = ref<Record<string, SyncStatus>>({})
 
 // Активна нотатка належить workbench; провідник лише відкриває нотатки у вкладках.
@@ -58,7 +59,11 @@ watch(
   <div class="flex h-[calc(100dvh-3.75rem)] min-w-0 flex-col overflow-hidden md:flex-row">
     <UIExplorer :status="statusView" v-model:folder="folderId" v-model:note="noteId" />
     <main class="min-h-0 min-w-0 flex-1 overflow-hidden">
-      <EditorWorkbench v-model:statuses="statuses" :full-size="fullSizeEditor">
+      <EditorWorkbench
+        v-model:statuses="statuses"
+        :full-size="fullSizeEditor"
+        :read-only="readMode"
+      >
         <template #header="{ noteId: headerNoteId }">
           <HomePageHeader
             v-if="getHeaderData(headerNoteId).folder"
@@ -67,11 +72,23 @@ watch(
           >
             <template #actions>
               <UiButton
+                @click="readMode = !readMode"
+                :size="ComponentSize.Small"
+                :variant="ButtonVariant.Ghost"
+                :color="DaisyColor.Neutral"
+                :title="readMode ? 'Режим редагування' : 'Режим читання'"
+                :aria-label="readMode ? 'Режим редагування' : 'Режим читання'"
+                :aria-pressed="readMode"
+                class="ml-auto"
+              >
+                <Pencil :size="16" v-if="readMode" />
+                <BookOpen :size="16" v-else />
+              </UiButton>
+              <UiButton
                 @click="fullSizeEditor = !fullSizeEditor"
                 :size="ComponentSize.Small"
                 :variant="ButtonVariant.Ghost"
                 :color="DaisyColor.Neutral"
-                class="ml-auto"
               >
                 <Maximize :size="16" v-if="fullSizeEditor" />
                 <Minimize :size="16" v-else />
