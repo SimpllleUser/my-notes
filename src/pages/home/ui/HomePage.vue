@@ -22,12 +22,19 @@ const folderId = useLocalStorage('folderId', '')
 const noteId = useLocalStorage('noteId', '')
 const syncStatus = ref<SyncStatus>(SyncStatus.Saved)
 const statusView = computed(() => getSyncStatusView(syncStatus.value))
-const folder = computed(() => foldersStore.getFolder(folderId.value))
-const noteTitle = computed(
-  () =>
-    notesStore.getNoteByFolder(folderId.value).find((note) => note.$id === noteId.value)?.name ||
-    '',
+// Header reflects the active note only: selecting another folder must not change it.
+const activeNoteEntry = computed(() => {
+  if (!noteId.value) return null
+  for (const [ownerFolderId, notes] of Object.entries(notesStore.noteByFolders)) {
+    const note = notes.find(({ $id }) => $id === noteId.value)
+    if (note) return { folderId: ownerFolderId, note }
+  }
+  return null
+})
+const folder = computed(() =>
+  activeNoteEntry.value ? foldersStore.getFolder(activeNoteEntry.value.folderId) : undefined,
 )
+const noteTitle = computed(() => activeNoteEntry.value?.note.name ?? '')
 
 const fullSizeEditor = useLocalStorage('fullSizeEditor', false)
 </script>
