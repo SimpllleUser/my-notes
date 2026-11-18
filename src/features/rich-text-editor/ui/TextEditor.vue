@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { BlokEditor as RawBlokEditor } from '@bloklabs/vue'
 import type { DefineComponent } from 'vue'
-import type { OutputData } from '@bloklabs/core'
-import type { BlokConfig } from '@bloklabs/core'
-import { computed } from 'vue'
+import type { Blok, BlokConfig, OutputData } from '@bloklabs/core'
+import { computed, shallowRef, useTemplateRef } from 'vue'
 import { useTheme } from '@/shared/lib/theme.ts'
 import { ThemePalette } from '@/shared/model/enums.ts'
 import { inlineToolbar, tools } from '../model/tools'
+import EditorMobileToolbar from './EditorMobileToolbar.vue'
 
 type EditorProps = Pick<BlokConfig, 'tools' | 'inlineToolbar' | 'style' | 'theme'> & {
   data: OutputData
   onSave?: (data: OutputData) => void
+  onReady?: (blok: Blok) => void
 }
 
 // @bloklabs/vue's exported component resolves to `never` in vue-tsc. Keep a
@@ -21,6 +22,9 @@ defineOptions({ name: 'TextEditor' })
 
 const props = defineProps<{ content: OutputData; fullSize: boolean }>()
 const emit = defineEmits<{ update: [data: OutputData] }>()
+
+const blok = shallowRef<Blok | null>(null)
+const editorEl = useTemplateRef<HTMLElement>('editorEl')
 
 const { theme } = useTheme()
 const editorTheme = computed(() =>
@@ -62,7 +66,7 @@ function handleSave(data: OutputData) {
 </script>
 
 <template>
-  <div class="min-h-[70dvh] bg-base-100 shadow-sm note-editor">
+  <div ref="editorEl" class="min-h-[70dvh] bg-base-100 shadow-sm note-editor">
     <div class="pb-10">
       <BlokEditor
         class="editor-fullscreen"
@@ -72,10 +76,12 @@ function handleSave(data: OutputData) {
         :style="style"
         :theme="editorTheme"
         @save="handleSave"
+        @ready="blok = $event"
         width="100%"
       />
     </div>
   </div>
+  <EditorMobileToolbar :blok="blok" :editor-el="editorEl" />
 </template>
 
 <style scoped>
