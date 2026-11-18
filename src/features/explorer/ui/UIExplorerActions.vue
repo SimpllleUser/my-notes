@@ -18,6 +18,7 @@ const BUTTON_PROPS = {
 
 const emit = defineEmits<{
   'create-entity': [type: FileEntityTypes]
+  'import-note': []
   edit: [node: FileTreeNode]
   delete: [nodes: FileTreeNode[]]
   'expand-all': []
@@ -35,6 +36,11 @@ const entityOptions = [
 
 function chooseEntity(type: FileEntityTypes, hide: () => void) {
   emit('create-entity', type)
+  hide()
+}
+
+function chooseImport(hide: () => void) {
+  emit('import-note')
   hide()
 }
 
@@ -81,6 +87,12 @@ function runAction(action: ExplorerItemAction, node: FileTreeNode | null, hide: 
               @click="chooseEntity(option.type, hide)"
             >
               {{ option.label }}
+            </button>
+            <button
+              class="rounded px-2 py-1 text-left text-xs hover:bg-base-200"
+              @click="chooseImport(hide)"
+            >
+              Import note
             </button>
           </div>
         </template>

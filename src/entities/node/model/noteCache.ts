@@ -26,6 +26,10 @@ export const noteCache = {
     if (cache.size > MAX_CACHED_NOTES) cache.delete(cache.keys().next().value!)
   },
 
+  delete(noteId: string) {
+    cache.delete(noteId)
+  },
+
   clear() {
     cache.clear()
   },
