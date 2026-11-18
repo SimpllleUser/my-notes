@@ -34,19 +34,14 @@ const fullSizeEditor = useLocalStorage('fullSizeEditor', false)
 
 <template>
   <div
-    class="grid h-[calc(100dvh-3.75rem)] min-w-0 grid-rows-[auto_minmax(0,1fr)] grid-cols-1 overflow-hidden md:grid-rows-1 md:grid-cols-[minmax(14rem,20rem)_minmax(0,1fr)]"
+    class="flex h-[calc(100dvh-3.75rem)] min-w-0 flex-col overflow-hidden md:flex-row"
   >
-    <aside
-      class="flex h-56 min-h-0 min-w-0 max-h-56 flex-col overflow-hidden bg-base-300 md:sticky md:top-0 md:h-full md:max-h-none"
-    >
       <UIExplorer
         :status="statusView"
-        class="w-full"
         v-model:folder="folderId"
         v-model:note="noteId"
       />
-    </aside>
-    <main class="min-h-0 min-w-0 overflow-hidden">
+    <main class="min-h-0 min-w-0 flex-1 overflow-hidden">
       <div class="h-full min-h-0 min-w-0 overflow-x-hidden overflow-y-auto">
         <HomePageHeader v-if="folder" :folder="folder" :note-title="noteTitle">
           <template #actions>

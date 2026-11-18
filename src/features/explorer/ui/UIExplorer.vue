@@ -11,6 +11,7 @@ import { useExplorerEntityActions } from '../model/useExplorerEntityActions'
 import { FileEntityTypes } from '../model/types'
 import { type StatusView, SyncStatus } from '@/entities/node'
 import UiStatus from '../../../shared/ui/UiStatus.vue'
+import { useLocalStorage } from '@vueuse/core'
 
 defineOptions({
   name: 'UIExplorer',
@@ -147,67 +148,96 @@ const folderMap = computed(() =>
     {},
   ),
 )
+
+const expandSidebar = useLocalStorage('expand-sidebar', true)
+
+// Mobile: sidebar is a top block that collapses by height.
+// Desktop (md+): sidebar is a left column that collapses by width and peeks on hover.
+const sidebarClasses = computed(() =>
+  expandSidebar.value
+    ? 'h-56 max-h-56 md:w-65'
+    : 'h-10 max-h-10 md:w-10 md:hover:w-65',
+)
+
+const sidebarContentClasses = computed(() =>
+  expandSidebar.value
+    ? ''
+    : 'pointer-events-none opacity-0 md:group-hover/sidebar:pointer-events-auto md:group-hover/sidebar:opacity-100',
+)
 </script>
 
 <template>
-  <div class="flex h-full min-h-0 flex-col">
-    <FolderCreateModal
-      v-model="isOpen"
-      :type="type"
-      :mode="mode"
-      :initial-value="editValue"
-      :saving="isSaving"
-      :error="error"
-      @save="save"
-    />
-    <ExplorerDeleteModal
-      v-model:open="isDeleteOpen"
-      :name="target?.entity.name ?? ''"
-      :type="target?.type ?? null"
-      :count="preSelects.length"
-      :deleting="isDeleting"
-      :error="deleteError"
-      @confirm="remove"
-    />
-    <UIExplorerActions
-      class="relative z-10 shrink-0"
-      :selected-node="preSelect"
-      :selected-nodes="preSelects"
-      @create-entity="open"
-      @edit="openEdit"
-      @delete="requestDeleteMany"
-      @expand-all="expandAllFolders"
-      @collapse-all="collapseAllFolders"
-    />
-    <div class="min-h-0 flex-1 overflow-y-auto">
-    <UiFileTree
-      withDoubleClick
-      @select="onSelectTree"
-      @pre-select="onPreSelectTree"
-      v-model:pre-select="preSelect"
-      v-model:pre-selects="preSelects"
-      v-model:expanded="expandedFolderIds"
-      v-model="selectedTreeId"
-      :items="treeItems"
-    >
-      <template #icon="scope">
-        <div v-if="scope.node?.children" class="p-1 rounded-sm" :class="folderMap[scope.node.id]?.color">
-          <UiDynamicIcon :name="folderMap[scope.node.id]?.icon" class="size-4 shrink-0" />
-        </div>
-      </template>
-      <template #label="scope">
-        <span v-bind="scope">{{ scope.node.label }}</span>
-        <UiStatus
-          v-if="!scope.node?.children && scope.selected && status.status === SyncStatus.Saving"
-          :size="ComponentSize.Medium"
-          :tone="StatusTone.Warning"
-          :animate="Animate.Bounce"
-        />
-        <span v-else class="pr-4"></span>
-      </template>
-    </UiFileTree>
+  <aside
+    class="group/sidebar flex min-h-0 w-full min-w-0 shrink-0 flex-col overflow-hidden bg-base-300 transition-[width,height,max-height] duration-300 ease-in-out motion-reduce:transition-none md:sticky md:top-0 md:h-full md:max-h-none"
+    :class="sidebarClasses"
+  >
+    <div class="flex h-56 min-h-0 w-full flex-col md:h-full md:w-65">
+      <FolderCreateModal
+        v-model="isOpen"
+        :type="type"
+        :mode="mode"
+        :initial-value="editValue"
+        :saving="isSaving"
+        :error="error"
+        @save="save"
+      />
+      <ExplorerDeleteModal
+        v-model:open="isDeleteOpen"
+        :name="target?.entity.name ?? ''"
+        :type="target?.type ?? null"
+        :count="preSelects.length"
+        :deleting="isDeleting"
+        :error="deleteError"
+        @confirm="remove"
+      />
+      <UIExplorerActions
+        class="relative z-10 shrink-0"
+        :selected-node="preSelect"
+        :selected-nodes="preSelects"
+        @create-entity="open"
+        @edit="openEdit"
+        @delete="requestDeleteMany"
+        @expand-all="expandAllFolders"
+        @collapse-all="collapseAllFolders"
+        v-model:expand-sidebar="expandSidebar"
+      />
+      <div
+        class="min-h-0 flex-1 overflow-y-auto transition-opacity duration-200 ease-in-out motion-reduce:transition-none"
+        :class="sidebarContentClasses"
+      >
+        <UiFileTree
+          withDoubleClick
+          @select="onSelectTree"
+          @pre-select="onPreSelectTree"
+          v-model:pre-select="preSelect"
+          v-model:pre-selects="preSelects"
+          v-model:expanded="expandedFolderIds"
+          v-model="selectedTreeId"
+          :items="treeItems"
+        >
+          <template #icon="scope">
+            <div
+              v-if="scope.node?.children"
+              class="p-1 rounded-sm"
+              :class="folderMap[scope.node.id]?.color"
+            >
+              <UiDynamicIcon :name="folderMap[scope.node.id]?.icon" class="size-4 shrink-0" />
+            </div>
+          </template>
+          <template #label="scope">
+            <span v-bind="scope">{{ scope.node.label }}</span>
+            <UiStatus
+              v-if="!scope.node?.children && scope.selected && status.status === SyncStatus.Saving"
+              :size="ComponentSize.Medium"
+              :tone="StatusTone.Warning"
+              :animate="Animate.Bounce"
+            />
+            <span v-else class="pr-4"></span>
+          </template>
+        </UiFileTree>
+      </div>
     </div>
-  </div>
+  </aside>
 </template>
 
 <style scoped></style>
