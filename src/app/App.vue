@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useLayout } from '@/app/layouts/model/useLayout.ts'
 import { UiModal } from '@/shared/ui'
+import AppUpdateToast from '@/app/ui/AppUpdateToast.vue'
 
 const { layout } = useLayout()
 </script>
@@ -10,4 +11,5 @@ const { layout } = useLayout()
     <router-view />
   </component>
   <UiModal global />
+  <AppUpdateToast />
 </template>
