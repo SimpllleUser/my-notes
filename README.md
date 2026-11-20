@@ -46,3 +46,29 @@ yarn build
 ```sh
 yarn lint
 ```
+
+## MCP-сервер для Claude
+
+Worker віддає MCP (Streamable HTTP) на `/mcp`, решта шляхів — SPA. Код: `worker/`.
+
+Tools: `list_folders`, `list_notes`, `search_notes`, `read_note`, `create_note`, `append_to_note`, `update_note`.
+
+Налаштування:
+
+```sh
+# Appwrite → API keys: scopes databases.read + databases.write (лише на потрібні таблиці)
+wrangler secret put APPWRITE_API_KEY
+wrangler secret put MCP_TOKEN        # довга випадкова строка, напр. `openssl rand -hex 32`
+yarn deploy
+```
+
+Локально: скопіювати `.dev.vars.example` у `.dev.vars` і запустити `yarn preview`.
+
+Підключення в Claude Code:
+
+```sh
+claude mcp add --transport http notes https://my-notes.<subdomain>.workers.dev/mcp \
+  --header "Authorization: Bearer <MCP_TOKEN>"
+```
+
+Якщо таблиці Appwrite перевіряють права на рівні рядка, додайте змінну `OWNER_USER_ID`, щоб створені рядки були видимі у застосунку.

@@ -45,6 +45,7 @@ const pwa = VitePWA({
         options: { cacheName: 'assets', expiration: { maxEntries: 150 } },
       },
     ],
+    navigateFallbackDenylist: [/^\/mcp/],
     cleanupOutdatedCaches: true,
   },
 })
